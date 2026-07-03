@@ -3,7 +3,7 @@ import ListaJugadores from './ListaJugadores'
 import PerfilJugador from './PerfilJugador'
 import AgregarJugador from './AgregarJugador'
 
-function PlantelSection({ onVerFichaMedica }) {
+function PlantelSection({ onVerFichaMedica, onVerVideos }) {
   const [vista, setVista] = useState('lista')
   const [jugadorSeleccionado, setJugadorSeleccionado] = useState(null)
 
@@ -23,6 +23,7 @@ function PlantelSection({ onVerFichaMedica }) {
         jugadorId={jugadorSeleccionado}
         onVolver={volver}
         onVerFichaMedica={onVerFichaMedica}
+        onVerVideos={onVerVideos}
       />
     )
   }

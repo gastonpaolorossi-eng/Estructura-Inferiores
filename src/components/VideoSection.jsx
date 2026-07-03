@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 
-function VideoSection() {
+function VideoSection({ jugadorInicialId, onConsumirJugadorInicial }) {
   const [tipo, setTipo] = useState('colectivo')
   const [categorias, setCategorias] = useState([])
   const [jugadores, setJugadores] = useState([])
+  const [partidos, setPartidos] = useState([])
   const [videos, setVideos] = useState([])
   const [categoriaId, setCategoriaId] = useState('')
   const [busqueda, setBusqueda] = useState('')
@@ -16,6 +17,7 @@ function VideoSection() {
   const [url, setUrl] = useState('')
   const [catForm, setCatForm] = useState('')
   const [jugadorForm, setJugadorForm] = useState('')
+  const [partidoForm, setPartidoForm] = useState('')
 
   const inputStyle = {
     backgroundColor: '#1A2332',
@@ -32,6 +34,17 @@ function VideoSection() {
         .select('*, categorias(nombre)')
         .order('apellido')
       setJugadores(jugs || [])
+      const { data: parts } = await supabase
+        .from('partidos')
+        .select('*')
+        .order('fecha', { ascending: false })
+      setPartidos(parts || [])
+
+      if (jugadorInicialId) {
+        setTipo('individual')
+        setBusqueda('')
+        onConsumirJugadorInicial()
+      }
     }
     cargarBase()
   }, [])
@@ -43,7 +56,7 @@ function VideoSection() {
   async function cargarVideos() {
     const { data } = await supabase
       .from('videos')
-      .select('*, categorias(nombre), jugadores(nombre, apellido, categoria_id)')
+      .select('*, categorias(nombre), jugadores(nombre, apellido, categoria_id), partidos(rival, fecha)')
       .eq('tipo', tipo)
       .order('fecha', { ascending: false })
     setVideos(data || [])
@@ -73,6 +86,7 @@ function VideoSection() {
         tipo: 'individual',
         fecha: fecha,
         jugador_id: jugadorForm || null,
+        partido_id: partidoForm || null,
         url: url,
       })
     }
@@ -83,7 +97,17 @@ function VideoSection() {
     setUrl('')
     setCatForm('')
     setJugadorForm('')
+    setPartidoForm('')
     setMostrarForm(false)
+    cargarVideos()
+  }
+
+  async function handleEliminarVideo(e, videoId) {
+    e.preventDefault()
+    e.stopPropagation()
+    const confirmar = window.confirm('¿Seguro que querés eliminar este video?')
+    if (!confirmar) return
+    await supabase.from('videos').delete().eq('id', videoId)
     cargarVideos()
   }
 
@@ -209,19 +233,34 @@ function VideoSection() {
                 />
               </>
             ) : (
-              <select
-                value={jugadorForm}
-                onChange={(e) => setJugadorForm(e.target.value)}
-                className="w-full p-2.5 rounded-xl outline-none text-sm"
-                style={inputStyle}
-              >
-                <option value="">Jugador</option>
-                {jugadores.map((j) => (
-                  <option key={j.id} value={j.id}>
-                    {j.apellido}, {j.nombre} ({j.categorias ? j.categorias.nombre : ''})
-                  </option>
-                ))}
-              </select>
+              <>
+                <select
+                  value={jugadorForm}
+                  onChange={(e) => setJugadorForm(e.target.value)}
+                  className="w-full p-2.5 rounded-xl outline-none text-sm"
+                  style={inputStyle}
+                >
+                  <option value="">Jugador</option>
+                  {jugadores.map((j) => (
+                    <option key={j.id} value={j.id}>
+                      {j.apellido}, {j.nombre} ({j.categorias ? j.categorias.nombre : ''})
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={partidoForm}
+                  onChange={(e) => setPartidoForm(e.target.value)}
+                  className="w-full p-2.5 rounded-xl outline-none text-sm"
+                  style={inputStyle}
+                >
+                  <option value="">Partido (opcional)</option>
+                  {partidos.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      vs {p.rival} — {p.fecha}
+                    </option>
+                  ))}
+                </select>
+              </>
             )}
 
             <input
@@ -252,6 +291,7 @@ function VideoSection() {
               : ''
             const titulo = tipo === 'colectivo' ? tituloColectivo : tituloIndividual
             const badge = tipo === 'colectivo' ? (v.categorias ? v.categorias.nombre : '') : v.fecha
+            const vsPartido = v.partidos ? `vs ${v.partidos.rival}` : null
 
             return (
               
@@ -266,16 +306,32 @@ function VideoSection() {
                   <p className="text-sm font-medium" style={{ color: '#F0F2F5' }}>
                     {titulo}
                   </p>
-                  <span
-                    className="text-xs font-mono px-2 py-1 rounded-full"
-                    style={{ backgroundColor: '#0F1419', color: '#8A9BB8' }}
-                  >
-                    {badge}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="text-xs font-mono px-2 py-1 rounded-full"
+                      style={{ backgroundColor: '#0F1419', color: '#8A9BB8' }}
+                    >
+                      {badge}
+                    </span>
+                    <button
+                      onClick={(e) => handleEliminarVideo(e, v.id)}
+                      className="text-xs px-2 py-1 rounded-full hover:opacity-80"
+                      style={{ backgroundColor: '#0F1419', color: '#F87171' }}
+                    >
+                      🗑
+                    </button>
+                  </div>
                 </div>
-                <p className="text-xs mt-1" style={{ color: '#5B6B85' }}>
-                  {v.fecha}
-                </p>
+                <div className="flex items-center gap-2 mt-1">
+                  <p className="text-xs" style={{ color: '#5B6B85' }}>
+                    {v.fecha}
+                  </p>
+                  {vsPartido && (
+                    <span className="text-xs" style={{ color: '#8A9BB8' }}>
+                      · {vsPartido}
+                    </span>
+                  )}
+                </div>
               </a>
             )
           })}

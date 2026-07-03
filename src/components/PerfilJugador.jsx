@@ -35,10 +35,12 @@ function formatearFecha(fechaNacimiento) {
   return `${dia}/${mes}/${anio}`
 }
 
-function PerfilJugador({ jugadorId, onVolver, onVerFichaMedica }) {
+function PerfilJugador({ jugadorId, onVolver, onVerFichaMedica, onVerVideos }) {
   const [jugador, setJugador] = useState(null)
   const [estadisticas, setEstadisticas] = useState([])
   const [fichasMedicas, setFichasMedicas] = useState([])
+  const [videos, setVideos] = useState([])
+  const [eliminando, setEliminando] = useState(false)
 
   useEffect(() => {
     async function cargarDatos() {
@@ -61,9 +63,32 @@ function PerfilJugador({ jugadorId, onVolver, onVerFichaMedica }) {
         .eq('jugador_id', jugadorId)
         .order('fecha', { ascending: false })
       setFichasMedicas(fichasData || [])
+
+      const { data: videosData } = await supabase
+        .from('videos')
+        .select('*')
+        .eq('jugador_id', jugadorId)
+        .eq('tipo', 'individual')
+      setVideos(videosData || [])
     }
     cargarDatos()
   }, [jugadorId])
+
+  async function handleEliminarJugador() {
+    const confirmar = window.confirm(
+      `¿Seguro que querés eliminar a ${jugador.apellido}, ${jugador.nombre}? Esto también borra sus fichas médicas y videos asociados. Esta acción no se puede deshacer.`
+    )
+    if (!confirmar) return
+
+    setEliminando(true)
+    await supabase.from('fichas_medicas').delete().eq('jugador_id', jugadorId)
+    await supabase.from('videos').delete().eq('jugador_id', jugadorId)
+    await supabase.from('estadisticas_jugador').delete().eq('jugador_id', jugadorId)
+    await supabase.from('citaciones').delete().eq('jugador_id', jugadorId)
+    await supabase.from('jugadores').delete().eq('id', jugadorId)
+    setEliminando(false)
+    onVolver()
+  }
 
   if (!jugador) {
     return (
@@ -108,22 +133,38 @@ function PerfilJugador({ jugadorId, onVolver, onVerFichaMedica }) {
               lesionesActivas > 0 ? ` · ${lesionesActivas} activo${lesionesActivas > 1 ? 's' : ''}` : ''
             }`,
       detalle: ultimaFicha ? `Último: ${ultimaFicha.descripcion || ultimaFicha.fecha}` : null,
+      onClick: () => onVerFichaMedica(jugadorId),
     },
     { nombre: 'Nutrición', icono: '🥗', resumen: 'Sin datos cargados' },
     { nombre: 'Psicología', icono: '🧠', resumen: 'Sin datos cargados' },
-    { nombre: 'Videoanálisis', icono: '🎥', resumen: 'Sin datos cargados' },
+    {
+      nombre: 'Videoanálisis',
+      icono: '🎥',
+      resumen: videos.length === 0 ? 'Sin datos cargados' : `${videos.length} video${videos.length > 1 ? 's' : ''}`,
+      onClick: () => onVerVideos(jugadorId),
+    },
   ]
 
   return (
     <div className="min-h-screen p-6 md:p-10" style={{ backgroundColor: '#0F1419' }}>
       <div className="max-w-2xl mx-auto">
-        <button
-          onClick={onVolver}
-          className="text-sm mb-6 flex items-center gap-1 hover:opacity-70 transition-opacity"
-          style={{ color: '#8A9BB8' }}
-        >
-          ← Volver al plantel
-        </button>
+        <div className="flex items-center justify-between mb-6">
+          <button
+            onClick={onVolver}
+            className="text-sm flex items-center gap-1 hover:opacity-70 transition-opacity"
+            style={{ color: '#8A9BB8' }}
+          >
+            ← Volver al plantel
+          </button>
+          <button
+            onClick={handleEliminarJugador}
+            disabled={eliminando}
+            className="text-xs px-3 py-1.5 rounded-lg transition-opacity hover:opacity-80 disabled:opacity-50"
+            style={{ backgroundColor: '#1A2332', color: '#F87171', border: '1px solid #2A3548' }}
+          >
+            {eliminando ? 'Eliminando...' : '🗑 Eliminar jugador'}
+          </button>
+        </div>
 
         <div className="flex items-center gap-4 mb-6">
           <div
@@ -214,9 +255,7 @@ function PerfilJugador({ jugadorId, onVolver, onVerFichaMedica }) {
           {disciplinas.map((d) => (
             <div
               key={d.nombre}
-              onClick={() => {
-                if (d.nombre === 'Kinesiología / Médica') onVerFichaMedica(jugadorId)
-              }}
+              onClick={d.onClick}
               className="p-4 rounded-xl cursor-pointer hover:-translate-y-0.5 transition-all duration-200"
               style={{ backgroundColor: '#1A2332', border: '1px solid #2A3548' }}
             >
