@@ -6,7 +6,7 @@ function AgregarPartido({ categoriaId, onVolver, onGuardado }) {
   const [fecha, setFecha] = useState('')
   const [hora, setHora] = useState('')
   const [lugar, setLugar] = useState('')
-  const [localVisitante, setLocalVisitante] = useState('Local')
+  const [localVisitante, setLocalVisitante] = useState('local')
   const [guardando, setGuardando] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
 
@@ -96,8 +96,8 @@ function AgregarPartido({ categoriaId, onVolver, onGuardado }) {
             className="w-full p-2.5 rounded-xl outline-none text-sm"
             style={inputStyle}
           >
-            <option value="Local">Local</option>
-            <option value="Visitante">Visitante</option>
+            <option value="local">Local</option>
+            <option value="visitante">Visitante</option>
           </select>
         </div>
 
