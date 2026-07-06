@@ -35,7 +35,7 @@ function formatearFecha(fechaNacimiento) {
   return `${dia}/${mes}/${anio}`
 }
 
-function PerfilJugador({ jugadorId, onVolver, onVerFichaMedica, onVerVideos }) {
+function PerfilJugador({ jugadorId, onVolver, onVerFichaMedica, onVerVideos, onVerNutricion, onVerPsicologia, onEditar }) {
   const [jugador, setJugador] = useState(null)
   const [estadisticas, setEstadisticas] = useState([])
   const [fichasMedicas, setFichasMedicas] = useState([])
@@ -135,8 +135,8 @@ function PerfilJugador({ jugadorId, onVolver, onVerFichaMedica, onVerVideos }) {
       detalle: ultimaFicha ? `Último: ${ultimaFicha.descripcion || ultimaFicha.fecha}` : null,
       onClick: () => onVerFichaMedica(jugadorId),
     },
-    { nombre: 'Nutrición', icono: '🥗', resumen: 'Sin datos cargados' },
-    { nombre: 'Psicología', icono: '🧠', resumen: 'Sin datos cargados' },
+    { nombre: 'Nutrición', icono: '🥗', resumen: 'Sin datos cargados', onClick: () => onVerNutricion(jugadorId) },
+    { nombre: 'Psicología', icono: '🧠', resumen: 'Sin datos cargados', onClick: () => onVerPsicologia(jugadorId) },
     {
       nombre: 'Videoanálisis',
       icono: '🎥',
@@ -156,14 +156,23 @@ function PerfilJugador({ jugadorId, onVolver, onVerFichaMedica, onVerVideos }) {
           >
             ← Volver al plantel
           </button>
-          <button
-            onClick={handleEliminarJugador}
-            disabled={eliminando}
-            className="text-xs px-3 py-1.5 rounded-lg transition-opacity hover:opacity-80 disabled:opacity-50"
-            style={{ backgroundColor: '#1A2332', color: '#F87171', border: '1px solid #2A3548' }}
-          >
-            {eliminando ? 'Eliminando...' : '🗑 Eliminar jugador'}
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => onEditar(jugadorId)}
+              className="text-xs px-3 py-1.5 rounded-lg transition-opacity hover:opacity-80"
+              style={{ backgroundColor: '#1A2332', color: '#8A9BB8', border: '1px solid #2A3548' }}
+            >
+              ✏️ Editar
+            </button>
+            <button
+              onClick={handleEliminarJugador}
+              disabled={eliminando}
+              className="text-xs px-3 py-1.5 rounded-lg transition-opacity hover:opacity-80 disabled:opacity-50"
+              style={{ backgroundColor: '#1A2332', color: '#F87171', border: '1px solid #2A3548' }}
+            >
+              {eliminando ? 'Eliminando...' : '🗑 Eliminar'}
+            </button>
+          </div>
         </div>
 
         <div className="flex items-center gap-4 mb-6">

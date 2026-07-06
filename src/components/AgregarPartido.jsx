@@ -1,20 +1,44 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
+import { obtenerFechaHoy } from '../utils/fecha'
 
-function AgregarPartido({ categoriaId, onVolver, onGuardado }) {
+function AgregarPartido({ categoriaId, onVolver, onGuardado, partidoIdEditar }) {
   const [rival, setRival] = useState('')
-  const [fecha, setFecha] = useState('')
+  const [fecha, setFecha] = useState(() => (partidoIdEditar ? '' : obtenerFechaHoy()))
   const [hora, setHora] = useState('')
   const [lugar, setLugar] = useState('')
   const [localVisitante, setLocalVisitante] = useState('local')
   const [guardando, setGuardando] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
+  const [cargando, setCargando] = useState(!!partidoIdEditar)
+
+  const esEdicion = !!partidoIdEditar
 
   const inputStyle = {
     backgroundColor: '#1A2332',
     border: '1px solid #2A3548',
     color: '#F0F2F5',
   }
+
+  useEffect(() => {
+    async function cargarPartido() {
+      if (!partidoIdEditar) return
+      const { data } = await supabase
+        .from('partidos')
+        .select('*')
+        .eq('id', partidoIdEditar)
+        .single()
+      if (data) {
+        setRival(data.rival || '')
+        setFecha(data.fecha || '')
+        setHora(data.hora || '')
+        setLugar(data.lugar || '')
+        setLocalVisitante(data.local_visitante || 'local')
+      }
+      setCargando(false)
+    }
+    cargarPartido()
+  }, [partidoIdEditar])
 
   async function handleGuardar() {
     setErrorMsg('')
@@ -23,20 +47,34 @@ function AgregarPartido({ categoriaId, onVolver, onGuardado }) {
       return
     }
     setGuardando(true)
-    const { error } = await supabase.from('partidos').insert({
+
+    const datos = {
       rival,
       fecha,
       hora: hora || null,
       lugar: lugar || null,
       local_visitante: localVisitante,
       categoria_id: categoriaId,
-    })
+    }
+
+    const { error } = esEdicion
+      ? await supabase.from('partidos').update(datos).eq('id', partidoIdEditar)
+      : await supabase.from('partidos').insert(datos)
+
     setGuardando(false)
     if (error) {
       setErrorMsg('Error al guardar: ' + error.message)
     } else {
       onGuardado()
     }
+  }
+
+  if (cargando) {
+    return (
+      <div className="p-6 md:p-10">
+        <p style={{ color: '#5B6B85' }}>Cargando...</p>
+      </div>
+    )
   }
 
   return (
@@ -54,7 +92,7 @@ function AgregarPartido({ categoriaId, onVolver, onGuardado }) {
           className="text-2xl md:text-3xl mb-8"
           style={{ fontFamily: "'Archivo Black', sans-serif", color: '#F0F2F5' }}
         >
-          Nuevo partido
+          {esEdicion ? 'Editar partido' : 'Nuevo partido'}
         </h1>
 
         <div className="space-y-3 mb-6">
@@ -113,7 +151,7 @@ function AgregarPartido({ categoriaId, onVolver, onGuardado }) {
           className="w-full p-3 rounded-xl font-medium transition-opacity hover:opacity-80 disabled:opacity-50"
           style={{ backgroundColor: '#4ADE80', color: '#0F1419' }}
         >
-          {guardando ? 'Guardando...' : 'Guardar partido'}
+          {guardando ? 'Guardando...' : esEdicion ? 'Guardar cambios' : 'Guardar partido'}
         </button>
       </div>
     </div>

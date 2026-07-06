@@ -13,28 +13,32 @@ function iniciales(nombre, apellido) {
 
 function MedicosSection({ jugadorInicialId, onConsumirJugadorInicial }) {
   const [jugadores, setJugadores] = useState([])
+  const [idsConHistorial, setIdsConHistorial] = useState(new Set())
   const [categoriaId, setCategoriaId] = useState('')
   const [busqueda, setBusqueda] = useState('')
   const [jugadorSeleccionado, setJugadorSeleccionado] = useState(null)
   const [fichas, setFichas] = useState([])
   const [mostrarForm, setMostrarForm] = useState(false)
+  const [fichaEditando, setFichaEditando] = useState(null)
   const [fecha, setFecha] = useState('')
   const [descripcion, setDescripcion] = useState('')
   const [tiempoRecuperacion, setTiempoRecuperacion] = useState('')
   const [recuperado, setRecuperado] = useState(false)
+  const [linkInforme, setLinkInforme] = useState('')
   const [guardando, setGuardando] = useState(false)
 
-  const [estado, setEstado] = useState('disponible')
-  const [estadoDetalle, setEstadoDetalle] = useState('')
   const [guardandoEstado, setGuardandoEstado] = useState(false)
 
- useEffect(() => {
+  useEffect(() => {
     async function cargar() {
       const { data } = await supabase
         .from('jugadores')
         .select('*, categorias(nombre)')
         .order('apellido')
       setJugadores(data || [])
+
+      const { data: historial } = await supabase.from('fichas_medicas').select('jugador_id')
+      setIdsConHistorial(new Set((historial || []).map((f) => f.jugador_id)))
 
       if (jugadorInicialId) {
         const encontrado = data?.find((j) => j.id === jugadorInicialId)
@@ -59,30 +63,102 @@ function MedicosSection({ jugadorInicialId, onConsumirJugadorInicial }) {
   function abrirJugador(j) {
     setJugadorSeleccionado(j)
     setMostrarForm(false)
-    setEstado(j.estado || 'disponible')
-    setEstadoDetalle(j.estado_detalle || '')
+    setFichaEditando(null)
     cargarFichas(j.id)
+  }
+
+  function obtenerFechaHoy() {
+    const hoy = new Date()
+    const anio = hoy.getFullYear()
+    const mes = String(hoy.getMonth() + 1).padStart(2, '0')
+    const dia = String(hoy.getDate()).padStart(2, '0')
+    return `${anio}-${mes}-${dia}`
+  }
+
+  function abrirNuevoRegistro() {
+    setFichaEditando(null)
+    setFecha(obtenerFechaHoy())
+    setDescripcion('')
+    setTiempoRecuperacion('')
+    setRecuperado(false)
+    setLinkInforme('')
+    setMostrarForm(true)
+  }
+
+  function abrirEditarRegistro(f) {
+    setFichaEditando(f)
+    setFecha(f.fecha || '')
+    setDescripcion(f.descripcion || '')
+    setTiempoRecuperacion(f.tiempo_recuperacion || '')
+    setRecuperado(!!f.recuperado)
+    setLinkInforme(f.link_informe || '')
+    setMostrarForm(true)
+  }
+
+  function cancelarForm() {
+    setMostrarForm(false)
+    setFichaEditando(null)
   }
 
   async function handleGuardar() {
     if (!fecha) return
     setGuardando(true)
-    await supabase.from('fichas_medicas').insert({
-      jugador_id: jugadorSeleccionado.id,
+
+    const datos = {
       fecha,
       descripcion,
       tiempo_recuperacion: tiempoRecuperacion || null,
       recuperado,
-    })
+      link_informe: linkInforme || null,
+    }
 
-    if (recuperado) {
+    if (fichaEditando) {
+      await supabase.from('fichas_medicas').update(datos).eq('id', fichaEditando.id)
+    } else {
+      await supabase.from('fichas_medicas').insert({
+        jugador_id: jugadorSeleccionado.id,
+        ...datos,
+      })
+    }
+
+    const nuevoEstado = recuperado ? 'disponible' : 'lesionado'
+    const nuevoDetalle = recuperado ? null : descripcion || 'Lesión'
+
+    await supabase
+      .from('jugadores')
+      .update({ estado: nuevoEstado, estado_detalle: nuevoDetalle })
+      .eq('id', jugadorSeleccionado.id)
+
+    setJugadorSeleccionado((prev) => ({ ...prev, estado: nuevoEstado, estado_detalle: nuevoDetalle }))
+    setJugadores((prev) =>
+      prev.map((j) =>
+        j.id === jugadorSeleccionado.id ? { ...j, estado: nuevoEstado, estado_detalle: nuevoDetalle } : j
+      )
+    )
+    setIdsConHistorial((prev) => new Set(prev).add(jugadorSeleccionado.id))
+
+    setGuardando(false)
+    setFecha('')
+    setDescripcion('')
+    setTiempoRecuperacion('')
+    setRecuperado(false)
+    setLinkInforme('')
+    setMostrarForm(false)
+    setFichaEditando(null)
+    cargarFichas(jugadorSeleccionado.id)
+  }
+
+  async function handleEliminarFicha(fichaId) {
+    const confirmar = window.confirm('¿Seguro que querés eliminar este registro médico?')
+    if (!confirmar) return
+    await supabase.from('fichas_medicas').delete().eq('id', fichaId)
+
+    const quedanActivas = fichas.some((f) => f.id !== fichaId && !f.recuperado)
+    if (!quedanActivas && jugadorSeleccionado.estado === 'lesionado') {
       await supabase
         .from('jugadores')
         .update({ estado: 'disponible', estado_detalle: null })
         .eq('id', jugadorSeleccionado.id)
-
-      setEstado('disponible')
-      setEstadoDetalle('')
       setJugadorSeleccionado((prev) => ({ ...prev, estado: 'disponible', estado_detalle: null }))
       setJugadores((prev) =>
         prev.map((j) =>
@@ -91,29 +167,29 @@ function MedicosSection({ jugadorInicialId, onConsumirJugadorInicial }) {
       )
     }
 
-    setGuardando(false)
-    setFecha('')
-    setDescripcion('')
-    setTiempoRecuperacion('')
-    setRecuperado(false)
-    setMostrarForm(false)
     cargarFichas(jugadorSeleccionado.id)
   }
 
-  async function handleGuardarEstado() {
+  async function handleMarcarDisponible() {
     setGuardandoEstado(true)
     await supabase
       .from('jugadores')
-      .update({ estado, estado_detalle: estadoDetalle || null })
+      .update({ estado: 'disponible', estado_detalle: null })
       .eq('id', jugadorSeleccionado.id)
-    setGuardandoEstado(false)
+    await supabase
+      .from('fichas_medicas')
+      .update({ recuperado: true })
+      .eq('jugador_id', jugadorSeleccionado.id)
+      .eq('recuperado', false)
 
-    setJugadorSeleccionado((prev) => ({ ...prev, estado, estado_detalle: estadoDetalle }))
+    setGuardandoEstado(false)
+    setJugadorSeleccionado((prev) => ({ ...prev, estado: 'disponible', estado_detalle: null }))
     setJugadores((prev) =>
       prev.map((j) =>
-        j.id === jugadorSeleccionado.id ? { ...j, estado, estado_detalle: estadoDetalle } : j
+        j.id === jugadorSeleccionado.id ? { ...j, estado: 'disponible', estado_detalle: null } : j
       )
     )
+    cargarFichas(jugadorSeleccionado.id)
   }
 
   const filtrados = jugadores.filter((j) => {
@@ -122,6 +198,9 @@ function MedicosSection({ jugadorInicialId, onConsumirJugadorInicial }) {
     const coincideBusqueda = !busqueda || nombreCompleto.includes(busqueda.toLowerCase())
     return coincideCategoria && coincideBusqueda
   })
+
+  const lesionados = filtrados.filter((j) => j.estado === 'lesionado')
+  const recuperados = filtrados.filter((j) => j.estado !== 'lesionado' && idsConHistorial.has(j.id))
 
   const inputStyle = {
     backgroundColor: '#1A2332',
@@ -162,38 +241,31 @@ function MedicosSection({ jugadorInicialId, onConsumirJugadorInicial }) {
             <p className="text-xs uppercase tracking-wide mb-3" style={{ color: '#5B6B85' }}>
               Estado del jugador
             </p>
-            <div className="flex gap-2 mb-3">
-              {Object.entries(estadoConfig).map(([key, cfg]) => (
+            <div className="flex items-center justify-between gap-3">
+              <span
+                className="text-sm font-medium px-3 py-1.5 rounded-xl"
+                style={{
+                  backgroundColor: '#0F1419',
+                  color: estadoActual.color,
+                  border: `1px solid ${estadoActual.color}`,
+                }}
+              >
+                {estadoActual.label}
+              </span>
+              {jugadorSeleccionado.estado === 'lesionado' && (
                 <button
-                  key={key}
-                  onClick={() => setEstado(key)}
-                  className="flex-1 py-2 rounded-xl text-sm font-medium transition-opacity hover:opacity-80"
-                  style={{
-                    backgroundColor: estado === key ? cfg.color : '#0F1419',
-                    color: estado === key ? '#0F1419' : '#8A9BB8',
-                    border: `1px solid ${estado === key ? cfg.color : '#2A3548'}`,
-                  }}
+                  onClick={handleMarcarDisponible}
+                  disabled={guardandoEstado}
+                  className="text-sm font-medium px-4 py-2 rounded-xl transition-opacity hover:opacity-80 disabled:opacity-50"
+                  style={{ backgroundColor: '#4ADE80', color: '#0F1419' }}
                 >
-                  {cfg.label}
+                  {guardandoEstado ? 'Actualizando...' : 'Marcar como disponible'}
                 </button>
-              ))}
+              )}
             </div>
-            <input
-              type="text"
-              placeholder="Detalle (ej: esguince de tobillo)"
-              value={estadoDetalle}
-              onChange={(e) => setEstadoDetalle(e.target.value)}
-              className="w-full p-2.5 rounded-xl outline-none text-sm mb-3"
-              style={inputStyle}
-            />
-            <button
-              onClick={handleGuardarEstado}
-              disabled={guardandoEstado}
-              className="w-full p-2.5 rounded-xl font-medium text-sm transition-opacity hover:opacity-80 disabled:opacity-50"
-              style={{ backgroundColor: '#4ADE80', color: '#0F1419' }}
-            >
-              {guardandoEstado ? 'Guardando...' : 'Actualizar estado'}
-            </button>
+            <p className="text-xs mt-2" style={{ color: '#5B6B85' }}>
+              El estado se actualiza automáticamente al agregar un registro médico o marcarlo como recuperado.
+            </p>
           </div>
 
           <div className="flex items-center justify-between mb-3">
@@ -201,7 +273,7 @@ function MedicosSection({ jugadorInicialId, onConsumirJugadorInicial }) {
               Historial médico
             </p>
             <button
-              onClick={() => setMostrarForm(!mostrarForm)}
+              onClick={mostrarForm ? cancelarForm : abrirNuevoRegistro}
               className="text-sm font-medium px-4 py-2 rounded-xl transition-opacity hover:opacity-80 shrink-0"
               style={{ backgroundColor: '#4ADE80', color: '#0F1419' }}
             >
@@ -211,6 +283,11 @@ function MedicosSection({ jugadorInicialId, onConsumirJugadorInicial }) {
 
           {mostrarForm && (
             <div className="space-y-3 mb-6 p-4 rounded-xl" style={{ backgroundColor: '#1A2332', border: '1px solid #2A3548' }}>
+              {fichaEditando && (
+                <p className="text-xs" style={{ color: '#8A9BB8' }}>
+                  Editando registro del {fichaEditando.fecha}
+                </p>
+              )}
               <input
                 type="date"
                 value={fecha}
@@ -242,13 +319,21 @@ function MedicosSection({ jugadorInicialId, onConsumirJugadorInicial }) {
                 />
                 Ya está recuperado
               </label>
+              <input
+                type="text"
+                placeholder="Link del informe (Drive, PDF, etc.)"
+                value={linkInforme}
+                onChange={(e) => setLinkInforme(e.target.value)}
+                className="w-full p-2.5 rounded-xl outline-none text-sm"
+                style={inputStyle}
+              />
               <button
                 onClick={handleGuardar}
                 disabled={guardando}
                 className="w-full p-2.5 rounded-xl font-medium text-sm transition-opacity hover:opacity-80 disabled:opacity-50"
                 style={{ backgroundColor: '#4ADE80', color: '#0F1419' }}
               >
-                {guardando ? 'Guardando...' : 'Guardar registro'}
+                {guardando ? 'Guardando...' : fichaEditando ? 'Guardar cambios' : 'Guardar registro'}
               </button>
             </div>
           )}
@@ -276,9 +361,34 @@ function MedicosSection({ jugadorInicialId, onConsumirJugadorInicial }) {
                     >
                       {f.recuperado ? 'Recuperado' : 'Activo'}
                     </span>
+                    <button
+                      onClick={() => abrirEditarRegistro(f)}
+                      className="text-xs px-2 py-0.5 rounded-full hover:opacity-80"
+                      style={{ backgroundColor: '#0F1419', color: '#8A9BB8' }}
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      onClick={() => handleEliminarFicha(f.id)}
+                      className="text-xs px-2 py-0.5 rounded-full hover:opacity-80"
+                      style={{ backgroundColor: '#0F1419', color: '#F87171' }}
+                    >
+                      🗑
+                    </button>
                   </div>
                 </div>
                 <p className="text-sm" style={{ color: '#F0F2F5' }}>{f.descripcion}</p>
+                {f.link_informe && (
+                  <a
+                    href={f.link_informe}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs mt-1 inline-block underline"
+                    style={{ color: '#8A9BB8' }}
+                  >
+                    📎 Ver informe
+                  </a>
+                )}
               </div>
             ))}
             {fichas.length === 0 && (
@@ -307,32 +417,47 @@ function MedicosSection({ jugadorInicialId, onConsumirJugadorInicial }) {
           onBusquedaChange={setBusqueda}
         />
 
-        <div className="space-y-2">
-          {filtrados.map((j) => (
-            <div
-              key={j.id}
-              onClick={() => abrirJugador(j)}
-              className="flex items-center gap-3 p-3.5 rounded-xl cursor-pointer hover:-translate-y-0.5 transition-all duration-200"
-              style={{ backgroundColor: '#1A2332', border: '1px solid #2A3548' }}
-            >
-              <div
-                className="flex items-center justify-center w-9 h-9 rounded-full shrink-0 text-xs font-bold"
-                style={{ backgroundColor: '#0F1419', border: '2px solid #2A3548', color: '#8A9BB8', fontFamily: "'Archivo Black', sans-serif" }}
-              >
-                {iniciales(j.nombre, j.apellido)}
+        {[
+          { titulo: 'Lesionados', icono: '🟡', color: '#FBBF24', lista: lesionados },
+          { titulo: 'Recuperados', icono: '🟢', color: '#4ADE80', lista: recuperados },
+        ].map(
+          (grupo) =>
+            grupo.lista.length > 0 && (
+              <div key={grupo.titulo} className="mb-6">
+                <p className="text-xs uppercase tracking-wide mb-2" style={{ color: grupo.color }}>
+                  {grupo.icono} {grupo.titulo} ({grupo.lista.length})
+                </p>
+                <div className="space-y-2">
+                  {grupo.lista.map((j) => (
+                    <div
+                      key={j.id}
+                      onClick={() => abrirJugador(j)}
+                      className="flex items-center gap-3 p-3.5 rounded-xl cursor-pointer hover:-translate-y-0.5 transition-all duration-200"
+                      style={{ backgroundColor: '#1A2332', border: `1px solid ${grupo.color}` }}
+                    >
+                      <div
+                        className="flex items-center justify-center w-9 h-9 rounded-full shrink-0 text-xs font-bold"
+                        style={{ backgroundColor: '#0F1419', border: `2px solid ${grupo.color}`, color: grupo.color, fontFamily: "'Archivo Black', sans-serif" }}
+                      >
+                        {iniciales(j.nombre, j.apellido)}
+                      </div>
+                      <p className="flex-1 text-sm" style={{ color: '#F0F2F5' }}>
+                        {j.apellido}, {j.nombre}
+                      </p>
+                      <span className="text-xs font-mono px-2 py-1 rounded-full shrink-0" style={{ backgroundColor: '#0F1419', color: '#8A9BB8' }}>
+                        {j.categorias?.nombre}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <p className="flex-1 text-sm" style={{ color: '#F0F2F5' }}>
-                {j.apellido}, {j.nombre}
-              </p>
-              <span className="text-xs font-mono px-2 py-1 rounded-full shrink-0" style={{ backgroundColor: '#0F1419', color: '#8A9BB8' }}>
-                {j.categorias?.nombre}
-              </span>
-            </div>
-          ))}
-        </div>
+            )
+        )}
 
-        {filtrados.length === 0 && (
-          <p className="text-sm" style={{ color: '#5B6B85' }}>No se encontraron jugadores con ese filtro.</p>
+        {lesionados.length === 0 && recuperados.length === 0 && (
+          <p className="text-sm" style={{ color: '#5B6B85' }}>
+            No hay jugadores lesionados ni con historial médico para ese filtro.
+          </p>
         )}
       </div>
     </div>

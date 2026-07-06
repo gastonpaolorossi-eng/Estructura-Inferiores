@@ -39,6 +39,20 @@ function PartidosSection() {
     )
   }
 
+  if (vista === 'editar') {
+    return (
+      <AgregarPartido
+        categoriaId={categoriaId}
+        partidoIdEditar={partidoId}
+        onVolver={() => setVista('lista')}
+        onGuardado={() => {
+          setRefrescar((r) => r + 1)
+          setVista('lista')
+        }}
+      />
+    )
+  }
+
   if (vista === 'estadisticas') {
     return (
       <CargarEstadisticas
@@ -84,6 +98,10 @@ function PartidosSection() {
         onVerEstadisticas={(id) => {
           setPartidoId(id)
           setVista('estadisticas')
+        }}
+        onEditarPartido={(id) => {
+          setPartidoId(id)
+          setVista('editar')
         }}
       />
     )

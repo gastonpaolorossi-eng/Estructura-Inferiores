@@ -1,7 +1,9 @@
 function Layout({ seccionActiva, onCambiarSeccion, children }) {
-  const secciones = [
+const secciones = [
     { id: 'plantel', label: 'Plantel' },
     { id: 'medicos', label: 'Médicos' },
+    { id: 'nutricion', label: 'Nutrición' },
+    { id: 'psicologia', label: 'Psicología' },
     { id: 'video', label: 'Videoanálisis' },
     { id: 'partidos', label: 'Partidos' },
   ]

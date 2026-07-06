@@ -4,7 +4,7 @@ import PerfilJugador from './PerfilJugador'
 import AgregarJugador from './AgregarJugador'
 import CargaMasiva from './CargaMasiva'
 
-function PlantelSection({ onVerFichaMedica, onVerVideos }) {
+function PlantelSection({ onVerFichaMedica, onVerVideos, onVerNutricion, onVerPsicologia }) {
   const [vista, setVista] = useState('lista')
   const [jugadorSeleccionado, setJugadorSeleccionado] = useState(null)
 
@@ -13,9 +13,18 @@ function PlantelSection({ onVerFichaMedica, onVerVideos }) {
     setVista('perfil')
   }
 
+  function irAEditar(id) {
+    setJugadorSeleccionado(id)
+    setVista('editar')
+  }
+
   function volver() {
     setVista('lista')
     setJugadorSeleccionado(null)
+  }
+
+  function volverAlPerfil() {
+    setVista('perfil')
   }
 
   if (vista === 'perfil') {
@@ -25,12 +34,25 @@ function PlantelSection({ onVerFichaMedica, onVerVideos }) {
         onVolver={volver}
         onVerFichaMedica={onVerFichaMedica}
         onVerVideos={onVerVideos}
+        onVerNutricion={onVerNutricion}
+        onVerPsicologia={onVerPsicologia}
+        onEditar={irAEditar}
       />
     )
   }
 
   if (vista === 'agregar') {
     return <AgregarJugador onVolver={volver} onGuardado={volver} />
+  }
+
+  if (vista === 'editar') {
+    return (
+      <AgregarJugador
+        jugadorIdEditar={jugadorSeleccionado}
+        onVolver={volverAlPerfil}
+        onGuardado={volverAlPerfil}
+      />
+    )
   }
 
   if (vista === 'masiva') {

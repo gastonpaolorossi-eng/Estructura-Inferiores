@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { generarCitacionPDF } from '../utils/generarCitacion'
 
-function ListaPartidos({ categoriaId, onVolver, onElegirPartido, onNuevoPartido, onVerEstadisticas, refrescar }) {
+function ListaPartidos({ categoriaId, onVolver, onElegirPartido, onNuevoPartido, onVerEstadisticas, onEditarPartido, refrescar }) {
   const [partidos, setPartidos] = useState([])
   const [cargando, setCargando] = useState(true)
 
@@ -78,7 +78,7 @@ function ListaPartidos({ categoriaId, onVolver, onElegirPartido, onNuevoPartido,
                 <p className="text-base font-medium" style={{ color: '#F0F2F5' }}>
                   vs {p.rival}
                 </p>
-               <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2">
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
@@ -98,6 +98,16 @@ function ListaPartidos({ categoriaId, onVolver, onElegirPartido, onNuevoPartido,
                     style={{ backgroundColor: '#0F1419', color: '#8A9BB8' }}
                   >
                     📊
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onEditarPartido(p.id)
+                    }}
+                    className="text-xs px-2 py-1 rounded-full hover:opacity-80"
+                    style={{ backgroundColor: '#0F1419', color: '#8A9BB8' }}
+                  >
+                    ✏️
                   </button>
                   {p.resultado && (
                     <span

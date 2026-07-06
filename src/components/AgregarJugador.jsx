@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 
-function AgregarJugador({ onVolver, onGuardado }) {
+function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
   const [categorias, setCategorias] = useState([])
   const [nombre, setNombre] = useState('')
   const [apellido, setApellido] = useState('')
@@ -12,6 +12,9 @@ function AgregarJugador({ onVolver, onGuardado }) {
   const [pieHabil, setPieHabil] = useState('')
   const [guardando, setGuardando] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
+  const [cargando, setCargando] = useState(!!jugadorIdEditar)
+
+  const esEdicion = !!jugadorIdEditar
 
   useEffect(() => {
     async function cargarCategorias() {
@@ -24,6 +27,28 @@ function AgregarJugador({ onVolver, onGuardado }) {
     cargarCategorias()
   }, [])
 
+  useEffect(() => {
+    async function cargarJugador() {
+      if (!jugadorIdEditar) return
+      const { data } = await supabase
+        .from('jugadores')
+        .select('*')
+        .eq('id', jugadorIdEditar)
+        .single()
+      if (data) {
+        setNombre(data.nombre || '')
+        setApellido(data.apellido || '')
+        setCategoriaId(data.categoria_id || '')
+        setEstado(data.estado || 'disponible')
+        setPosicion(data.posicion || '')
+        setFechaNacimiento(data.fecha_nacimiento || '')
+        setPieHabil(data.pie_habil || '')
+      }
+      setCargando(false)
+    }
+    cargarJugador()
+  }, [jugadorIdEditar])
+
   async function handleSubmit(e) {
     e.preventDefault()
     setErrorMsg('')
@@ -34,7 +59,8 @@ function AgregarJugador({ onVolver, onGuardado }) {
     }
 
     setGuardando(true)
-    const { error } = await supabase.from('jugadores').insert({
+
+    const datos = {
       nombre,
       apellido,
       categoria_id: categoriaId,
@@ -42,7 +68,12 @@ function AgregarJugador({ onVolver, onGuardado }) {
       posicion: posicion || null,
       fecha_nacimiento: fechaNacimiento || null,
       pie_habil: pieHabil || null,
-    })
+    }
+
+    const { error } = esEdicion
+      ? await supabase.from('jugadores').update(datos).eq('id', jugadorIdEditar)
+      : await supabase.from('jugadores').insert(datos)
+
     setGuardando(false)
 
     if (error) {
@@ -58,6 +89,14 @@ function AgregarJugador({ onVolver, onGuardado }) {
     color: '#F0F2F5',
   }
 
+  if (cargando) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#0F1419' }}>
+        <p style={{ color: '#5B6B85' }}>Cargando...</p>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen p-6 md:p-10" style={{ backgroundColor: '#0F1419' }}>
       <div className="max-w-md mx-auto">
@@ -66,14 +105,14 @@ function AgregarJugador({ onVolver, onGuardado }) {
           className="text-sm mb-6 flex items-center gap-1 hover:opacity-70 transition-opacity"
           style={{ color: '#8A9BB8' }}
         >
-          ← Volver al plantel
+          ← Volver
         </button>
 
         <h1
           className="text-2xl md:text-3xl mb-8"
           style={{ fontFamily: "'Archivo Black', sans-serif", color: '#F0F2F5' }}
         >
-          Nuevo jugador
+          {esEdicion ? 'Editar jugador' : 'Nuevo jugador'}
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -205,7 +244,7 @@ function AgregarJugador({ onVolver, onGuardado }) {
             className="w-full p-3 rounded-xl font-medium transition-opacity hover:opacity-80 disabled:opacity-50"
             style={{ backgroundColor: '#4ADE80', color: '#0F1419' }}
           >
-            {guardando ? 'Guardando...' : 'Guardar jugador'}
+            {guardando ? 'Guardando...' : esEdicion ? 'Guardar cambios' : 'Guardar jugador'}
           </button>
         </form>
       </div>
