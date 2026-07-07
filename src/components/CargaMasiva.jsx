@@ -37,7 +37,7 @@ function CargaMasiva({ onVolver, onGuardado }) {
     const v = (valor || '').trim()
     if (!v) return null
     // Acepta DD/MM/AAAA
-    const match = v.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/)
+    const match = v.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/)
     if (match) {
       const [, dia, mes, anio] = match
       return `${anio}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`
@@ -207,14 +207,25 @@ function CargaMasiva({ onVolver, onGuardado }) {
         )}
 
         {resultado && (
-          <p
-            className="text-sm mt-4"
-            style={{ color: resultado.ok ? '#4ADE80' : '#F87171' }}
-          >
-            {resultado.ok
-              ? `✅ Se cargaron ${resultado.cantidad} jugadores correctamente.`
-              : `Error: ${resultado.mensaje}`}
-          </p>
+          <>
+            <p
+              className="text-sm mt-4"
+              style={{ color: resultado.ok ? '#4ADE80' : '#F87171' }}
+            >
+              {resultado.ok
+                ? `✅ Se cargaron ${resultado.cantidad} jugadores correctamente.`
+                : `Error: ${resultado.mensaje}`}
+            </p>
+            {resultado.ok && (
+              <button
+                onClick={onGuardado}
+                className="text-sm font-medium px-4 py-2.5 rounded-xl transition-opacity hover:opacity-80 mt-3"
+                style={{ backgroundColor: '#4ADE80', color: '#0F1419' }}
+              >
+                Volver al plantel
+              </button>
+            )}
+          </>
         )}
       </div>
     </div>

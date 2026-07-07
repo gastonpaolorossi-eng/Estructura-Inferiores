@@ -40,6 +40,8 @@ function PerfilJugador({ jugadorId, onVolver, onVerFichaMedica, onVerVideos, onV
   const [estadisticas, setEstadisticas] = useState([])
   const [fichasMedicas, setFichasMedicas] = useState([])
   const [videos, setVideos] = useState([])
+  const [historialCategorias, setHistorialCategorias] = useState([])
+  const [asistencias, setAsistencias] = useState([])
   const [eliminando, setEliminando] = useState(false)
   const [filtroStat, setFiltroStat] = useState(null)
 
@@ -71,6 +73,19 @@ function PerfilJugador({ jugadorId, onVolver, onVerFichaMedica, onVerVideos, onV
         .eq('jugador_id', jugadorId)
         .eq('tipo', 'individual')
       setVideos(videosData || [])
+
+      const { data: historialData } = await supabase
+        .from('historial_categorias')
+        .select('*, categoria_anterior:categoria_anterior_id(nombre), categoria_nueva:categoria_nueva_id(nombre)')
+        .eq('jugador_id', jugadorId)
+        .order('fecha', { ascending: false })
+      setHistorialCategorias(historialData || [])
+
+      const { data: asistenciasData } = await supabase
+        .from('asistencias')
+        .select('*')
+        .eq('jugador_id', jugadorId)
+      setAsistencias(asistenciasData || [])
     }
     cargarDatos()
   }, [jugadorId])
@@ -105,19 +120,25 @@ function PerfilJugador({ jugadorId, onVolver, onVerFichaMedica, onVerVideos, onV
   const totales = estadisticas.reduce(
     (acc, e) => ({
       partidos: acc.partidos + 1,
+      titularidades: acc.titularidades + (e.titular ? 1 : 0),
       minutos: acc.minutos + (e.minutos_jugados || 0),
       goles: acc.goles + (e.goles || 0),
       asistencias: acc.asistencias + (e.asistencias || 0),
       amarillas: acc.amarillas + (e.tarjetas_amarillas || 0),
       rojas: acc.rojas + (e.tarjetas_rojas || 0),
     }),
-    { partidos: 0, minutos: 0, goles: 0, asistencias: 0, amarillas: 0, rojas: 0 }
+    { partidos: 0, titularidades: 0, minutos: 0, goles: 0, asistencias: 0, amarillas: 0, rojas: 0 }
   )
 
   const statConfig = {
     partidos: {
       titulo: 'Partidos jugados',
       filtro: () => true,
+      valor: (e) => (e.minutos_jugados ? `${e.minutos_jugados}'` : null),
+    },
+    titularidades: {
+      titulo: 'Titularidades',
+      filtro: (e) => !!e.titular,
       valor: (e) => (e.minutos_jugados ? `${e.minutos_jugados}'` : null),
     },
     goles: {
@@ -144,6 +165,12 @@ function PerfilJugador({ jugadorId, onVolver, onVerFichaMedica, onVerVideos, onV
 
   const ultimaFicha = fichasMedicas[0]
   const lesionesActivas = fichasMedicas.filter((f) => !f.recuperado).length
+
+  const resumenAsistencia = asistencias.reduce(
+    (acc, a) => ({ ...acc, [a.estado]: (acc[a.estado] || 0) + 1 }),
+    { presente: 0, tarde: 0, ausente: 0, lesionado: 0, enfermo: 0 }
+  )
+  const totalAsistenciaMarcada = asistencias.length
 
   const datosPersonales = [
     { label: 'Posición', valor: jugador.posicion },
@@ -338,9 +365,10 @@ function PerfilJugador({ jugadorId, onVolver, onVerFichaMedica, onVerVideos, onV
         <p className="text-xs tracking-widest uppercase mb-3" style={{ color: '#5B6B85' }}>
           Estadísticas
         </p>
-        <div className="grid grid-cols-3 md:grid-cols-6 gap-3 mb-8">
+        <div className="grid grid-cols-3 md:grid-cols-7 gap-3 mb-8">
           {[
             { label: 'Partidos', valor: totales.partidos, key: 'partidos' },
+            { label: 'Titular', valor: totales.titularidades, key: 'titularidades' },
             { label: 'Minutos', valor: totales.minutos, key: null },
             { label: 'Goles', valor: totales.goles, key: 'goles' },
             { label: 'Asist.', valor: totales.asistencias, key: 'asistencias' },
@@ -396,6 +424,49 @@ function PerfilJugador({ jugadorId, onVolver, onVerFichaMedica, onVerVideos, onV
             </div>
           ))}
         </div>
+
+        {totalAsistenciaMarcada > 0 && (
+          <>
+            <p className="text-xs tracking-widest uppercase mb-3 mt-8" style={{ color: '#5B6B85' }}>
+              Asistencia
+            </p>
+            <div className="flex gap-3 flex-wrap">
+              <p className="text-sm" style={{ color: '#4ADE80' }}>
+                {resumenAsistencia.presente} presente{resumenAsistencia.presente !== 1 ? 's' : ''}
+              </p>
+              <p className="text-sm" style={{ color: '#FBBF24' }}>
+                {resumenAsistencia.tarde} tarde{resumenAsistencia.tarde !== 1 ? 's' : ''}
+              </p>
+              <p className="text-sm" style={{ color: '#F87171' }}>
+                {resumenAsistencia.ausente} ausente{resumenAsistencia.ausente !== 1 ? 's' : ''}
+              </p>
+              <p className="text-sm" style={{ color: '#FB923C' }}>
+                {resumenAsistencia.lesionado} lesionado{resumenAsistencia.lesionado !== 1 ? 's' : ''}
+              </p>
+              <p className="text-sm" style={{ color: '#7DD3FC' }}>
+                {resumenAsistencia.enfermo} enfermo{resumenAsistencia.enfermo !== 1 ? 's' : ''}
+              </p>
+            </div>
+          </>
+        )}
+
+        {historialCategorias.length > 0 && (
+          <>
+            <p className="text-xs tracking-widest uppercase mb-3 mt-8" style={{ color: '#5B6B85' }}>
+              Trayectoria
+            </p>
+            <div className="space-y-1.5">
+              {historialCategorias.map((h) => (
+                <p key={h.id} className="text-sm" style={{ color: '#8A9BB8' }}>
+                  <span style={{ color: '#5B6B85' }}>{formatearFecha(h.fecha)}</span>
+                  {' · '}
+                  {h.categoria_anterior?.nombre || '—'} → {h.categoria_nueva?.nombre || '—'}
+                  {h.temporada && <span style={{ color: '#5B6B85' }}> · temporada {h.temporada}</span>}
+                </p>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </div>
   )

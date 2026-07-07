@@ -93,6 +93,7 @@ function PartidosSection() {
     return (
       <ListaPartidos
         categoriaId={categoriaId}
+        categoriaNombre={categorias.find((c) => c.id === categoriaId)?.nombre}
         refrescar={refrescar}
         onVolver={() => setVista('categorias')}
         onElegirPartido={(id) => {

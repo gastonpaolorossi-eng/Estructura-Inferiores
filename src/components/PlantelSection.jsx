@@ -1,12 +1,23 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import ListaJugadores from './ListaJugadores'
 import PerfilJugador from './PerfilJugador'
 import AgregarJugador from './AgregarJugador'
 import CargaMasiva from './CargaMasiva'
 
-function PlantelSection({ onVerFichaMedica, onVerVideos, onVerNutricion, onVerPsicologia }) {
+function PlantelSection({ onVerFichaMedica, onVerVideos, onVerNutricion, onVerPsicologia, jugadorInicialId, onConsumirJugadorInicial }) {
   const [vista, setVista] = useState('lista')
   const [jugadorSeleccionado, setJugadorSeleccionado] = useState(null)
+
+  useEffect(() => {
+    async function aplicarJugadorInicial() {
+      if (jugadorInicialId) {
+        setJugadorSeleccionado(jugadorInicialId)
+        setVista('perfil')
+        onConsumirJugadorInicial?.()
+      }
+    }
+    aplicarJugadorInicial()
+  }, [jugadorInicialId, onConsumirJugadorInicial])
 
   function irAlPerfil(id) {
     setJugadorSeleccionado(id)

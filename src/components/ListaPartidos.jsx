@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { generarCitacionPDF } from '../utils/generarCitacion'
+import { exportarEstadisticasPDF, exportarEstadisticasCSV } from '../utils/exportarEstadisticas'
 
-function ListaPartidos({ categoriaId, onVolver, onElegirPartido, onNuevoPartido, onGestionarEquipos, onVerEstadisticas, onEditarPartido, refrescar }) {
+function ListaPartidos({ categoriaId, categoriaNombre, onVolver, onElegirPartido, onNuevoPartido, onGestionarEquipos, onVerEstadisticas, onEditarPartido, refrescar }) {
   const [partidos, setPartidos] = useState([])
   const [cargando, setCargando] = useState(true)
+  const [exportando, setExportando] = useState(false)
 
   useEffect(() => {
     async function cargarPartidos() {
@@ -31,6 +33,19 @@ function ListaPartidos({ categoriaId, onVolver, onElegirPartido, onNuevoPartido,
     await supabase.from('partidos').delete().eq('id', partidoId)
 
     setPartidos((prev) => prev.filter((p) => p.id !== partidoId))
+  }
+
+  async function handleExportar(formato) {
+    setExportando(true)
+    try {
+      if (formato === 'pdf') {
+        await exportarEstadisticasPDF(categoriaId, categoriaNombre)
+      } else {
+        await exportarEstadisticasCSV(categoriaId, categoriaNombre)
+      }
+    } finally {
+      setExportando(false)
+    }
   }
 
   return (
@@ -69,6 +84,28 @@ function ListaPartidos({ categoriaId, onVolver, onElegirPartido, onNuevoPartido,
               + Nuevo partido
             </button>
           </div>
+        </div>
+
+        <div className="flex items-center gap-2 mb-6">
+          <span className="text-xs" style={{ color: '#5B6B85' }}>
+            Estadísticas de la categoría:
+          </span>
+          <button
+            onClick={() => handleExportar('pdf')}
+            disabled={exportando}
+            className="text-xs px-3 py-1.5 rounded-lg hover:opacity-80 disabled:opacity-50"
+            style={{ backgroundColor: '#1A2332', color: '#8A9BB8', border: '1px solid #2A3548' }}
+          >
+            📄 PDF
+          </button>
+          <button
+            onClick={() => handleExportar('csv')}
+            disabled={exportando}
+            className="text-xs px-3 py-1.5 rounded-lg hover:opacity-80 disabled:opacity-50"
+            style={{ backgroundColor: '#1A2332', color: '#8A9BB8', border: '1px solid #2A3548' }}
+          >
+            ⬇️ CSV
+          </button>
         </div>
 
         {cargando && <p style={{ color: '#5B6B85' }}>Cargando...</p>}
