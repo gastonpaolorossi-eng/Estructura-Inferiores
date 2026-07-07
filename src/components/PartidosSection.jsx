@@ -7,11 +7,12 @@ import CargarEstadisticas from './CargarEstadisticas'
 import FormacionPartido from './FormacionPartido'
 import EquiposSection from './EquiposSection'
 
-function PartidosSection() {
+function PartidosSection({ perfil }) {
+  const esTecnico = perfil?.rol === 'tecnico'
   const [categorias, setCategorias] = useState([])
-  const [categoriaId, setCategoriaId] = useState('')
+  const [categoriaId, setCategoriaId] = useState(esTecnico ? perfil.categoria_id : '')
   const [partidoId, setPartidoId] = useState(null)
-  const [vista, setVista] = useState('categorias')
+  const [vista, setVista] = useState(esTecnico ? 'lista' : 'categorias')
   const [refrescar, setRefrescar] = useState(0)
 
   useEffect(() => {
@@ -95,7 +96,7 @@ function PartidosSection() {
         categoriaId={categoriaId}
         categoriaNombre={categorias.find((c) => c.id === categoriaId)?.nombre}
         refrescar={refrescar}
-        onVolver={() => setVista('categorias')}
+        onVolver={esTecnico ? null : () => setVista('categorias')}
         onElegirPartido={(id) => {
           setPartidoId(id)
           setVista('convocar')

@@ -4,7 +4,7 @@ import PerfilJugador from './PerfilJugador'
 import AgregarJugador from './AgregarJugador'
 import CargaMasiva from './CargaMasiva'
 
-function PlantelSection({ onVerFichaMedica, onVerVideos, onVerNutricion, onVerPsicologia, jugadorInicialId, onConsumirJugadorInicial }) {
+function PlantelSection({ onVerFichaMedica, onVerVideos, onVerNutricion, onVerPsicologia, jugadorInicialId, onConsumirJugadorInicial, perfil }) {
   const [vista, setVista] = useState('lista')
   const [jugadorSeleccionado, setJugadorSeleccionado] = useState(null)
 
@@ -75,6 +75,7 @@ function PlantelSection({ onVerFichaMedica, onVerVideos, onVerNutricion, onVerPs
       onSelectJugador={irAlPerfil}
       onNuevoJugador={() => setVista('agregar')}
       onCargaMasiva={() => setVista('masiva')}
+      perfil={perfil}
     />
   )
 }

@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { sanitizarNombreArchivo } from '../utils/archivos'
 
-function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABiblioteca }) {
+function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABiblioteca, perfil }) {
+  const esTecnico = perfil?.rol === 'tecnico'
   const [tipo, setTipo] = useState('colectivo')
   const [categorias, setCategorias] = useState([])
   const [jugadores, setJugadores] = useState([])
   const [partidos, setPartidos] = useState([])
   const [videos, setVideos] = useState([])
-  const [categoriaId, setCategoriaId] = useState('')
+  const [categoriaId, setCategoriaId] = useState(esTecnico ? perfil.categoria_id : '')
   const [busqueda, setBusqueda] = useState('')
   const [jugadorFiltroId, setJugadorFiltroId] = useState(null)
   const [busquedaContenido, setBusquedaContenido] = useState('')
@@ -26,7 +27,7 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
   const [imagenBiblioteca, setImagenBiblioteca] = useState('')
   const [subiendoImagenBiblioteca, setSubiendoImagenBiblioteca] = useState(false)
   const [url, setUrl] = useState('')
-  const [catForm, setCatForm] = useState('')
+  const [catForm, setCatForm] = useState(esTecnico ? perfil.categoria_id : '')
   const [jugadorForm, setJugadorForm] = useState('')
   const [partidoForm, setPartidoForm] = useState('')
 
@@ -77,7 +78,7 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
   function cambiarTipo(t) {
     setTipo(t)
     setMostrarForm(false)
-    setCategoriaId('')
+    setCategoriaId(esTecnico ? perfil.categoria_id : '')
     setBusqueda('')
     setJugadorFiltroId(null)
     setBusquedaContenido('')
@@ -174,7 +175,7 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
     setAgregarABiblioteca(false)
     setImagenBiblioteca('')
     setUrl('')
-    setCatForm('')
+    setCatForm(esTecnico ? perfil.categoria_id : '')
     setJugadorForm('')
     setPartidoForm('')
     setMostrarForm(false)
@@ -298,19 +299,28 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
 
         <div className="flex flex-col sm:flex-row gap-3 mb-4">
           {!(tipo === 'individual' && jugadorFiltroId) && (
-            <select
-              value={categoriaId}
-              onChange={(e) => setCategoriaId(e.target.value)}
-              className="p-2.5 rounded-xl outline-none text-sm sm:w-48"
-              style={inputStyle}
-            >
-              <option value="">Todas las categorías</option>
-              {categorias.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.nombre}
-                </option>
-              ))}
-            </select>
+            esTecnico ? (
+              <span
+                className="p-2.5 rounded-xl text-sm sm:w-48 text-center"
+                style={{ ...inputStyle, color: '#8A9BB8' }}
+              >
+                {perfil?.categorias?.nombre || 'Tu categoría'}
+              </span>
+            ) : (
+              <select
+                value={categoriaId}
+                onChange={(e) => setCategoriaId(e.target.value)}
+                className="p-2.5 rounded-xl outline-none text-sm sm:w-48"
+                style={inputStyle}
+              >
+                <option value="">Todas las categorías</option>
+                {categorias.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.nombre}
+                  </option>
+                ))}
+              </select>
+            )
           )}
 
           {tipo === 'individual' && !jugadorFiltroId && (
@@ -396,6 +406,14 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
 
             {tipo === 'colectivo' && (
               <>
+                {esTecnico ? (
+                  <span
+                    className="w-full block p-2.5 rounded-xl text-sm"
+                    style={{ ...inputStyle, color: '#8A9BB8' }}
+                  >
+                    {perfil?.categorias?.nombre || 'Tu categoría'}
+                  </span>
+                ) : (
                 <select
                   value={catForm}
                   onChange={(e) => setCatForm(e.target.value)}
@@ -409,6 +427,7 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
                     </option>
                   ))}
                 </select>
+                )}
                 <select
                   value={momentoForm}
                   onChange={(e) => setMomentoForm(e.target.value)}
@@ -477,6 +496,14 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
 
             {tipo === 'entrenamiento' && (
               <>
+                {esTecnico ? (
+                  <span
+                    className="w-full block p-2.5 rounded-xl text-sm"
+                    style={{ ...inputStyle, color: '#8A9BB8' }}
+                  >
+                    {perfil?.categorias?.nombre || 'Tu categoría'}
+                  </span>
+                ) : (
                 <select
                   value={catForm}
                   onChange={(e) => setCatForm(e.target.value)}
@@ -490,6 +517,7 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
                     </option>
                   ))}
                 </select>
+                )}
                 <input
                   type="text"
                   placeholder="Contenido (ej: definición, presión alta, salida de arco)"

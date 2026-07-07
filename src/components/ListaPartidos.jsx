@@ -51,13 +51,15 @@ function ListaPartidos({ categoriaId, categoriaNombre, onVolver, onElegirPartido
   return (
     <div className="p-6 md:p-10">
       <div className="max-w-xl mx-auto">
-        <button
-          onClick={onVolver}
-          className="text-sm mb-6 flex items-center gap-1 hover:opacity-70 transition-opacity"
-          style={{ color: '#8A9BB8' }}
-        >
-          ← Volver
-        </button>
+        {onVolver && (
+          <button
+            onClick={onVolver}
+            className="text-sm mb-6 flex items-center gap-1 hover:opacity-70 transition-opacity"
+            style={{ color: '#8A9BB8' }}
+          >
+            ← Volver
+          </button>
+        )}
 
         <div className="flex items-start justify-between mb-8">
           <h1

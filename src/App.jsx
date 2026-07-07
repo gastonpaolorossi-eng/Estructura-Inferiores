@@ -142,6 +142,7 @@ function App() {
           onVerPsicologia={irAPsicologiaDesdePerfil}
           jugadorInicialId={jugadorParaPlantel}
           onConsumirJugadorInicial={() => setJugadorParaPlantel(null)}
+          perfil={perfil}
         />
       )}
       {seccion === 'medicos' && (
@@ -167,9 +168,10 @@ function App() {
           jugadorInicialId={jugadorParaVideo}
           onConsumirJugadorInicial={() => setJugadorParaVideo(null)}
           onIrABiblioteca={() => setSeccion('entrenamientos')}
+          perfil={perfil}
         />
       )}
-      {seccion === 'partidos' && <PartidosSection />}
+      {seccion === 'partidos' && <PartidosSection perfil={perfil} />}
       {seccion === 'entrenamientos' && <EntrenamientosSection />}
       {seccion === 'asistencia' && <AsistenciaSection perfil={perfil} />}
       {seccion === 'pases' && <PaseCategoriaSection />}

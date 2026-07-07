@@ -57,6 +57,10 @@ function AsistenciaSection({ perfil }) {
         ;(asistenciasData || []).forEach((a) => {
           mapa[a.jugador_id] = a.estado
         })
+        // Por defecto todos presentes; el técnico marca las excepciones.
+        ;(jugadoresData || []).forEach((j) => {
+          if (!mapa[j.id]) mapa[j.id] = 'presente'
+        })
         setAsistencias(mapa)
       } else {
         setAsistencias({})

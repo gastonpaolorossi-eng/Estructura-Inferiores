@@ -12,9 +12,10 @@ function iniciales(nombre, apellido) {
   return `${nombre?.[0] || ''}${apellido?.[0] || ''}`.toUpperCase()
 }
 
-function ListaJugadores({ onSelectJugador, onNuevoJugador, onCargaMasiva }) {
+function ListaJugadores({ onSelectJugador, onNuevoJugador, onCargaMasiva, perfil }) {
+  const esTecnico = perfil?.rol === 'tecnico'
   const [jugadores, setJugadores] = useState([])
-  const [categoriaId, setCategoriaId] = useState('')
+  const [categoriaId, setCategoriaId] = useState(esTecnico ? perfil.categoria_id : '')
   const [busqueda, setBusqueda] = useState('')
 
   useEffect(() => {
@@ -73,6 +74,8 @@ function ListaJugadores({ onSelectJugador, onNuevoJugador, onCargaMasiva }) {
           onCategoriaChange={setCategoriaId}
           busqueda={busqueda}
           onBusquedaChange={setBusqueda}
+          bloqueada={esTecnico}
+          categoriaNombre={perfil?.categorias?.nombre}
         />
 
         <div className="space-y-3">
