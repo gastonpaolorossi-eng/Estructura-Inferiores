@@ -19,13 +19,13 @@ function MiniBarras({ datos, color }) {
   const min = Math.min(...valores)
   const max = Math.max(...valores, 1)
   const rango = max - min || 1
-  const ancho = 26
-  const gap = 6
+  const ancho = 30
+  const gap = 8
   const alto = 60
   const svgAncho = datos.length * (ancho + gap)
 
   return (
-    <svg viewBox={`0 0 ${svgAncho} ${alto + 16}`} width={svgAncho} height={alto + 16}>
+    <svg viewBox={`0 0 ${svgAncho} ${alto + 28}`} width={svgAncho} height={alto + 28}>
       {datos.map((d, i) => {
         const h = 8 + ((d.valor - min) / rango) * (alto - 8)
         const x = i * (ancho + gap)
@@ -34,6 +34,9 @@ function MiniBarras({ datos, color }) {
             <rect x={x} y={alto - h} width={ancho} height={h} rx={3} fill={color} opacity={0.85} />
             <text x={x + ancho / 2} y={alto + 12} fontSize="8" fill="#5B6B85" textAnchor="middle">
               {d.etiqueta}
+            </text>
+            <text x={x + ancho / 2} y={alto + 23} fontSize="9" fontWeight="600" fill={color} textAnchor="middle">
+              {d.valor}
             </text>
           </g>
         )

@@ -96,76 +96,82 @@ function InicioSection({ perfil, onCambiarSeccion }) {
           .limit(5)
         setUltimosVideos(videosData || [])
 
-        // Alerta: citación pendiente para un partido que juega en 2 días
-        const en2Dias = new Date(hoy)
-        en2Dias.setDate(en2Dias.getDate() + 2)
-        const en2DiasISO = fechaISO(en2Dias)
-        const { data: partidosEn2Dias } = await supabase
-          .from('partidos')
-          .select('*, categorias(nombre)')
-          .eq('fecha', en2DiasISO)
-        if (partidosEn2Dias?.length) {
-          const idsPartidos = partidosEn2Dias.map((p) => p.id)
-          const { data: citacionesExistentes } = await supabase
-            .from('citaciones')
-            .select('partido_id')
-            .in('partido_id', idsPartidos)
-          const idsConCitacion = new Set((citacionesExistentes || []).map((c) => c.partido_id))
-          partidosEn2Dias
-            .filter((p) => !idsConCitacion.has(p.id))
-            .forEach((p) => {
-              alertasNuevas.push({
-                id: `citacion-${p.id}`,
-                icono: '📋',
-                color: '#FBBF24',
-                texto: `Falta cargar la citación vs ${p.rival} (${p.categorias?.nombre || 'sin categoría'}) — juega en 2 días`,
-                seccion: 'partidos',
+        // Alertas de citación y minutos: solo para el técnico de esa categoría puntual.
+        if (perfil.rol === 'tecnico' && perfil.categoria_id) {
+          // Alerta: citación pendiente para un partido que juega en 2 días
+          const en2Dias = new Date(hoy)
+          en2Dias.setDate(en2Dias.getDate() + 2)
+          const en2DiasISO = fechaISO(en2Dias)
+          const { data: partidosEn2Dias } = await supabase
+            .from('partidos')
+            .select('*, categorias(nombre)')
+            .eq('fecha', en2DiasISO)
+            .eq('categoria_id', perfil.categoria_id)
+          if (partidosEn2Dias?.length) {
+            const idsPartidos = partidosEn2Dias.map((p) => p.id)
+            const { data: citacionesExistentes } = await supabase
+              .from('citaciones')
+              .select('partido_id')
+              .in('partido_id', idsPartidos)
+            const idsConCitacion = new Set((citacionesExistentes || []).map((c) => c.partido_id))
+            partidosEn2Dias
+              .filter((p) => !idsConCitacion.has(p.id))
+              .forEach((p) => {
+                alertasNuevas.push({
+                  id: `citacion-${p.id}`,
+                  icono: '📋',
+                  color: '#FBBF24',
+                  texto: `Falta cargar la citación vs ${p.rival} — juega en 2 días`,
+                  seccion: 'partidos',
+                })
               })
-            })
-        }
+          }
 
-        // Alerta: partido de ayer sin minutos/GPS cargados
-        const ayer = new Date(hoy)
-        ayer.setDate(ayer.getDate() - 1)
-        const ayerISO = fechaISO(ayer)
-        const { data: partidosAyer } = await supabase
-          .from('partidos')
-          .select('*, categorias(nombre)')
-          .eq('fecha', ayerISO)
-        if (partidosAyer?.length) {
-          const idsPartidosAyer = partidosAyer.map((p) => p.id)
-          const { data: sesionesExistentes } = await supabase
-            .from('sesiones_fisicas')
-            .select('partido_id')
-            .eq('tipo', 'partido')
-            .in('partido_id', idsPartidosAyer)
-          const idsConSesion = new Set((sesionesExistentes || []).map((s) => s.partido_id))
-          partidosAyer
-            .filter((p) => !idsConSesion.has(p.id))
-            .forEach((p) => {
-              alertasNuevas.push({
-                id: `minutos-${p.id}`,
-                icono: '⏱️',
-                color: '#FB923C',
-                texto: `Falta cargar los minutos/GPS del partido vs ${p.rival} (${p.categorias?.nombre || 'sin categoría'}) de ayer`,
-                seccion: 'fisico',
+          // Alerta: partido de ayer sin minutos/GPS cargados
+          const ayer = new Date(hoy)
+          ayer.setDate(ayer.getDate() - 1)
+          const ayerISO = fechaISO(ayer)
+          const { data: partidosAyer } = await supabase
+            .from('partidos')
+            .select('*, categorias(nombre)')
+            .eq('fecha', ayerISO)
+            .eq('categoria_id', perfil.categoria_id)
+          if (partidosAyer?.length) {
+            const idsPartidosAyer = partidosAyer.map((p) => p.id)
+            const { data: sesionesExistentes } = await supabase
+              .from('sesiones_fisicas')
+              .select('partido_id')
+              .eq('tipo', 'partido')
+              .in('partido_id', idsPartidosAyer)
+            const idsConSesion = new Set((sesionesExistentes || []).map((s) => s.partido_id))
+            partidosAyer
+              .filter((p) => !idsConSesion.has(p.id))
+              .forEach((p) => {
+                alertasNuevas.push({
+                  id: `minutos-${p.id}`,
+                  icono: '⏱️',
+                  color: '#FB923C',
+                  texto: `Falta cargar los minutos/GPS del partido vs ${p.rival} de ayer`,
+                  seccion: 'fisico',
+                })
               })
-            })
+          }
         }
       }
 
       if (perfil.rol !== 'tecnico') {
+        // Traemos TODOS los registros (no solo los que tienen alerta) para poder
+        // comparar contra el más reciente de cada jugador: si el último registro
+        // ya no tiene alerta, no debe aparecer aunque haya alertado antes.
         const { data: nutricionData } = await supabase
           .from('fichas_nutricion')
           .select('*, jugadores(nombre, apellido, categorias(nombre))')
-          .eq('alerta_peso', true)
           .order('fecha', { ascending: false })
-        // solo la más reciente por jugador
         const vistos = new Set()
         const alertasUnicas = (nutricionData || []).filter((f) => {
           if (vistos.has(f.jugador_id)) return false
           vistos.add(f.jugador_id)
-          return true
+          return !!f.alerta_peso
         })
         setAlertasNutricion(alertasUnicas)
 
@@ -199,7 +205,7 @@ function InicioSection({ perfil, onCambiarSeccion }) {
       setCargando(false)
     }
     cargar()
-  }, [perfil.rol])
+  }, [perfil.rol, perfil.categoria_id])
 
   if (cargando) {
     return (

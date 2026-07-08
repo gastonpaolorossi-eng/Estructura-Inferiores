@@ -2,13 +2,15 @@ import { jsPDF } from 'jspdf'
 import { supabase } from '../supabaseClient'
 import { FORMACIONES } from '../data/formaciones'
 
+const AZUL = [37, 99, 235]
+const AZUL_CLARO = [99, 143, 246]
 const NAVY = [26, 35, 50]
-const VERDE = [74, 222, 128]
-const VERDE_OSCURO = [21, 61, 44]
-const CANCHA_LINEA = [255, 255, 255]
-const GRIS = [90, 100, 115]
-const GRIS_CLARO = [235, 238, 243]
+const VERDE_CANCHA = [19, 66, 48]
+const GRIS = [107, 114, 128]
+const GRIS_CLARO = [243, 244, 246]
+const GRIS_PLACEHOLDER = [156, 163, 175]
 const BLANCO = [255, 255, 255]
+const NEGRO = [23, 28, 38]
 
 const DIAS = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO']
 
@@ -41,64 +43,14 @@ function formatoDeDataUrl(dataUrl) {
   return match ? match[1].toUpperCase() : 'PNG'
 }
 
-// Escudo propio: escudo vectorial simple (pentágono tipo insignia)
-function dibujarEscudoPropio(doc, cx, cy, hw = 15) {
-  doc.setFillColor(...NAVY)
-  doc.setDrawColor(...VERDE)
-  doc.setLineWidth(1.3)
-  doc.lines(
-    [
-      [2 * hw, 0],
-      [0, hw * 2],
-      [-hw, hw * 1.45],
-      [-hw, -hw * 1.45],
-    ],
-    cx - hw,
-    cy - hw * 1.65,
-    [1, 1],
-    'FD',
-    true
-  )
-}
-
-// Placeholder para escudo del rival cuando todavía no se cargó imagen
-function dibujarEscudoPlaceholder(doc, cx, cy, hw = 15) {
-  doc.setDrawColor(...GRIS)
-  doc.setLineWidth(1)
-  doc.lines(
-    [
-      [2 * hw, 0],
-      [0, hw * 2],
-      [-hw, hw * 1.45],
-      [-hw, -hw * 1.45],
-    ],
-    cx - hw,
-    cy - hw * 1.65,
-    [1, 1],
-    'D',
-    true
-  )
-}
-
-// Camiseta con número, en vez de un simple círculo
-function dibujarCamiseta(doc, px, py, numero) {
-  const hw = 12
-  doc.setFillColor(...BLANCO)
-  doc.setDrawColor(...NAVY)
-  doc.setLineWidth(1.1)
-  // Mangas: casquetes redondeados
-  doc.roundedRect(px - hw - 6, py - 9, 8, 11, 3, 3, 'FD')
-  doc.roundedRect(px + hw - 2, py - 9, 8, 11, 3, 3, 'FD')
-  // Cuerpo (tapa la unión con las mangas)
-  doc.roundedRect(px - hw, py - 10, hw * 2, 26, 6, 6, 'FD')
-  // Cuello (muesca)
-  doc.setFillColor(...VERDE_OSCURO)
-  doc.triangle(px - 4, py - 10, px + 4, py - 10, px, py - 4, 'F')
-  // Número
+// Escudo cuadrado con esquinas redondeadas y una letra/sigla centrada.
+function dibujarEscudo(doc, cx, cy, size, colorFondo, letra, colorTexto) {
+  doc.setFillColor(...colorFondo)
+  doc.roundedRect(cx - size / 2, cy - size / 2, size, size, 8, 8, 'F')
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(13)
-  doc.setTextColor(...NAVY)
-  doc.text(numero, px, py + 6, { align: 'center' })
+  doc.setFontSize(size * 0.32)
+  doc.setTextColor(...colorTexto)
+  doc.text(letra, cx, cy + size * 0.11, { align: 'center' })
 }
 
 export async function generarCitacionPDF(partidoId) {
@@ -122,217 +74,262 @@ export async function generarCitacionPDF(partidoId) {
 
   const doc = new jsPDF({ unit: 'pt', format: 'a4' })
   const pageWidth = doc.internal.pageSize.getWidth()
-  const pageHeight = doc.internal.pageSize.getHeight()
-  const margin = 34
+  const margin = 40
 
-  // ===== Barra superior (acento navy + verde) =====
-  doc.setFillColor(...NAVY)
-  doc.rect(0, 0, pageWidth, 9, 'F')
-  doc.setFillColor(...VERDE)
-  doc.rect(0, 9, pageWidth, 3, 'F')
+  const categoriaNombre = partido.categorias?.nombre || ''
+  const nombreLocalVisitante = partido.local_visitante === 'visitante' ? 'de visitante' : 'de local'
 
-  // ===== Encabezado: club / categoría =====
-  let y = 34
+  // ===== Encabezado azul =====
+  const headerH = 108
+  doc.setFillColor(...AZUL)
+  doc.rect(0, 0, pageWidth, headerH, 'F')
+
+  const iconoSize = 46
+  const iconoCX = margin + iconoSize / 2
+  const iconoCY = 40
+  doc.setFillColor(...AZUL_CLARO)
+  doc.roundedRect(iconoCX - iconoSize / 2, iconoCY - iconoSize / 2, iconoSize, iconoSize, 10, 10, 'F')
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(11)
-  doc.setTextColor(...NAVY)
-  doc.text('ESTRUCTURA INFERIORES', margin, y)
+  doc.setFontSize(12)
+  doc.setTextColor(...BLANCO)
+  doc.text('CIT', iconoCX, iconoCY + 4, { align: 'center' })
 
-  if (partido.categorias?.nombre) {
-    const etiqueta = `${partido.categorias.nombre.toUpperCase()} DIVISIÓN`
+  const tituloX = margin + iconoSize + 14
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(21)
+  doc.setTextColor(...BLANCO)
+  doc.text('CITACIÓN', tituloX, iconoCY - 2)
+
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(10.5)
+  doc.setTextColor(214, 224, 250)
+  const subtituloHeader = categoriaNombre
+    ? `Partido ${nombreLocalVisitante} · Categoría ${categoriaNombre}`
+    : `Partido ${nombreLocalVisitante}`
+  doc.text(subtituloHeader, tituloX, iconoCY + 16)
+
+  if (categoriaNombre || partido.formacion) {
+    const etiqueta = [categoriaNombre.toUpperCase(), partido.formacion].filter(Boolean).join(' · ')
     doc.setFont('helvetica', 'bold')
-    doc.setFontSize(9)
-    const w = doc.getTextWidth(etiqueta) + 20
-    doc.setFillColor(...NAVY)
-    doc.roundedRect(pageWidth - margin - w, y - 13, w, 19, 9, 9, 'F')
+    doc.setFontSize(10.5)
+    const wTxt = doc.getTextWidth(etiqueta)
+    const wPill = wTxt + 26
+    const pillH = 26
+    doc.setFillColor(...AZUL_CLARO)
+    doc.roundedRect(pageWidth - margin - wPill, iconoCY - pillH / 2, wPill, pillH, 13, 13, 'F')
     doc.setTextColor(...BLANCO)
-    doc.text(etiqueta, pageWidth - margin - w / 2, y, { align: 'center' })
+    doc.text(etiqueta, pageWidth - margin - wPill / 2, iconoCY + 4, { align: 'center' })
   }
 
-  // ===== Cartel de escudos: propio vs rival =====
-  const cartelY = y + 20
-  const cartelH = 90
-  doc.setFillColor(...NAVY)
-  doc.roundedRect(margin, cartelY, pageWidth - margin * 2, cartelH, 8, 8, 'F')
+  // ===== Fila de equipos: escudo propio · VS · escudo rival =====
+  const filaEquiposY = headerH + 48
+  const shieldSize = 40
 
-  const centroCartelY = cartelY + 40
-  const escudoIzqX = margin + 60
-  const escudoDerX = pageWidth - margin - 60
-
-  dibujarEscudoPropio(doc, escudoIzqX, centroCartelY, 15)
-
-  doc.setFillColor(...BLANCO)
-  doc.circle(pageWidth / 2, centroCartelY, 15, 'F')
+  const propioShieldCX = margin + shieldSize / 2
+  dibujarEscudo(doc, propioShieldCX, filaEquiposY, shieldSize, NAVY, 'EI', BLANCO)
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(11)
-  doc.setTextColor(...NAVY)
-  doc.text('VS', pageWidth / 2, centroCartelY + 4, { align: 'center' })
+  doc.setFontSize(12)
+  doc.setTextColor(...NEGRO)
+  const nombrePropio = categoriaNombre
+    ? `Estructura Inferiores ${categoriaNombre} División`
+    : 'Estructura Inferiores'
+  doc.text(nombrePropio, propioShieldCX + shieldSize / 2 + 12, filaEquiposY + 4, {
+    maxWidth: 210,
+  })
 
+  const rivalShieldCX = pageWidth - margin - shieldSize / 2
   if (escudoRivalDataUrl) {
     try {
       const formato = formatoDeDataUrl(escudoRivalDataUrl)
-      doc.addImage(escudoRivalDataUrl, formato, escudoDerX - 15, centroCartelY - 15, 30, 30)
+      doc.addImage(
+        escudoRivalDataUrl,
+        formato,
+        rivalShieldCX - shieldSize / 2,
+        filaEquiposY - shieldSize / 2,
+        shieldSize,
+        shieldSize
+      )
     } catch {
-      dibujarEscudoPlaceholder(doc, escudoDerX, centroCartelY, 15)
+      dibujarEscudo(doc, rivalShieldCX, filaEquiposY, shieldSize, GRIS_PLACEHOLDER, (partido.rival?.[0] || '?').toUpperCase(), BLANCO)
     }
   } else {
-    dibujarEscudoPlaceholder(doc, escudoDerX, centroCartelY, 15)
+    dibujarEscudo(doc, rivalShieldCX, filaEquiposY, shieldSize, GRIS_PLACEHOLDER, (partido.rival?.[0] || '?').toUpperCase(), BLANCO)
   }
-
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(10)
+  doc.setFontSize(12)
+  doc.setTextColor(...NEGRO)
+  doc.text(partido.rival || 'Rival', rivalShieldCX - shieldSize / 2 - 12, filaEquiposY + 4, {
+    align: 'right',
+    maxWidth: 210,
+  })
+
+  const vsCX = pageWidth / 2
+  doc.setFillColor(...NEGRO)
+  doc.circle(vsCX, filaEquiposY, 18, 'F')
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(11)
   doc.setTextColor(...BLANCO)
-  doc.text('ESTRUCTURA INF.', escudoIzqX, centroCartelY + 32, { align: 'center', maxWidth: 100 })
-  doc.text(partido.rival.toUpperCase(), escudoDerX, centroCartelY + 32, { align: 'center', maxWidth: 100 })
+  doc.text('VS', vsCX, filaEquiposY + 4, { align: 'center' })
 
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(9)
-  doc.setTextColor(200, 208, 220)
-  const subtitulo = [
-    partido.local_visitante ? (partido.local_visitante === 'local' ? 'Partido de local' : 'Partido de visitante') : null,
-    partido.categorias?.nombre ? `Categoría ${partido.categorias.nombre}` : null,
-  ]
-    .filter(Boolean)
-    .join('   ·   ')
-  doc.text(subtitulo, pageWidth / 2, cartelY + cartelH - 10, { align: 'center' })
-
-  // ===== Franja de datos rápidos: FECHA / HORA / LUGAR =====
+  // ===== Franja FECHA / HORA / LUGAR =====
   const { diaSemana, fechaCorta } = formatearFecha(partido.fecha)
-  const franjaY = cartelY + cartelH + 14
-  const franjaH = 44
-  const gap = 10
+  const franjaY = filaEquiposY + 42
+  const franjaH = 46
+  const gap = 12
   const franjaW = (pageWidth - margin * 2 - gap * 2) / 3
   const datosFranja = [
-    { label: 'FECHA', valor: fechaCorta ? `${diaSemana} ${fechaCorta}` : '—' },
+    { label: 'FECHA', valor: fechaCorta ? `${diaSemana.slice(0, 1)}${diaSemana.slice(1).toLowerCase()} ${fechaCorta}` : '—' },
     { label: 'HORA', valor: partido.hora ? `${partido.hora} hs` : '—' },
     { label: 'LUGAR', valor: partido.lugar || '—' },
   ]
   datosFranja.forEach((d, i) => {
     const bx = margin + i * (franjaW + gap)
     doc.setFillColor(...GRIS_CLARO)
-    doc.roundedRect(bx, franjaY, franjaW, franjaH, 6, 6, 'F')
+    doc.roundedRect(bx, franjaY, franjaW, franjaH, 8, 8, 'F')
     doc.setFont('helvetica', 'bold')
-    doc.setFontSize(7.5)
-    doc.setTextColor(...GRIS)
-    doc.text(d.label, bx + 10, franjaY + 15)
+    doc.setFontSize(8)
+    doc.setTextColor(...AZUL)
+    doc.text(d.label, bx + 12, franjaY + 17)
     doc.setFont('helvetica', 'bold')
-    doc.setFontSize(11)
-    doc.setTextColor(...NAVY)
-    doc.text(String(d.valor), bx + 10, franjaY + 32, { maxWidth: franjaW - 20 })
+    doc.setFontSize(12)
+    doc.setTextColor(...NEGRO)
+    doc.text(String(d.valor), bx + 12, franjaY + 34, { maxWidth: franjaW - 22 })
   })
 
-  // ===== Layout: suplentes a la izquierda, cancha a la derecha =====
-  const contenidoY = franjaY + franjaH + 20
-  const colIzqX = margin
-  const colIzqW = 148
-  const canchaX = colIzqX + colIzqW + 18
-  const canchaW = pageWidth - margin - canchaX
-  const canchaY = contenidoY
-  const footerReserva = 34
-  const canchaH = pageHeight - footerReserva - 30 - canchaY
-
+  // ===== Dos columnas: cancha (izq) + titulares (der) =====
   const ordenados = [...citaciones].sort((a, b) => (a.dorsal || 99) - (b.dorsal || 99))
   const suplentes = ordenados.filter((c) => !c.titular)
+  const slots = FORMACIONES[partido.formacion] || []
 
-  // --- Columna suplentes ---
+  const contenidoY = franjaY + franjaH + 26
+  const canchaX = margin
+  const canchaW = 190
+  const titularesX = canchaX + canchaW + 24
+  const titularesW = pageWidth - margin - titularesX
+
+  const filaAltura = 32
+  const filaGap = 5
+  const canchaH = canchaW * 1.5
+
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(10.5)
-  doc.setTextColor(...NAVY)
-  doc.text('SUPLENTES', colIzqX, contenidoY)
-
-  doc.setDrawColor(...VERDE)
-  doc.setLineWidth(2)
-  doc.line(colIzqX, contenidoY + 6, colIzqX + 28, contenidoY + 6)
-
-  let ySup = contenidoY + 26
-  const filaAltura = 22
-  suplentes.forEach((c, i) => {
-    if (i % 2 === 0) {
-      doc.setFillColor(...GRIS_CLARO)
-      doc.roundedRect(colIzqX - 4, ySup - 14, colIzqW + 4, filaAltura, 4, 4, 'F')
-    }
-    doc.setFillColor(...NAVY)
-    doc.circle(colIzqX + 9, ySup - 4, 9, 'F')
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(8.5)
-    doc.setTextColor(...BLANCO)
-    doc.text(c.dorsal ? String(c.dorsal) : '-', colIzqX + 9, ySup - 1, { align: 'center' })
-
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(9)
-    doc.setTextColor(30, 35, 45)
-    const nombreCompleto = `${c.jugadores?.apellido || ''}, ${c.jugadores?.nombre || ''}`
-    doc.text(nombreCompleto, colIzqX + 24, ySup, { maxWidth: colIzqW - 26 })
-    ySup += filaAltura
-  })
-  if (suplentes.length === 0) {
-    doc.setFont('helvetica', 'italic')
-    doc.setFontSize(9)
-    doc.setTextColor(...GRIS)
-    doc.text('Sin suplentes cargados', colIzqX, ySup)
-  }
+  doc.setTextColor(...AZUL)
+  doc.text('TITULARES', titularesX, contenidoY)
 
   // --- Cancha ---
-  doc.setFillColor(...VERDE_OSCURO)
-  doc.roundedRect(canchaX, canchaY, canchaW, canchaH, 10, 10, 'F')
-
-  doc.setDrawColor(...CANCHA_LINEA)
+  doc.setFillColor(...VERDE_CANCHA)
+  doc.roundedRect(canchaX, contenidoY + 6, canchaW, canchaH, 10, 10, 'F')
+  doc.setDrawColor(...BLANCO)
   doc.setLineWidth(0.7)
-  doc.roundedRect(canchaX + 10, canchaY + 10, canchaW - 20, canchaH - 20, 4, 4)
-  doc.line(canchaX + 10, canchaY + canchaH / 2, canchaX + canchaW - 10, canchaY + canchaH / 2)
-  doc.circle(canchaX + canchaW / 2, canchaY + canchaH / 2, canchaW * 0.15)
-  doc.setFillColor(...CANCHA_LINEA)
-  doc.circle(canchaX + canchaW / 2, canchaY + canchaH / 2, 1.6, 'F')
+  doc.roundedRect(canchaX + 8, contenidoY + 14, canchaW - 16, canchaH - 16, 4, 4)
+  doc.line(canchaX + 8, contenidoY + 6 + canchaH / 2, canchaX + canchaW - 8, contenidoY + 6 + canchaH / 2)
+  doc.circle(canchaX + canchaW / 2, contenidoY + 6 + canchaH / 2, canchaW * 0.14)
+  doc.setFillColor(...BLANCO)
+  doc.circle(canchaX + canchaW / 2, contenidoY + 6 + canchaH / 2, 1.4, 'F')
 
-  // arco propio (abajo) + área chica
-  const arcoW = canchaW * 0.42
-  const areaW = canchaW * 0.26
-  doc.rect(canchaX + (canchaW - arcoW) / 2, canchaY + canchaH - 10 - canchaH * 0.09, arcoW, canchaH * 0.09)
-  doc.rect(canchaX + (canchaW - areaW) / 2, canchaY + canchaH - 10 - canchaH * 0.035, areaW, canchaH * 0.035)
-
-  // arco rival (arriba) + área chica
-  doc.rect(canchaX + (canchaW - arcoW) / 2, canchaY + 10, arcoW, canchaH * 0.09)
-  doc.rect(canchaX + (canchaW - areaW) / 2, canchaY + 10 + canchaH * 0.09 - canchaH * 0.005, areaW, canchaH * 0.005)
-
-  const slots = FORMACIONES[partido.formacion] || []
   slots.forEach((slot) => {
     const citacion = citaciones.find(
       (c) => String(c.posicion_cancha) === String(slot.codigo) && c.titular
     )
     const px = canchaX + (slot.x / 100) * canchaW
-    const py = canchaY + (slot.y / 100) * canchaH
+    const py = contenidoY + 6 + (slot.y / 100) * canchaH
 
     const numero = citacion?.dorsal ? String(citacion.dorsal) : '–'
-    dibujarCamiseta(doc, px, py, numero)
+    doc.setFillColor(...AZUL)
+    doc.circle(px, py, 10, 'F')
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(9)
+    doc.setTextColor(...BLANCO)
+    doc.text(numero, px, py + 3, { align: 'center' })
 
     const inicialNombre = citacion?.jugadores?.nombre ? `${citacion.jugadores.nombre[0]}.` : ''
-    const etiqueta = citacion
-      ? `${citacion.jugadores?.apellido || ''} ${inicialNombre}`.trim().toUpperCase()
-      : slot.label.toUpperCase()
+    const etiqueta = citacion ? `${citacion.jugadores?.apellido || ''} ${inicialNombre}`.trim() : '–'
     doc.setFont('helvetica', 'bold')
-    doc.setFontSize(6.8)
-    const anchoTexto = doc.getTextWidth(etiqueta) + 10
-    doc.setFillColor(...NAVY)
-    doc.roundedRect(px - anchoTexto / 2, py + 21, anchoTexto, 12, 3, 3, 'F')
-    doc.setTextColor(...BLANCO)
-    doc.text(etiqueta.slice(0, 18), px, py + 29.5, { align: 'center' })
+    doc.setFontSize(6.3)
+    const anchoTexto = Math.min(doc.getTextWidth(etiqueta) + 8, 60)
+    doc.setFillColor(...BLANCO)
+    doc.roundedRect(px - anchoTexto / 2, py + 13, anchoTexto, 11, 3, 3, 'F')
+    doc.setTextColor(...NEGRO)
+    doc.text(etiqueta.slice(0, 16), px, py + 21, { align: 'center', maxWidth: anchoTexto - 2 })
   })
 
-  // ===== Pie de página =====
-  const footerY = pageHeight - footerReserva
-  doc.setFillColor(...NAVY)
-  doc.rect(0, footerY, pageWidth, footerReserva, 'F')
+  // --- Lista de titulares ---
+  let yFila = contenidoY + 36
+  slots.forEach((slot) => {
+    const citacion = citaciones.find(
+      (c) => String(c.posicion_cancha) === String(slot.codigo) && c.titular
+    )
 
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(9)
-  doc.setTextColor(...BLANCO)
-  doc.text('ESTRUCTURA INFERIORES', margin, footerY + footerReserva / 2 + 3)
+    doc.setFillColor(...GRIS_CLARO)
+    doc.roundedRect(titularesX, yFila - filaAltura + 8, titularesW, filaAltura, 8, 8, 'F')
 
-  if (partido.formacion) {
+    const badgeCX = titularesX + 20
+    const badgeCY = yFila - filaAltura / 2 + 8
+    doc.setFillColor(...AZUL)
+    doc.circle(badgeCX, badgeCY, 10, 'F')
     doc.setFont('helvetica', 'bold')
-    doc.setFontSize(10)
-    doc.setTextColor(...VERDE)
-    doc.text(partido.formacion, pageWidth - margin, footerY + footerReserva / 2 + 3, { align: 'right' })
+    doc.setFontSize(9)
+    doc.setTextColor(...BLANCO)
+    doc.text(citacion?.dorsal ? String(citacion.dorsal) : '–', badgeCX, badgeCY + 3, { align: 'center' })
+
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(10.5)
+    doc.setTextColor(...NEGRO)
+    const nombreJugador = citacion
+      ? `${citacion.jugadores?.apellido || ''}, ${citacion.jugadores?.nombre || ''}`
+      : '–'
+    doc.text(nombreJugador, badgeCX + 20, badgeCY + 4, { maxWidth: titularesW * 0.5 })
+
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(8)
+    doc.setTextColor(...GRIS)
+    doc.text(slot.label.toUpperCase(), titularesX + titularesW - 12, badgeCY + 3, { align: 'right' })
+
+    yFila += filaAltura + filaGap
+  })
+
+  // ===== Suplentes =====
+  const suplentesY = Math.max(contenidoY + 6 + canchaH, yFila - filaGap) + 30
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(10.5)
+  doc.setTextColor(...AZUL)
+  doc.text('SUPLENTES', margin, suplentesY)
+
+  if (suplentes.length === 0) {
+    doc.setFont('helvetica', 'italic')
+    doc.setFontSize(9)
+    doc.setTextColor(...GRIS)
+    doc.text('Sin suplentes cargados', margin, suplentesY + 20)
+  } else {
+    const columnas = 3
+    const supGap = 12
+    const supW = (pageWidth - margin * 2 - supGap * (columnas - 1)) / columnas
+    const supH = 26
+
+    suplentes.forEach((c, i) => {
+      const col = i % columnas
+      const fila = Math.floor(i / columnas)
+      const bx = margin + col * (supW + supGap)
+      const by = suplentesY + 16 + fila * (supH + 6)
+
+      doc.setFillColor(...GRIS_CLARO)
+      doc.roundedRect(bx, by, supW, supH, 7, 7, 'F')
+
+      const numCX = bx + 17
+      const numCY = by + supH / 2
+      doc.setFillColor(...AZUL)
+      doc.circle(numCX, numCY, 9, 'F')
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(8.5)
+      doc.setTextColor(...BLANCO)
+      doc.text(c.dorsal ? String(c.dorsal) : '-', numCX, numCY + 3, { align: 'center' })
+
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(9)
+      doc.setTextColor(...NEGRO)
+      const nombreCompleto = `${c.jugadores?.apellido || ''}, ${c.jugadores?.nombre || ''}`
+      doc.text(nombreCompleto, numCX + 15, numCY + 3, { maxWidth: supW - 34 })
+    })
   }
 
   doc.save(`Citacion_vs_${partido.rival.replace(/\s+/g, '_')}.pdf`)
