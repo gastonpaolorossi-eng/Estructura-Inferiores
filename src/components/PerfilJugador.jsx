@@ -436,7 +436,7 @@ function PerfilJugador({ jugadorId, onVolver, onVerFichaMedica, onVerVideos, onV
         </div>
 
         {datosPersonales.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-8">
+          <div className="flex flex-wrap gap-2 mb-4">
             {datosPersonales.map((d) => (
               <div
                 key={d.label}
@@ -452,6 +452,29 @@ function PerfilJugador({ jugadorId, onVolver, onVerFichaMedica, onVerVideos, onV
                 </p>
               </div>
             ))}
+          </div>
+        )}
+
+        {(jugador.contacto_emergencia_nombre || jugador.telefono_emergencia) && (
+          <div
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl mb-8"
+            style={{ backgroundColor: '#1A2332', border: '1px solid #F87171' }}
+          >
+            <span className="text-lg">🚨</span>
+            <div className="min-w-0">
+              <p className="text-[10px] uppercase tracking-wide" style={{ color: '#F87171' }}>
+                Contacto de emergencia
+              </p>
+              <p className="text-sm truncate" style={{ color: '#F0F2F5' }}>
+                {jugador.contacto_emergencia_nombre}
+                {jugador.contacto_emergencia_nombre && jugador.telefono_emergencia && ' · '}
+                {jugador.telefono_emergencia && (
+                  <a href={`tel:${jugador.telefono_emergencia}`} style={{ color: '#7DD3FC' }}>
+                    {jugador.telefono_emergencia}
+                  </a>
+                )}
+              </p>
+            </div>
           </div>
         )}
 

@@ -1,16 +1,61 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 
+function fechaISO(date) {
+  const anio = date.getFullYear()
+  const mes = String(date.getMonth() + 1).padStart(2, '0')
+  const dia = String(date.getDate()).padStart(2, '0')
+  return `${anio}-${mes}-${dia}`
+}
+
+function diasHastaProximoCumple(fechaNacimiento) {
+  if (!fechaNacimiento) return null
+  const hoy = new Date()
+  hoy.setHours(0, 0, 0, 0)
+  const nacimiento = new Date(`${fechaNacimiento}T00:00:00`)
+  if (Number.isNaN(nacimiento.getTime())) return null
+  let proximo = new Date(hoy.getFullYear(), nacimiento.getMonth(), nacimiento.getDate())
+  if (proximo < hoy) {
+    proximo = new Date(hoy.getFullYear() + 1, nacimiento.getMonth(), nacimiento.getDate())
+  }
+  return Math.round((proximo - hoy) / (1000 * 60 * 60 * 24))
+}
+
+function agruparProximoPartido(partidos) {
+  if (!partidos || partidos.length === 0) return null
+  const primeraFecha = partidos[0].fecha
+  const delMismoDia = partidos.filter((p) => p.fecha === primeraFecha)
+  const rivalPrincipal = delMismoDia[0].rival
+  const delMismoPartido = delMismoDia.filter(
+    (p) => (p.rival || '').toLowerCase().trim() === (rivalPrincipal || '').toLowerCase().trim()
+  )
+  return {
+    ...delMismoPartido[0],
+    categoriasNombres: delMismoPartido.map((p) => p.categorias?.nombre).filter(Boolean),
+  }
+}
+
+function iniciales(nombre, apellido) {
+  return `${nombre?.[0] || ''}${apellido?.[0] || ''}`.toUpperCase()
+}
+
 function InicioSection({ perfil, onCambiarSeccion }) {
   const [lesionados, setLesionados] = useState([])
-  const [proximoPartido, setProximoPartido] = useState(null)
+  const [proximoPartidoPrincipal, setProximoPartidoPrincipal] = useState(null)
+  const [proximoPartidoReserva, setProximoPartidoReserva] = useState(null)
   const [alertasNutricion, setAlertasNutricion] = useState([])
   const [ultimosVideos, setUltimosVideos] = useState([])
+  const [cumpleanieros, setCumpleanieros] = useState([])
+  const [alertas, setAlertas] = useState([])
   const [cargando, setCargando] = useState(true)
 
   useEffect(() => {
     async function cargar() {
       setCargando(true)
+
+      const hoy = new Date()
+      hoy.setHours(0, 0, 0, 0)
+      const hoyISO = fechaISO(hoy)
 
       const { data: lesionadosData } = await supabase
         .from('jugadores')
@@ -19,30 +64,30 @@ function InicioSection({ perfil, onCambiarSeccion }) {
         .order('apellido')
       setLesionados(lesionadosData || [])
 
+      // Cumpleaños de la semana (próximos 7 días, incluyendo hoy)
+      const { data: jugadoresData } = await supabase
+        .from('jugadores')
+        .select('id, nombre, apellido, fecha_nacimiento, categorias(nombre)')
+        .not('fecha_nacimiento', 'is', null)
+      const proximosCumples = (jugadoresData || [])
+        .map((j) => ({ ...j, diasFaltan: diasHastaProximoCumple(j.fecha_nacimiento) }))
+        .filter((j) => j.diasFaltan !== null && j.diasFaltan <= 6)
+        .sort((a, b) => a.diasFaltan - b.diasFaltan)
+      setCumpleanieros(proximosCumples)
+
+      const alertasNuevas = []
+
       if (perfil.rol !== 'medico') {
-        const hoy = new Date().toISOString().slice(0, 10)
         const { data: partidosData } = await supabase
           .from('partidos')
-          .select('*, categorias(nombre)')
-          .gte('fecha', hoy)
+          .select('*, categorias(nombre, es_reserva)')
+          .gte('fecha', hoyISO)
           .order('fecha', { ascending: true })
 
-        if (partidosData && partidosData.length > 0) {
-          const primeraFecha = partidosData[0].fecha
-          const delMismoDia = partidosData.filter((p) => p.fecha === primeraFecha)
-          const rivalPrincipal = delMismoDia[0].rival
-          const delMismoPartido = delMismoDia.filter(
-            (p) => p.rival.toLowerCase().trim() === rivalPrincipal.toLowerCase().trim()
-          )
-          setProximoPartido({
-            ...delMismoPartido[0],
-            categoriasNombres: delMismoPartido
-              .map((p) => p.categorias?.nombre)
-              .filter(Boolean),
-          })
-        } else {
-          setProximoPartido(null)
-        }
+        const noReserva = (partidosData || []).filter((p) => !p.categorias?.es_reserva)
+        const reserva = (partidosData || []).filter((p) => p.categorias?.es_reserva)
+        setProximoPartidoPrincipal(agruparProximoPartido(noReserva))
+        setProximoPartidoReserva(agruparProximoPartido(reserva))
 
         const { data: videosData } = await supabase
           .from('videos')
@@ -50,6 +95,63 @@ function InicioSection({ perfil, onCambiarSeccion }) {
           .order('fecha', { ascending: false })
           .limit(5)
         setUltimosVideos(videosData || [])
+
+        // Alerta: citación pendiente para un partido que juega en 2 días
+        const en2Dias = new Date(hoy)
+        en2Dias.setDate(en2Dias.getDate() + 2)
+        const en2DiasISO = fechaISO(en2Dias)
+        const { data: partidosEn2Dias } = await supabase
+          .from('partidos')
+          .select('*, categorias(nombre)')
+          .eq('fecha', en2DiasISO)
+        if (partidosEn2Dias?.length) {
+          const idsPartidos = partidosEn2Dias.map((p) => p.id)
+          const { data: citacionesExistentes } = await supabase
+            .from('citaciones')
+            .select('partido_id')
+            .in('partido_id', idsPartidos)
+          const idsConCitacion = new Set((citacionesExistentes || []).map((c) => c.partido_id))
+          partidosEn2Dias
+            .filter((p) => !idsConCitacion.has(p.id))
+            .forEach((p) => {
+              alertasNuevas.push({
+                id: `citacion-${p.id}`,
+                icono: '📋',
+                color: '#FBBF24',
+                texto: `Falta cargar la citación vs ${p.rival} (${p.categorias?.nombre || 'sin categoría'}) — juega en 2 días`,
+                seccion: 'partidos',
+              })
+            })
+        }
+
+        // Alerta: partido de ayer sin minutos/GPS cargados
+        const ayer = new Date(hoy)
+        ayer.setDate(ayer.getDate() - 1)
+        const ayerISO = fechaISO(ayer)
+        const { data: partidosAyer } = await supabase
+          .from('partidos')
+          .select('*, categorias(nombre)')
+          .eq('fecha', ayerISO)
+        if (partidosAyer?.length) {
+          const idsPartidosAyer = partidosAyer.map((p) => p.id)
+          const { data: sesionesExistentes } = await supabase
+            .from('sesiones_fisicas')
+            .select('partido_id')
+            .eq('tipo', 'partido')
+            .in('partido_id', idsPartidosAyer)
+          const idsConSesion = new Set((sesionesExistentes || []).map((s) => s.partido_id))
+          partidosAyer
+            .filter((p) => !idsConSesion.has(p.id))
+            .forEach((p) => {
+              alertasNuevas.push({
+                id: `minutos-${p.id}`,
+                icono: '⏱️',
+                color: '#FB923C',
+                texto: `Falta cargar los minutos/GPS del partido vs ${p.rival} (${p.categorias?.nombre || 'sin categoría'}) de ayer`,
+                seccion: 'fisico',
+              })
+            })
+        }
       }
 
       if (perfil.rol !== 'tecnico') {
@@ -66,8 +168,34 @@ function InicioSection({ perfil, onCambiarSeccion }) {
           return true
         })
         setAlertasNutricion(alertasUnicas)
+
+        // Alerta: lesión con fecha estimada de alta vencida
+        const { data: fichasVencidas } = await supabase
+          .from('fichas_medicas')
+          .select('*, jugadores(nombre, apellido, categorias(nombre))')
+          .eq('recuperado', false)
+          .not('fecha_estimada_alta', 'is', null)
+          .lte('fecha_estimada_alta', hoyISO)
+          .order('fecha_estimada_alta', { ascending: true })
+        const vistosLesion = new Set()
+        ;(fichasVencidas || [])
+          .filter((f) => {
+            if (!f.jugador_id || vistosLesion.has(f.jugador_id)) return false
+            vistosLesion.add(f.jugador_id)
+            return true
+          })
+          .forEach((f) => {
+            alertasNuevas.push({
+              id: `lesion-${f.id}`,
+              icono: '🩺',
+              color: '#F87171',
+              texto: `${f.jugadores?.apellido}, ${f.jugadores?.nombre} — el alta estimada (${f.fecha_estimada_alta}) ya venció, revisar estado`,
+              seccion: 'medicos',
+            })
+          })
       }
 
+      setAlertas(alertasNuevas)
       setCargando(false)
     }
     cargar()
@@ -91,6 +219,59 @@ function InicioSection({ perfil, onCambiarSeccion }) {
           Inicio
         </h1>
 
+        {alertas.length > 0 && (
+          <div className="mb-6 space-y-2">
+            <p className="text-xs tracking-widest uppercase mb-2" style={{ color: '#5B6B85' }}>
+              🔔 Alertas
+            </p>
+            {alertas.map((a) => (
+              <div
+                key={a.id}
+                onClick={() => onCambiarSeccion(a.seccion)}
+                className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:-translate-y-0.5 transition-all duration-200"
+                style={{ backgroundColor: '#1A2332', border: `1px solid ${a.color}` }}
+              >
+                <span className="text-lg shrink-0">{a.icono}</span>
+                <p className="text-sm" style={{ color: '#F0F2F5' }}>{a.texto}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {cumpleanieros.length > 0 && (
+          <div className="mb-6">
+            <p className="text-xs tracking-widest uppercase mb-2" style={{ color: '#5B6B85' }}>
+              🎂 Cumpleaños de la semana
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {cumpleanieros.map((j) => (
+                <div
+                  key={j.id}
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl"
+                  style={{ backgroundColor: '#1A2332', border: '1px solid #2A3548' }}
+                >
+                  <span
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0"
+                    style={{ backgroundColor: '#0F1419', color: '#8A9BB8' }}
+                  >
+                    {iniciales(j.nombre, j.apellido)}
+                  </span>
+                  <p className="text-sm" style={{ color: '#F0F2F5' }}>
+                    {j.apellido}, {j.nombre}
+                    <span style={{ color: '#5B6B85' }}> · {j.categorias?.nombre}</span>
+                  </p>
+                  <span
+                    className="text-xs font-mono px-2 py-0.5 rounded-full shrink-0"
+                    style={{ backgroundColor: '#0F1419', color: '#4ADE80' }}
+                  >
+                    {j.diasFaltan === 0 ? '¡Hoy!' : j.diasFaltan === 1 ? 'Mañana' : `en ${j.diasFaltan} días`}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="grid sm:grid-cols-2 gap-4">
           {perfil.rol !== 'medico' && (
             <div
@@ -99,14 +280,14 @@ function InicioSection({ perfil, onCambiarSeccion }) {
               style={{ backgroundColor: '#1A2332', border: '1px solid #2A3548' }}
             >
               <p className="text-xs tracking-widest uppercase mb-2" style={{ color: '#5B6B85' }}>
-                Próximo partido
+                Próximo partido · 4ta a 9na
               </p>
-              {proximoPartido ? (
+              {proximoPartidoPrincipal ? (
                 <div className="flex items-center gap-2.5">
-                  {proximoPartido.escudo_url ? (
+                  {proximoPartidoPrincipal.escudo_url ? (
                     <img
-                      src={proximoPartido.escudo_url}
-                      alt={proximoPartido.rival}
+                      src={proximoPartidoPrincipal.escudo_url}
+                      alt={proximoPartidoPrincipal.rival}
                       className="w-9 h-9 rounded object-contain shrink-0"
                       style={{ backgroundColor: '#0F1419' }}
                     />
@@ -120,13 +301,54 @@ function InicioSection({ perfil, onCambiarSeccion }) {
                   )}
                   <div>
                     <p className="text-sm font-medium" style={{ color: '#F0F2F5' }}>
-                      vs {proximoPartido.rival}
+                      vs {proximoPartidoPrincipal.rival}
                     </p>
                     <p className="text-xs" style={{ color: '#8A9BB8' }}>
-                      {proximoPartido.fecha} {proximoPartido.hora && `· ${proximoPartido.hora}`}
-                      {proximoPartido.categoriasNombres?.length > 0
-                        ? ` · ${proximoPartido.categoriasNombres.join(', ')}`
+                      {proximoPartidoPrincipal.fecha} {proximoPartidoPrincipal.hora && `· ${proximoPartidoPrincipal.hora}`}
+                      {proximoPartidoPrincipal.categoriasNombres?.length > 0
+                        ? ` · ${proximoPartidoPrincipal.categoriasNombres.join(', ')}`
                         : ''}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm" style={{ color: '#5B6B85' }}>No hay partidos próximos cargados.</p>
+              )}
+            </div>
+          )}
+
+          {perfil.rol !== 'medico' && (
+            <div
+              onClick={() => onCambiarSeccion('partidos')}
+              className="p-4 rounded-xl cursor-pointer hover:-translate-y-0.5 transition-all duration-200"
+              style={{ backgroundColor: '#1A2332', border: '1px solid #2A3548' }}
+            >
+              <p className="text-xs tracking-widest uppercase mb-2" style={{ color: '#5B6B85' }}>
+                Próximo partido · Reserva
+              </p>
+              {proximoPartidoReserva ? (
+                <div className="flex items-center gap-2.5">
+                  {proximoPartidoReserva.escudo_url ? (
+                    <img
+                      src={proximoPartidoReserva.escudo_url}
+                      alt={proximoPartidoReserva.rival}
+                      className="w-9 h-9 rounded object-contain shrink-0"
+                      style={{ backgroundColor: '#0F1419' }}
+                    />
+                  ) : (
+                    <span
+                      className="w-9 h-9 rounded flex items-center justify-center text-sm shrink-0"
+                      style={{ backgroundColor: '#0F1419', color: '#5B6B85' }}
+                    >
+                      🛡️
+                    </span>
+                  )}
+                  <div>
+                    <p className="text-sm font-medium" style={{ color: '#F0F2F5' }}>
+                      vs {proximoPartidoReserva.rival}
+                    </p>
+                    <p className="text-xs" style={{ color: '#8A9BB8' }}>
+                      {proximoPartidoReserva.fecha} {proximoPartidoReserva.hora && `· ${proximoPartidoReserva.hora}`}
                     </p>
                   </div>
                 </div>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { CAMPOS_FISICOS } from '../utils/camposFisicos'
+import { obtenerJugadoresDeCategoria } from '../utils/jugadoresCategoria'
 
 function CargarEstadisticas({ partidoId, categoriaId, onVolver, onIrAFisico }) {
   const [partido, setPartido] = useState(null)
@@ -19,11 +20,12 @@ function CargarEstadisticas({ partidoId, categoriaId, onVolver, onIrAFisico }) {
         .single()
       setPartido(partidoData)
 
-      const { data: jugadoresData } = await supabase
-        .from('jugadores')
-        .select('*')
-        .eq('categoria_id', categoriaId)
-        .order('apellido')
+      const { data: categoriasData } = await supabase.from('categorias').select('id, es_reserva')
+      const { data: jugadoresData } = await obtenerJugadoresDeCategoria(
+        supabase,
+        categoriaId,
+        categoriasData
+      )
       setJugadores(jugadoresData || [])
 
       const { data: statsData } = await supabase

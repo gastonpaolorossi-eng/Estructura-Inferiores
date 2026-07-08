@@ -14,6 +14,9 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
   const [pieHabil, setPieHabil] = useState('')
   const [fotoUrl, setFotoUrl] = useState('')
   const [subiendoFoto, setSubiendoFoto] = useState(false)
+  const [contactoEmergenciaNombre, setContactoEmergenciaNombre] = useState('')
+  const [telefonoEmergencia, setTelefonoEmergencia] = useState('')
+  const [tambienReserva, setTambienReserva] = useState(false)
   const [guardando, setGuardando] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
   const [cargando, setCargando] = useState(!!jugadorIdEditar)
@@ -48,6 +51,9 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
         setFechaNacimiento(data.fecha_nacimiento || '')
         setPieHabil(data.pie_habil || '')
         setFotoUrl(data.foto_url || '')
+        setContactoEmergenciaNombre(data.contacto_emergencia_nombre || '')
+        setTelefonoEmergencia(data.telefono_emergencia || '')
+        setTambienReserva(!!data.tambien_reserva)
       }
       setCargando(false)
     }
@@ -92,6 +98,9 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
       fecha_nacimiento: fechaNacimiento || null,
       pie_habil: pieHabil || null,
       foto_url: fotoUrl || null,
+      contacto_emergencia_nombre: contactoEmergenciaNombre || null,
+      telefono_emergencia: telefonoEmergencia || null,
+      tambien_reserva: tambienReserva,
     }
 
     const { error } = esEdicion
@@ -282,6 +291,39 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
               <option value="ambidiestro">Ambidiestro</option>
             </select>
           </div>
+
+          <div>
+            <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: '#5B6B85' }}>
+              Contacto de emergencia
+            </label>
+            <input
+              type="text"
+              value={contactoEmergenciaNombre}
+              onChange={(e) => setContactoEmergenciaNombre(e.target.value)}
+              className="w-full p-3 rounded-xl outline-none mb-2"
+              style={inputStyle}
+              placeholder="Nombre (ej: madre, padre, tutor)"
+            />
+            <input
+              type="tel"
+              value={telefonoEmergencia}
+              onChange={(e) => setTelefonoEmergencia(e.target.value)}
+              className="w-full p-3 rounded-xl outline-none"
+              style={inputStyle}
+              placeholder="Teléfono"
+            />
+          </div>
+
+          {categorias.find((c) => c.id === categoriaId)?.es_reserva !== true && (
+            <label className="flex items-center gap-2 text-sm cursor-pointer" style={{ color: '#F0F2F5' }}>
+              <input
+                type="checkbox"
+                checked={tambienReserva}
+                onChange={(e) => setTambienReserva(e.target.checked)}
+              />
+              También pertenece al plantel de Reserva
+            </label>
+          )}
 
           <div>
             <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: '#5B6B85' }}>

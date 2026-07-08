@@ -28,6 +28,7 @@ function MedicosSection({ jugadorInicialId, onConsumirJugadorInicial }) {
   const [fecha, setFecha] = useState('')
   const [descripcion, setDescripcion] = useState('')
   const [tiempoRecuperacion, setTiempoRecuperacion] = useState('')
+  const [fechaEstimadaAlta, setFechaEstimadaAlta] = useState('')
   const [recuperado, setRecuperado] = useState(false)
   const [linkInforme, setLinkInforme] = useState('')
   const [guardando, setGuardando] = useState(false)
@@ -95,6 +96,7 @@ function MedicosSection({ jugadorInicialId, onConsumirJugadorInicial }) {
     setFecha(obtenerFechaHoy())
     setDescripcion('')
     setTiempoRecuperacion('')
+    setFechaEstimadaAlta('')
     setRecuperado(false)
     setLinkInforme('')
     setMostrarForm(true)
@@ -105,6 +107,7 @@ function MedicosSection({ jugadorInicialId, onConsumirJugadorInicial }) {
     setFecha(f.fecha || '')
     setDescripcion(f.descripcion || '')
     setTiempoRecuperacion(f.tiempo_recuperacion || '')
+    setFechaEstimadaAlta(f.fecha_estimada_alta || '')
     setRecuperado(!!f.recuperado)
     setLinkInforme(f.link_informe || '')
     setMostrarForm(true)
@@ -123,6 +126,7 @@ function MedicosSection({ jugadorInicialId, onConsumirJugadorInicial }) {
       fecha,
       descripcion,
       tiempo_recuperacion: tiempoRecuperacion || null,
+      fecha_estimada_alta: fechaEstimadaAlta || null,
       recuperado,
       link_informe: linkInforme || null,
     }
@@ -156,6 +160,7 @@ function MedicosSection({ jugadorInicialId, onConsumirJugadorInicial }) {
     setFecha('')
     setDescripcion('')
     setTiempoRecuperacion('')
+    setFechaEstimadaAlta('')
     setRecuperado(false)
     setLinkInforme('')
     setMostrarForm(false)
@@ -356,6 +361,18 @@ function MedicosSection({ jugadorInicialId, onConsumirJugadorInicial }) {
                 className="w-full p-2.5 rounded-xl outline-none text-sm"
                 style={inputStyle}
               />
+              <div>
+                <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: '#5B6B85' }}>
+                  Fecha estimada de alta
+                </label>
+                <input
+                  type="date"
+                  value={fechaEstimadaAlta}
+                  onChange={(e) => setFechaEstimadaAlta(e.target.value)}
+                  className="w-full p-2.5 rounded-xl outline-none text-sm"
+                  style={inputStyle}
+                />
+              </div>
               <label className="flex items-center gap-2 text-sm cursor-pointer" style={{ color: '#F0F2F5' }}>
                 <input
                   type="checkbox"
@@ -423,6 +440,11 @@ function MedicosSection({ jugadorInicialId, onConsumirJugadorInicial }) {
                   </div>
                 </div>
                 <p className="text-sm" style={{ color: '#F0F2F5' }}>{f.descripcion}</p>
+                {f.fecha_estimada_alta && !f.recuperado && (
+                  <p className="text-xs mt-1" style={{ color: '#7DD3FC' }}>
+                    📅 Alta estimada: {f.fecha_estimada_alta}
+                  </p>
+                )}
                 {f.link_informe && (
                   <a
                     href={f.link_informe}

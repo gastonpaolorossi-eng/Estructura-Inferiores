@@ -7,6 +7,41 @@ function iniciales(nombre, apellido) {
   return `${nombre?.[0] || ''}${apellido?.[0] || ''}`.toUpperCase()
 }
 
+function formatearFechaCorta(fecha) {
+  if (!fecha) return ''
+  const partes = fecha.split('-')
+  if (partes.length !== 3) return fecha
+  return `${partes[2]}/${partes[1]}`
+}
+
+function MiniBarras({ datos, color }) {
+  const valores = datos.map((d) => d.valor || 0)
+  const min = Math.min(...valores)
+  const max = Math.max(...valores, 1)
+  const rango = max - min || 1
+  const ancho = 26
+  const gap = 6
+  const alto = 60
+  const svgAncho = datos.length * (ancho + gap)
+
+  return (
+    <svg viewBox={`0 0 ${svgAncho} ${alto + 16}`} width={svgAncho} height={alto + 16}>
+      {datos.map((d, i) => {
+        const h = 8 + ((d.valor - min) / rango) * (alto - 8)
+        const x = i * (ancho + gap)
+        return (
+          <g key={i}>
+            <rect x={x} y={alto - h} width={ancho} height={h} rx={3} fill={color} opacity={0.85} />
+            <text x={x + ancho / 2} y={alto + 12} fontSize="8" fill="#5B6B85" textAnchor="middle">
+              {d.etiqueta}
+            </text>
+          </g>
+        )
+      })}
+    </svg>
+  )
+}
+
 function NutricionSection({ jugadorInicialId, onConsumirJugadorInicial }) {
   const [jugadores, setJugadores] = useState([])
   const [idsConAlerta, setIdsConAlerta] = useState(new Set())
@@ -149,6 +184,16 @@ function NutricionSection({ jugadorInicialId, onConsumirJugadorInicial }) {
   const conAlerta = filtrados.filter((j) => idsConAlerta.has(j.id))
   const sinAlerta = filtrados.filter((j) => !idsConAlerta.has(j.id))
 
+  const fichasOrdenadas = [...fichas].sort((a, b) => (a.fecha || '').localeCompare(b.fecha || ''))
+  const datosPesoChart = fichasOrdenadas
+    .filter((f) => f.peso !== null && f.peso !== undefined)
+    .slice(-8)
+    .map((f) => ({ valor: f.peso, etiqueta: formatearFechaCorta(f.fecha) }))
+  const datosAlturaChart = fichasOrdenadas
+    .filter((f) => f.altura !== null && f.altura !== undefined)
+    .slice(-8)
+    .map((f) => ({ valor: f.altura, etiqueta: formatearFechaCorta(f.fecha) }))
+
   const inputStyle = {
     backgroundColor: '#1A2332',
     border: '1px solid #2A3548',
@@ -248,6 +293,28 @@ function NutricionSection({ jugadorInicialId, onConsumirJugadorInicial }) {
               >
                 {guardando ? 'Guardando...' : fichaEditando ? 'Guardar cambios' : 'Guardar registro'}
               </button>
+            </div>
+          )}
+
+          {(datosPesoChart.length >= 2 || datosAlturaChart.length >= 2) && (
+            <div className="p-4 rounded-xl mb-6" style={{ backgroundColor: '#1A2332', border: '1px solid #2A3548' }}>
+              <p className="text-xs uppercase tracking-wide mb-3" style={{ color: '#5B6B85' }}>
+                📈 Evolución
+              </p>
+              <div className="flex flex-wrap gap-6">
+                {datosPesoChart.length >= 2 && (
+                  <div>
+                    <p className="text-[10px] uppercase mb-1.5" style={{ color: '#7DD3FC' }}>Peso (kg)</p>
+                    <MiniBarras datos={datosPesoChart} color="#7DD3FC" />
+                  </div>
+                )}
+                {datosAlturaChart.length >= 2 && (
+                  <div>
+                    <p className="text-[10px] uppercase mb-1.5" style={{ color: '#4ADE80' }}>Altura (cm)</p>
+                    <MiniBarras datos={datosAlturaChart} color="#4ADE80" />
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

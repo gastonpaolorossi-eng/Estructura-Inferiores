@@ -15,6 +15,7 @@ function iniciales(nombre, apellido) {
 function ListaJugadores({ onSelectJugador, onNuevoJugador, onCargaMasiva, perfil }) {
   const esTecnico = perfil?.rol === 'tecnico'
   const [jugadores, setJugadores] = useState([])
+  const [categorias, setCategorias] = useState([])
   const [categoriaId, setCategoriaId] = useState(esTecnico ? perfil.categoria_id : '')
   const [busqueda, setBusqueda] = useState('')
 
@@ -30,12 +31,20 @@ function ListaJugadores({ onSelectJugador, onNuevoJugador, onCargaMasiva, perfil
       } else {
         setJugadores(data)
       }
+
+      const { data: categoriasData } = await supabase.from('categorias').select('id, es_reserva')
+      setCategorias(categoriasData || [])
     }
     cargarJugadores()
   }, [])
 
+  const categoriaSeleccionada = categorias.find((c) => c.id === categoriaId)
+
   const jugadoresFiltrados = jugadores.filter((j) => {
-    const coincideCategoria = !categoriaId || j.categoria_id === categoriaId
+    const coincideCategoria =
+      !categoriaId ||
+      j.categoria_id === categoriaId ||
+      (categoriaSeleccionada?.es_reserva && j.tambien_reserva)
     const nombreCompleto = `${j.nombre} ${j.apellido}`.toLowerCase()
     const coincideBusqueda = !busqueda || nombreCompleto.includes(busqueda.toLowerCase())
     return coincideCategoria && coincideBusqueda

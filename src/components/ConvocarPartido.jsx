@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
+import { obtenerJugadoresDeCategoria } from '../utils/jugadoresCategoria'
 
 function ConvocarPartido({ partidoId, categoriaId, onVolver, onSiguiente }) {
   const [partido, setPartido] = useState(null)
@@ -17,11 +18,12 @@ function ConvocarPartido({ partidoId, categoriaId, onVolver, onSiguiente }) {
         .single()
       setPartido(partidoData)
 
-      const { data: jugadoresData } = await supabase
-        .from('jugadores')
-        .select('*')
-        .eq('categoria_id', categoriaId)
-        .order('apellido')
+      const { data: categoriasData } = await supabase.from('categorias').select('id, es_reserva')
+      const { data: jugadoresData } = await obtenerJugadoresDeCategoria(
+        supabase,
+        categoriaId,
+        categoriasData
+      )
       setJugadores(jugadoresData || [])
 
       const { data: citacionesData } = await supabase

@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { obtenerFechaHoy } from '../utils/fecha'
 import { CAMPOS_FISICOS as CAMPOS } from '../utils/camposFisicos'
+import { obtenerJugadoresDeCategoria } from '../utils/jugadoresCategoria'
+import { agregarPendiente, contarPendientes, sincronizarPendientes } from '../utils/colaOffline'
 
 function normalizarNombre(s) {
   return (s || '')
@@ -31,16 +33,35 @@ function FisicoSection({ perfil, partidoInicialId, onConsumirPartidoInicial }) {
   const [mostrarPegado, setMostrarPegado] = useState(false)
   const [textoPegado, setTextoPegado] = useState('')
   const [resultadoPegado, setResultadoPegado] = useState(null)
+  const [pendientes, setPendientes] = useState(0)
   const partidoForzadoRef = useRef(false)
 
+  const intentarSincronizar = useCallback(async () => {
+    if (!navigator.onLine) return
+    const sincronizados = await sincronizarPendientes(supabase)
+    setPendientes(contarPendientes('fisico'))
+    if (sincronizados > 0) {
+      setMensaje(`Se sincronizaron ${sincronizados} registro(s) guardados sin conexión.`)
+    }
+  }, [])
+
   useEffect(() => {
-    if (esTecnico) return
+    async function ejecutar() {
+      setPendientes(contarPendientes('fisico'))
+      intentarSincronizar()
+    }
+    ejecutar()
+    window.addEventListener('online', intentarSincronizar)
+    return () => window.removeEventListener('online', intentarSincronizar)
+  }, [intentarSincronizar])
+
+  useEffect(() => {
     async function cargarCategorias() {
       const { data } = await supabase.from('categorias').select('*').order('orden')
       setCategorias(data || [])
     }
     cargarCategorias()
-  }, [esTecnico])
+  }, [])
 
   useEffect(() => {
     async function aplicarPartidoInicial() {
@@ -88,11 +109,11 @@ function FisicoSection({ perfil, partidoInicialId, onConsumirPartidoInicial }) {
       setMensaje('')
       setResultadoPegado(null)
 
-      const { data: jugadoresData } = await supabase
-        .from('jugadores')
-        .select('*')
-        .eq('categoria_id', categoriaId)
-        .order('apellido')
+      const { data: jugadoresData } = await obtenerJugadoresDeCategoria(
+        supabase,
+        categoriaId,
+        categorias
+      )
       setJugadores(jugadoresData || [])
 
       const ids = (jugadoresData || []).map((j) => j.id)
@@ -126,7 +147,7 @@ function FisicoSection({ perfil, partidoInicialId, onConsumirPartidoInicial }) {
       setCargando(false)
     }
     cargar()
-  }, [categoriaId, fecha, tipo])
+  }, [categoriaId, fecha, tipo, categorias])
 
   function cambiarValor(jugadorId, campo, valor) {
     setDatos((prev) => ({
@@ -210,29 +231,40 @@ function FisicoSection({ perfil, partidoInicialId, onConsumirPartidoInicial }) {
         return registro
       })
 
-    if (filas.length > 0) {
-      const { error } = await supabase
-        .from('sesiones_fisicas')
-        .upsert(filas, { onConflict: 'fecha,jugador_id,tipo' })
-      if (error) {
-        setMensaje('Error al guardar: ' + error.message)
-        setGuardando(false)
-        return
-      }
-    }
-
     const idsSinDatos = jugadores.map((j) => j.id).filter((id) => !tieneAlgunValor(datos[id]))
-    if (idsSinDatos.length > 0) {
-      await supabase
-        .from('sesiones_fisicas')
-        .delete()
-        .eq('fecha', fecha)
-        .eq('tipo', tipo)
-        .in('jugador_id', idsSinDatos)
+
+    if (!navigator.onLine) {
+      agregarPendiente({ tipo: 'fisico', fecha, subtipo: tipo, filas, idsSinDatos })
+      setPendientes(contarPendientes('fisico'))
+      setGuardando(false)
+      setMensaje('Sin conexión: guardado en el dispositivo. Se sincronizará solo cuando vuelva la señal.')
+      return
     }
 
-    setGuardando(false)
-    setMensaje('Listo, datos físicos guardados.')
+    try {
+      if (filas.length > 0) {
+        const { error } = await supabase
+          .from('sesiones_fisicas')
+          .upsert(filas, { onConflict: 'fecha,jugador_id,tipo' })
+        if (error) throw error
+      }
+      if (idsSinDatos.length > 0) {
+        const { error } = await supabase
+          .from('sesiones_fisicas')
+          .delete()
+          .eq('fecha', fecha)
+          .eq('tipo', tipo)
+          .in('jugador_id', idsSinDatos)
+        if (error) throw error
+      }
+      setGuardando(false)
+      setMensaje('Listo, datos físicos guardados.')
+    } catch {
+      agregarPendiente({ tipo: 'fisico', fecha, subtipo: tipo, filas, idsSinDatos })
+      setPendientes(contarPendientes('fisico'))
+      setGuardando(false)
+      setMensaje('No se pudo conectar: guardado en el dispositivo. Se sincronizará solo más tarde.')
+    }
   }
 
   const inputStyle = {
@@ -444,8 +476,17 @@ function FisicoSection({ perfil, partidoInicialId, onConsumirPartidoInicial }) {
               </table>
             </div>
 
+            {pendientes > 0 && (
+              <p className="text-xs mb-3" style={{ color: '#FBBF24' }}>
+                📴 {pendientes} registro(s) guardados sin conexión, pendientes de sincronizar.
+              </p>
+            )}
+
             {mensaje && (
-              <p className="text-sm mb-4" style={{ color: mensaje.startsWith('Listo') ? '#4ADE80' : '#F87171' }}>
+              <p
+                className="text-sm mb-4"
+                style={{ color: mensaje.startsWith('Listo') || mensaje.includes('sincronizaron') ? '#4ADE80' : mensaje.startsWith('Sin conexión') || mensaje.startsWith('No se pudo') ? '#FBBF24' : '#F87171' }}
+              >
                 {mensaje}
               </p>
             )}

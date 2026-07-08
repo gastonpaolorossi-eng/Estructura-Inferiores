@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { obtenerFechaHoy } from '../utils/fecha'
+import { agregarPendiente, contarPendientes, sincronizarPendientes } from '../utils/colaOffline'
 
 const ESTADOS = [
   { valor: 'presente', label: 'Presente', color: '#4ADE80' },
@@ -20,6 +21,26 @@ function AsistenciaSection({ perfil }) {
   const [cargando, setCargando] = useState(false)
   const [guardando, setGuardando] = useState(false)
   const [mensaje, setMensaje] = useState('')
+  const [pendientes, setPendientes] = useState(0)
+
+  const intentarSincronizar = useCallback(async () => {
+    if (!navigator.onLine) return
+    const sincronizados = await sincronizarPendientes(supabase)
+    setPendientes(contarPendientes('asistencia'))
+    if (sincronizados > 0) {
+      setMensaje(`Se sincronizaron ${sincronizados} registro(s) guardados sin conexión.`)
+    }
+  }, [])
+
+  useEffect(() => {
+    async function ejecutar() {
+      setPendientes(contarPendientes('asistencia'))
+      intentarSincronizar()
+    }
+    ejecutar()
+    window.addEventListener('online', intentarSincronizar)
+    return () => window.removeEventListener('online', intentarSincronizar)
+  }, [intentarSincronizar])
 
   useEffect(() => {
     if (esTecnico) return
@@ -97,23 +118,33 @@ function AsistenciaSection({ perfil }) {
         jugador_id: jugadorId,
         estado,
       }))
-
-    if (filas.length > 0) {
-      const { error } = await supabase.from('asistencias').upsert(filas, { onConflict: 'fecha,jugador_id' })
-      if (error) {
-        setMensaje('Error al guardar: ' + error.message)
-        setGuardando(false)
-        return
-      }
-    }
-
     const idsSinMarcar = jugadores.map((j) => j.id).filter((id) => !asistencias[id])
-    if (idsSinMarcar.length > 0) {
-      await supabase.from('asistencias').delete().eq('fecha', fecha).in('jugador_id', idsSinMarcar)
+
+    if (!navigator.onLine) {
+      agregarPendiente({ tipo: 'asistencia', fecha, filas, idsSinMarcar })
+      setPendientes(contarPendientes('asistencia'))
+      setGuardando(false)
+      setMensaje('Sin conexión: guardado en el dispositivo. Se sincronizará solo cuando vuelva la señal.')
+      return
     }
 
-    setGuardando(false)
-    setMensaje('Listo, asistencia guardada.')
+    try {
+      if (filas.length > 0) {
+        const { error } = await supabase.from('asistencias').upsert(filas, { onConflict: 'fecha,jugador_id' })
+        if (error) throw error
+      }
+      if (idsSinMarcar.length > 0) {
+        const { error } = await supabase.from('asistencias').delete().eq('fecha', fecha).in('jugador_id', idsSinMarcar)
+        if (error) throw error
+      }
+      setGuardando(false)
+      setMensaje('Listo, asistencia guardada.')
+    } catch {
+      agregarPendiente({ tipo: 'asistencia', fecha, filas, idsSinMarcar })
+      setPendientes(contarPendientes('asistencia'))
+      setGuardando(false)
+      setMensaje('No se pudo conectar: guardado en el dispositivo. Se sincronizará solo más tarde.')
+    }
   }
 
   const inputStyle = {
@@ -238,8 +269,17 @@ function AsistenciaSection({ perfil }) {
               ))}
             </div>
 
+            {pendientes > 0 && (
+              <p className="text-xs mb-3" style={{ color: '#FBBF24' }}>
+                📴 {pendientes} registro(s) guardados sin conexión, pendientes de sincronizar.
+              </p>
+            )}
+
             {mensaje && (
-              <p className="text-sm mb-4" style={{ color: mensaje.startsWith('Listo') ? '#4ADE80' : '#F87171' }}>
+              <p
+                className="text-sm mb-4"
+                style={{ color: mensaje.startsWith('Listo') || mensaje.includes('sincronizaron') ? '#4ADE80' : mensaje.startsWith('Sin conexión') || mensaje.startsWith('No se pudo') ? '#FBBF24' : '#F87171' }}
+              >
                 {mensaje}
               </p>
             )}
