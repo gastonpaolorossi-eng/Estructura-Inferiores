@@ -11,6 +11,18 @@ const CAMPOS = [
   { clave: 'minutos', label: 'Minutos' },
 ]
 
+function normalizarNombre(s) {
+  return (s || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z\s]/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean)
+    .sort()
+    .join(' ')
+}
+
 function FisicoSection({ perfil }) {
   const esTecnico = perfil.rol === 'tecnico'
   const [categorias, setCategorias] = useState([])
@@ -24,6 +36,9 @@ function FisicoSection({ perfil }) {
   const [cargando, setCargando] = useState(false)
   const [guardando, setGuardando] = useState(false)
   const [mensaje, setMensaje] = useState('')
+  const [mostrarPegado, setMostrarPegado] = useState(false)
+  const [textoPegado, setTextoPegado] = useState('')
+  const [resultadoPegado, setResultadoPegado] = useState(null)
 
   useEffect(() => {
     if (esTecnico) return
@@ -58,6 +73,7 @@ function FisicoSection({ perfil }) {
       }
       setCargando(true)
       setMensaje('')
+      setResultadoPegado(null)
 
       const { data: jugadoresData } = await supabase
         .from('jugadores')
@@ -99,6 +115,52 @@ function FisicoSection({ perfil }) {
         [campo]: valor,
       },
     }))
+  }
+
+  function handleAplicarPegado() {
+    const lineas = textoPegado.split('\n').map((l) => l.trim()).filter((l) => l !== '')
+    if (lineas.length === 0) return
+
+    const jugadoresConNombre = jugadores.map((j) => ({
+      jugador: j,
+      claveNombre: normalizarNombre(`${j.nombre} ${j.apellido}`),
+    }))
+
+    let aplicados = 0
+    const noEncontrados = []
+    const nuevoDatos = { ...datos }
+
+    lineas.forEach((linea, i) => {
+      const partes = (linea.includes('\t') ? linea.split('\t') : linea.split(',')).map((p) => p.trim())
+      if (partes.length < 2) return
+
+      // Últimas 6 columnas son las métricas, en el mismo orden que CAMPOS.
+      // Todo lo anterior es el nombre (puede venir en 1 o 2 columnas: "Apellido, Nombre" o separado).
+      const valores = partes.slice(-CAMPOS.length)
+      const columnasNombre = partes.slice(0, partes.length - valores.length)
+      const nombrePegado = columnasNombre.join(' ')
+
+      if (!nombrePegado) return
+
+      const claveBuscada = normalizarNombre(nombrePegado)
+      const match = jugadoresConNombre.find((j) => j.claveNombre === claveBuscada)
+
+      if (!match) {
+        noEncontrados.push(`Fila ${i + 1}: "${nombrePegado}"`)
+        return
+      }
+
+      const fila = { ...nuevoDatos[match.jugador.id] }
+      CAMPOS.forEach((c, idx) => {
+        const v = (valores[idx] ?? '').toString().replace(',', '.').trim()
+        if (v !== '') fila[c.clave] = v
+      })
+      nuevoDatos[match.jugador.id] = fila
+      aplicados++
+    })
+
+    setDatos(nuevoDatos)
+    setResultadoPegado({ aplicados, noEncontrados })
   }
 
   function tieneAlgunValor(fila) {
@@ -246,6 +308,62 @@ function FisicoSection({ perfil }) {
 
         {jugadores.length > 0 && (
           <>
+            <div className="mb-4">
+              <button
+                onClick={() => setMostrarPegado((v) => !v)}
+                className="text-xs font-medium px-3 py-1.5 rounded-lg transition-opacity hover:opacity-80"
+                style={{ backgroundColor: '#1A2332', color: '#F0F2F5', border: '1px solid #2A3548' }}
+              >
+                {mostrarPegado ? 'Cerrar' : '📋 Pegar desde Excel'}
+              </button>
+
+              {mostrarPegado && (
+                <div className="mt-3 p-3 rounded-xl" style={{ backgroundColor: '#1A2332', border: '1px solid #2A3548' }}>
+                  <p className="text-xs mb-2" style={{ color: '#5B6B85' }}>
+                    Pegá las filas copiadas del reporte de Catapult (una fila por jugador). Columnas: Nombre (o
+                    Apellido y Nombre), Dist. total, Dist. alta int., Sprints, Vel. máx, Player Load, Minutos.
+                  </p>
+                  <textarea
+                    value={textoPegado}
+                    onChange={(e) => setTextoPegado(e.target.value)}
+                    placeholder={'Pérez, Juan\t5200\t800\t18\t28.5\t420\t75\nGómez, Martín\t4900\t750\t15\t27.1\t390\t70'}
+                    rows={5}
+                    className="w-full p-2.5 rounded-xl outline-none text-sm font-mono resize-none mb-2"
+                    style={inputStyle}
+                  />
+                  <button
+                    onClick={handleAplicarPegado}
+                    disabled={!textoPegado.trim()}
+                    className="text-sm font-medium px-4 py-2 rounded-xl transition-opacity hover:opacity-80 disabled:opacity-50"
+                    style={{ backgroundColor: '#4ADE80', color: '#0F1419' }}
+                  >
+                    Aplicar
+                  </button>
+
+                  {resultadoPegado && (
+                    <div className="mt-3 text-xs">
+                      <p style={{ color: '#4ADE80' }}>
+                        {resultadoPegado.aplicados} jugador{resultadoPegado.aplicados !== 1 ? 'es' : ''} completados.
+                      </p>
+                      {resultadoPegado.noEncontrados.length > 0 && (
+                        <>
+                          <p style={{ color: '#F87171' }} className="mt-1">
+                            No se encontraron {resultadoPegado.noEncontrados.length} fila
+                            {resultadoPegado.noEncontrados.length !== 1 ? 's' : ''} (revisá el nombre):
+                          </p>
+                          <ul style={{ color: '#8A9BB8' }} className="list-disc list-inside">
+                            {resultadoPegado.noEncontrados.map((n) => (
+                              <li key={n}>{n}</li>
+                            ))}
+                          </ul>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
             <div className="overflow-x-auto mb-6 rounded-xl" style={{ border: '1px solid #2A3548' }}>
               <table className="min-w-full text-sm" style={{ borderCollapse: 'collapse' }}>
                 <thead>
