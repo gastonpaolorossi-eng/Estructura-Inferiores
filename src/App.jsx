@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { supabase } from './supabaseClient'
 import Layout from './components/Layout'
 import Login from './components/Login'
@@ -82,6 +82,12 @@ function App() {
     setSeccion('plantel')
   }
 
+  const consumirJugadorParaPlantel = useCallback(() => setJugadorParaPlantel(null), [])
+  const consumirJugadorParaMedicos = useCallback(() => setJugadorParaMedicos(null), [])
+  const consumirJugadorParaNutricion = useCallback(() => setJugadorParaNutricion(null), [])
+  const consumirJugadorParaPsicologia = useCallback(() => setJugadorParaPsicologia(null), [])
+  const consumirJugadorParaVideo = useCallback(() => setJugadorParaVideo(null), [])
+
   if (sesion === undefined) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#0F1419' }}>
@@ -142,32 +148,32 @@ function App() {
           onVerNutricion={irANutricionDesdePerfil}
           onVerPsicologia={irAPsicologiaDesdePerfil}
           jugadorInicialId={jugadorParaPlantel}
-          onConsumirJugadorInicial={() => setJugadorParaPlantel(null)}
+          onConsumirJugadorInicial={consumirJugadorParaPlantel}
           perfil={perfil}
         />
       )}
       {seccion === 'medicos' && (
         <MedicosSection
           jugadorInicialId={jugadorParaMedicos}
-          onConsumirJugadorInicial={() => setJugadorParaMedicos(null)}
+          onConsumirJugadorInicial={consumirJugadorParaMedicos}
         />
       )}
       {seccion === 'nutricion' && (
         <NutricionSection
           jugadorInicialId={jugadorParaNutricion}
-          onConsumirJugadorInicial={() => setJugadorParaNutricion(null)}
+          onConsumirJugadorInicial={consumirJugadorParaNutricion}
         />
       )}
       {seccion === 'psicologia' && (
         <PsicologiaSection
           jugadorInicialId={jugadorParaPsicologia}
-          onConsumirJugadorInicial={() => setJugadorParaPsicologia(null)}
+          onConsumirJugadorInicial={consumirJugadorParaPsicologia}
         />
       )}
       {seccion === 'video' && (
         <VideoSection
           jugadorInicialId={jugadorParaVideo}
-          onConsumirJugadorInicial={() => setJugadorParaVideo(null)}
+          onConsumirJugadorInicial={consumirJugadorParaVideo}
           onIrABiblioteca={() => setSeccion('entrenamientos')}
           perfil={perfil}
         />

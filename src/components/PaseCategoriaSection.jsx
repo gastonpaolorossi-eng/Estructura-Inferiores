@@ -204,6 +204,20 @@ function PaseCategoriaSection() {
                     checked={seleccionados.has(j.id)}
                     onChange={() => toggleJugador(j.id)}
                   />
+                  {j.foto_url ? (
+                    <img
+                      src={j.foto_url}
+                      alt={`${j.apellido}, ${j.nombre}`}
+                      className="w-7 h-7 rounded-full object-cover shrink-0"
+                    />
+                  ) : (
+                    <span
+                      className="w-7 h-7 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0"
+                      style={{ backgroundColor: '#0F1419', color: '#8A9BB8' }}
+                    >
+                      {`${j.nombre?.[0] || ''}${j.apellido?.[0] || ''}`.toUpperCase()}
+                    </span>
+                  )}
                   <span className="text-sm" style={{ color: '#F0F2F5' }}>
                     {j.apellido}, {j.nombre}
                   </span>

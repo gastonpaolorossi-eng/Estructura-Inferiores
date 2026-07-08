@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import CategoriaFiltro from './CategoriaFiltro'
 import { obtenerFechaHoy } from '../utils/fecha'
@@ -20,6 +20,25 @@ function PsicologiaSection({ jugadorInicialId, onConsumirJugadorInicial }) {
   const [linkInforme, setLinkInforme] = useState('')
   const [guardando, setGuardando] = useState(false)
 
+  const cargarFichas = useCallback(async (jugadorId) => {
+    const { data } = await supabase
+      .from('fichas_psicologicas')
+      .select('*')
+      .eq('jugador_id', jugadorId)
+      .order('fecha', { ascending: false })
+    setFichas(data || [])
+  }, [])
+
+  const abrirJugador = useCallback(
+    (j) => {
+      setJugadorSeleccionado(j)
+      setMostrarForm(false)
+      setFichaEditando(null)
+      cargarFichas(j.id)
+    },
+    [cargarFichas]
+  )
+
   useEffect(() => {
     async function cargar() {
       const { data } = await supabase
@@ -35,23 +54,7 @@ function PsicologiaSection({ jugadorInicialId, onConsumirJugadorInicial }) {
       }
     }
     cargar()
-  }, [jugadorInicialId])
-
-  async function cargarFichas(jugadorId) {
-    const { data } = await supabase
-      .from('fichas_psicologicas')
-      .select('*')
-      .eq('jugador_id', jugadorId)
-      .order('fecha', { ascending: false })
-    setFichas(data || [])
-  }
-
-  function abrirJugador(j) {
-    setJugadorSeleccionado(j)
-    setMostrarForm(false)
-    setFichaEditando(null)
-    cargarFichas(j.id)
-  }
+  }, [jugadorInicialId, abrirJugador, onConsumirJugadorInicial])
 
   function abrirNuevoRegistro() {
     setFichaEditando(null)
@@ -262,12 +265,21 @@ function PsicologiaSection({ jugadorInicialId, onConsumirJugadorInicial }) {
               className="flex items-center gap-3 p-3.5 rounded-xl cursor-pointer hover:-translate-y-0.5 transition-all duration-200"
               style={{ backgroundColor: '#1A2332', border: '1px solid #2A3548' }}
             >
-              <div
-                className="flex items-center justify-center w-9 h-9 rounded-full shrink-0 text-xs font-bold"
-                style={{ backgroundColor: '#0F1419', border: '2px solid #2A3548', color: '#8A9BB8', fontFamily: "'Archivo Black', sans-serif" }}
-              >
-                {iniciales(j.nombre, j.apellido)}
-              </div>
+              {j.foto_url ? (
+                <img
+                  src={j.foto_url}
+                  alt={`${j.apellido}, ${j.nombre}`}
+                  className="w-9 h-9 rounded-full object-cover shrink-0"
+                  style={{ border: '2px solid #2A3548' }}
+                />
+              ) : (
+                <div
+                  className="flex items-center justify-center w-9 h-9 rounded-full shrink-0 text-xs font-bold"
+                  style={{ backgroundColor: '#0F1419', border: '2px solid #2A3548', color: '#8A9BB8', fontFamily: "'Archivo Black', sans-serif" }}
+                >
+                  {iniciales(j.nombre, j.apellido)}
+                </div>
+              )}
               <p className="flex-1 text-sm" style={{ color: '#F0F2F5' }}>
                 {j.apellido}, {j.nombre}
               </p>

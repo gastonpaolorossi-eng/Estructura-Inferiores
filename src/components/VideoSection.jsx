@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { sanitizarNombreArchivo } from '../utils/archivos'
 
@@ -51,29 +51,36 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
         .select('*')
         .order('fecha', { ascending: false })
       setPartidos(parts || [])
-
-      if (jugadorInicialId) {
-        setTipo('individual')
-        setBusqueda('')
-        setJugadorFiltroId(jugadorInicialId)
-        onConsumirJugadorInicial()
-      }
     }
     cargarBase()
   }, [])
 
   useEffect(() => {
-    cargarVideos()
-  }, [tipo])
+    async function aplicarJugadorInicial() {
+      if (!jugadorInicialId) return
+      setTipo('individual')
+      setBusqueda('')
+      setJugadorFiltroId(jugadorInicialId)
+      onConsumirJugadorInicial()
+    }
+    aplicarJugadorInicial()
+  }, [jugadorInicialId, onConsumirJugadorInicial])
 
-  async function cargarVideos() {
+  const cargarVideos = useCallback(async () => {
     const { data } = await supabase
       .from('videos')
-      .select('*, categorias(nombre), jugadores(nombre, apellido, categoria_id), partidos(rival, fecha, escudo_url)')
+      .select('*, categorias(nombre), jugadores(nombre, apellido, categoria_id, foto_url), partidos(rival, fecha, escudo_url)')
       .eq('tipo', tipo)
       .order('fecha', { ascending: false })
     setVideos(data || [])
-  }
+  }, [tipo])
+
+  useEffect(() => {
+    async function ejecutar() {
+      cargarVideos()
+    }
+    ejecutar()
+  }, [cargarVideos])
 
   function cambiarTipo(t) {
     setTipo(t)
@@ -619,8 +626,8 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
 
         <div className="space-y-2">
           {videosFiltrados.map((v) => {
-            let titulo = ''
-            let badge = ''
+            let titulo
+            let badge
             if (tipo === 'colectivo') {
               titulo = v.descripcion || (v.categorias ? v.categorias.nombre : '')
               badge = v.categorias ? v.categorias.nombre : ''

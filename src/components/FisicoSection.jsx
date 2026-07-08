@@ -17,6 +17,8 @@ function FisicoSection({ perfil }) {
   const [categoriaId, setCategoriaId] = useState(esTecnico ? perfil.categoria_id : '')
   const [fecha, setFecha] = useState(obtenerFechaHoy())
   const [tipo, setTipo] = useState('entrenamiento')
+  const [partidos, setPartidos] = useState([])
+  const [partidoId, setPartidoId] = useState('')
   const [jugadores, setJugadores] = useState([])
   const [datos, setDatos] = useState({})
   const [cargando, setCargando] = useState(false)
@@ -31,6 +33,22 @@ function FisicoSection({ perfil }) {
     }
     cargarCategorias()
   }, [esTecnico])
+
+  useEffect(() => {
+    async function cargarPartidos() {
+      if (!categoriaId) {
+        setPartidos([])
+        return
+      }
+      const { data } = await supabase
+        .from('partidos')
+        .select('*')
+        .eq('categoria_id', categoriaId)
+        .order('fecha', { ascending: false })
+      setPartidos(data || [])
+    }
+    cargarPartidos()
+  }, [categoriaId])
 
   useEffect(() => {
     async function cargar() {
@@ -61,8 +79,11 @@ function FisicoSection({ perfil }) {
           mapa[s.jugador_id] = s
         })
         setDatos(mapa)
+        const partidoExistente = (sesionesData || []).find((s) => s.partido_id)?.partido_id
+        setPartidoId(partidoExistente || '')
       } else {
         setDatos({})
+        setPartidoId('')
       }
 
       setCargando(false)
@@ -93,7 +114,12 @@ function FisicoSection({ perfil }) {
       .filter((j) => tieneAlgunValor(datos[j.id]))
       .map((j) => {
         const fila = datos[j.id] || {}
-        const registro = { fecha, jugador_id: j.id, tipo }
+        const registro = {
+          fecha,
+          jugador_id: j.id,
+          tipo,
+          partido_id: tipo === 'partido' && partidoId ? partidoId : null,
+        }
         CAMPOS.forEach((c) => {
           const v = fila[c.clave]
           registro[c.clave] = v === '' || v === undefined || v === null ? null : Number(v)
@@ -145,7 +171,7 @@ function FisicoSection({ perfil }) {
           Métricas resumen de GPS (Catapult) por jugador y sesión.
         </p>
 
-        <div className="grid sm:grid-cols-3 gap-3 mb-6">
+        <div className="grid sm:grid-cols-3 gap-3 mb-3">
           <input
             type="date"
             value={fecha}
@@ -170,7 +196,10 @@ function FisicoSection({ perfil }) {
           )}
           <select
             value={tipo}
-            onChange={(e) => setTipo(e.target.value)}
+            onChange={(e) => {
+              setTipo(e.target.value)
+              if (e.target.value !== 'partido') setPartidoId('')
+            }}
             className="w-full p-2.5 rounded-xl outline-none text-sm"
             style={inputStyle}
           >
@@ -178,6 +207,28 @@ function FisicoSection({ perfil }) {
             <option value="partido">Partido</option>
           </select>
         </div>
+
+        {tipo === 'partido' && categoriaId && (
+          <div className="mb-6">
+            <select
+              value={partidoId}
+              onChange={(e) => {
+                setPartidoId(e.target.value)
+                const p = partidos.find((pp) => pp.id === e.target.value)
+                if (p?.fecha) setFecha(p.fecha)
+              }}
+              className="w-full sm:w-72 p-2.5 rounded-xl outline-none text-sm"
+              style={inputStyle}
+            >
+              <option value="">Vincular a un partido (opcional)</option>
+              {partidos.map((p) => (
+                <option key={p.id} value={p.id}>
+                  vs {p.rival} — {p.fecha}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {cargando && <p style={{ color: '#5B6B85' }}>Cargando...</p>}
 
@@ -219,7 +270,23 @@ function FisicoSection({ perfil }) {
                         className="p-2.5 whitespace-nowrap sticky left-0"
                         style={{ color: '#F0F2F5', backgroundColor: i % 2 === 0 ? '#0F1419' : '#151D2A' }}
                       >
-                        {j.apellido}, {j.nombre}
+                        <div className="flex items-center gap-2">
+                          {j.foto_url ? (
+                            <img
+                              src={j.foto_url}
+                              alt={`${j.apellido}, ${j.nombre}`}
+                              className="w-6 h-6 rounded-full object-cover shrink-0"
+                            />
+                          ) : (
+                            <span
+                              className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0"
+                              style={{ backgroundColor: '#1A2332', color: '#8A9BB8' }}
+                            >
+                              {`${j.nombre?.[0] || ''}${j.apellido?.[0] || ''}`.toUpperCase()}
+                            </span>
+                          )}
+                          {j.apellido}, {j.nombre}
+                        </div>
                       </td>
                       {CAMPOS.map((c) => (
                         <td key={c.clave} className="p-1.5">

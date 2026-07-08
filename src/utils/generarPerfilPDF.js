@@ -305,7 +305,8 @@ export async function generarPerfilPDF(datos, secciones) {
           }
           doc.setFontSize(8.5)
           doc.text(formatearFecha(s.fecha), xs[0], y)
-          doc.text(s.tipo || '—', xs[1], y)
+          const etiquetaTipo = s.partidos ? `Partido (vs ${s.partidos.rival})` : s.tipo || '—'
+          doc.text(etiquetaTipo, xs[1], y, { maxWidth: 60 })
           doc.text(s.distancia_total_m !== null ? String(s.distancia_total_m) : '—', xs[2], y)
           doc.text(s.distancia_alta_intensidad_m !== null ? String(s.distancia_alta_intensidad_m) : '—', xs[3], y)
           doc.text(s.sprints !== null ? String(s.sprints) : '—', xs[4], y)

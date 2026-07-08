@@ -110,17 +110,33 @@ function BuscadorGlobal({ onIrAJugador, onIrAMedicos, onIrAVideoJugador, onIrAVi
                     <div
                       key={j.id}
                       onClick={() => onIrAJugador(j.id)}
-                      className="p-3 rounded-xl cursor-pointer hover:-translate-y-0.5 transition-all duration-200"
+                      className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:-translate-y-0.5 transition-all duration-200"
                       style={{ backgroundColor: '#1A2332', border: '1px solid #2A3548' }}
                     >
-                      <p className="text-sm font-medium" style={{ color: '#F0F2F5' }}>
-                        {j.apellido}, {j.nombre}
-                      </p>
-                      {j.categorias?.nombre && (
-                        <p className="text-xs" style={{ color: '#8A9BB8' }}>
-                          {j.categorias.nombre}
-                        </p>
+                      {j.foto_url ? (
+                        <img
+                          src={j.foto_url}
+                          alt={`${j.apellido}, ${j.nombre}`}
+                          className="w-9 h-9 rounded-full object-cover shrink-0"
+                        />
+                      ) : (
+                        <span
+                          className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                          style={{ backgroundColor: '#0F1419', color: '#8A9BB8', fontFamily: "'Archivo Black', sans-serif" }}
+                        >
+                          {`${j.nombre?.[0] || ''}${j.apellido?.[0] || ''}`.toUpperCase()}
+                        </span>
                       )}
+                      <div>
+                        <p className="text-sm font-medium" style={{ color: '#F0F2F5' }}>
+                          {j.apellido}, {j.nombre}
+                        </p>
+                        {j.categorias?.nombre && (
+                          <p className="text-xs" style={{ color: '#8A9BB8' }}>
+                            {j.categorias.nombre}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>

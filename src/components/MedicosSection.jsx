@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import CategoriaFiltro from './CategoriaFiltro'
 
@@ -34,6 +34,25 @@ function MedicosSection({ jugadorInicialId, onConsumirJugadorInicial }) {
 
   const [guardandoEstado, setGuardandoEstado] = useState(false)
 
+  const cargarFichas = useCallback(async (jugadorId) => {
+    const { data } = await supabase
+      .from('fichas_medicas')
+      .select('*')
+      .eq('jugador_id', jugadorId)
+      .order('fecha', { ascending: false })
+    setFichas(data || [])
+  }, [])
+
+  const abrirJugador = useCallback(
+    (j) => {
+      setJugadorSeleccionado(j)
+      setMostrarForm(false)
+      setFichaEditando(null)
+      cargarFichas(j.id)
+    },
+    [cargarFichas]
+  )
+
   useEffect(() => {
     async function cargar() {
       const { data } = await supabase
@@ -55,28 +74,12 @@ function MedicosSection({ jugadorInicialId, onConsumirJugadorInicial }) {
       }
     }
     cargar()
-  }, [jugadorInicialId])
+  }, [jugadorInicialId, abrirJugador, onConsumirJugadorInicial])
 
   async function refrescarTodasLasFichas() {
     const { data } = await supabase.from('fichas_medicas').select('*')
     setTodasLasFichas(data || [])
     setIdsConHistorial(new Set((data || []).map((f) => f.jugador_id)))
-  }
-
-  async function cargarFichas(jugadorId) {
-    const { data } = await supabase
-      .from('fichas_medicas')
-      .select('*')
-      .eq('jugador_id', jugadorId)
-      .order('fecha', { ascending: false })
-    setFichas(data || [])
-  }
-
-  function abrirJugador(j) {
-    setJugadorSeleccionado(j)
-    setMostrarForm(false)
-    setFichaEditando(null)
-    cargarFichas(j.id)
   }
 
   function obtenerFechaHoy() {
@@ -530,9 +533,25 @@ function MedicosSection({ jugadorInicialId, onConsumirJugadorInicial }) {
                 style={{ backgroundColor: '#1A2332', border: '1px solid #2A3548' }}
               >
                 <div className="flex items-center justify-between mb-1">
-                  <p className="text-sm font-medium" style={{ color: '#F0F2F5' }}>
-                    {jugador.apellido}, {jugador.nombre}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    {jugador.foto_url ? (
+                      <img
+                        src={jugador.foto_url}
+                        alt={`${jugador.apellido}, ${jugador.nombre}`}
+                        className="w-6 h-6 rounded-full object-cover shrink-0"
+                      />
+                    ) : (
+                      <span
+                        className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0"
+                        style={{ backgroundColor: '#0F1419', color: '#8A9BB8' }}
+                      >
+                        {iniciales(jugador.nombre, jugador.apellido)}
+                      </span>
+                    )}
+                    <p className="text-sm font-medium" style={{ color: '#F0F2F5' }}>
+                      {jugador.apellido}, {jugador.nombre}
+                    </p>
+                  </div>
                   <span className="text-xs font-mono" style={{ color: '#8A9BB8' }}>{ficha.fecha}</span>
                 </div>
                 <p className="text-sm" style={{ color: '#8A9BB8' }}>{ficha.descripcion}</p>
@@ -564,12 +583,21 @@ function MedicosSection({ jugadorInicialId, onConsumirJugadorInicial }) {
                       className="flex items-center gap-3 p-3.5 rounded-xl cursor-pointer hover:-translate-y-0.5 transition-all duration-200"
                       style={{ backgroundColor: '#1A2332', border: `1px solid ${grupo.color}` }}
                     >
-                      <div
-                        className="flex items-center justify-center w-9 h-9 rounded-full shrink-0 text-xs font-bold"
-                        style={{ backgroundColor: '#0F1419', border: `2px solid ${grupo.color}`, color: grupo.color, fontFamily: "'Archivo Black', sans-serif" }}
-                      >
-                        {iniciales(j.nombre, j.apellido)}
-                      </div>
+                      {j.foto_url ? (
+                        <img
+                          src={j.foto_url}
+                          alt={`${j.apellido}, ${j.nombre}`}
+                          className="w-9 h-9 rounded-full object-cover shrink-0"
+                          style={{ border: `2px solid ${grupo.color}` }}
+                        />
+                      ) : (
+                        <div
+                          className="flex items-center justify-center w-9 h-9 rounded-full shrink-0 text-xs font-bold"
+                          style={{ backgroundColor: '#0F1419', border: `2px solid ${grupo.color}`, color: grupo.color, fontFamily: "'Archivo Black', sans-serif" }}
+                        >
+                          {iniciales(j.nombre, j.apellido)}
+                        </div>
+                      )}
                       <p className="flex-1 text-sm" style={{ color: '#F0F2F5' }}>
                         {j.apellido}, {j.nombre}
                       </p>

@@ -120,7 +120,7 @@ function PerfilJugador({ jugadorId, onVolver, onVerFichaMedica, onVerVideos, onV
 
       const { data: fisicosData } = await supabase
         .from('sesiones_fisicas')
-        .select('*')
+        .select('*, partidos(rival, fecha)')
         .eq('jugador_id', jugadorId)
         .order('fecha', { ascending: true })
       setSesionesFisicas(fisicosData || [])
@@ -575,7 +575,8 @@ function PerfilJugador({ jugadorId, onVolver, onVerFichaMedica, onVerVideos, onV
               {ultimaSesionFisica && (
                 <div className="flex flex-wrap gap-x-4 gap-y-1">
                   <p className="text-xs" style={{ color: '#8A9BB8' }}>
-                    Última sesión ({formatearFecha(ultimaSesionFisica.fecha)}):
+                    Última sesión ({formatearFecha(ultimaSesionFisica.fecha)}
+                    {ultimaSesionFisica.partidos ? ` · vs ${ultimaSesionFisica.partidos.rival}` : ''}):
                   </p>
                   {ultimaSesionFisica.distancia_total_m !== null && (
                     <p className="text-xs" style={{ color: '#F0F2F5' }}>
