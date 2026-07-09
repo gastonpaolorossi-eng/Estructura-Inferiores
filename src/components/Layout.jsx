@@ -19,6 +19,8 @@ function seccionesParaRol(rol) {
       { id: 'entrenamientos', label: 'Entrenamientos' },
       { id: 'asistencia', label: 'Asistencia' },
       { id: 'fisico', label: 'Físico' },
+      { id: 'bienestar', label: 'Bienestar' },
+      { id: 'captacion', label: 'Captación' },
       { id: 'pases', label: 'Pases' },
       { id: 'usuarios', label: 'Usuarios' },
     ]
@@ -40,6 +42,8 @@ function seccionesParaRol(rol) {
     { id: 'entrenamientos', label: 'Entrenamientos' },
     { id: 'asistencia', label: 'Asistencia' },
     { id: 'fisico', label: 'Físico' },
+    { id: 'bienestar', label: 'Bienestar' },
+    { id: 'captacion', label: 'Captación' },
   ]
 }
 

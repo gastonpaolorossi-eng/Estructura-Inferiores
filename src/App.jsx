@@ -16,6 +16,8 @@ import PaseCategoriaSection from './components/PaseCategoriaSection'
 import BuscadorGlobal from './components/BuscadorGlobal'
 import AsistenciaSection from './components/AsistenciaSection'
 import FisicoSection from './components/FisicoSection'
+import BienestarSection from './components/BienestarSection'
+import CaptacionSection from './components/CaptacionSection'
 
 function App() {
   const [sesion, setSesion] = useState(undefined)
@@ -195,6 +197,8 @@ function App() {
           onConsumirPartidoInicial={consumirPartidoParaFisico}
         />
       )}
+      {seccion === 'bienestar' && <BienestarSection perfil={perfil} />}
+      {seccion === 'captacion' && <CaptacionSection perfil={perfil} />}
       {seccion === 'pases' && <PaseCategoriaSection />}
       {seccion === 'usuarios' && <UsuariosSection />}
     </Layout>

@@ -278,6 +278,9 @@ function CargarEstadisticas({ partidoId, categoriaId, onVolver, onIrAFisico }) {
                       {c.label}
                     </th>
                   ))}
+                  <th className="text-left p-2.5 whitespace-nowrap" style={{ color: '#7DD3FC' }}>
+                    RPE
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -296,6 +299,9 @@ function CargarEstadisticas({ partidoId, categoriaId, onVolver, onIrAFisico }) {
                           {datosFisicos[j.id][c.clave] ?? '—'}
                         </td>
                       ))}
+                      <td className="p-2.5 whitespace-nowrap" style={{ color: '#7DD3FC' }}>
+                        {datosFisicos[j.id].rpe ?? '—'}
+                      </td>
                     </tr>
                   ))}
               </tbody>

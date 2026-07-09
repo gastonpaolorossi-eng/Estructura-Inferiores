@@ -184,6 +184,20 @@ function PerfilJugador({ jugadorId, onVolver, onVerFichaMedica, onVerVideos, onV
     { partidos: 0, titularidades: 0, minutos: 0, goles: 0, asistencias: 0, amarillas: 0, rojas: 0 }
   )
 
+  const estadisticasPorAnio = Object.values(
+    estadisticas.reduce((acc, e) => {
+      const anio = e.partidos?.fecha ? e.partidos.fecha.slice(0, 4) : 'Sin fecha'
+      if (!acc[anio]) {
+        acc[anio] = { anio, partidos: 0, minutos: 0, goles: 0, asistencias: 0 }
+      }
+      acc[anio].partidos += 1
+      acc[anio].minutos += e.minutos_jugados || 0
+      acc[anio].goles += e.goles || 0
+      acc[anio].asistencias += e.asistencias || 0
+      return acc
+    }, {})
+  ).sort((a, b) => b.anio.localeCompare(a.anio))
+
   const statConfig = {
     partidos: {
       titulo: 'Partidos jugados',
@@ -514,6 +528,38 @@ function PerfilJugador({ jugadorId, onVolver, onVerFichaMedica, onVerVideos, onV
           ))}
         </div>
 
+        {estadisticasPorAnio.length >= 2 && (
+          <>
+            <p className="text-xs tracking-widest uppercase mb-3" style={{ color: '#5B6B85' }}>
+              Comparativa por año
+            </p>
+            <div className="overflow-x-auto rounded-xl mb-8" style={{ border: '1px solid #2A3548' }}>
+              <table className="min-w-full text-sm" style={{ borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ backgroundColor: '#1A2332' }}>
+                    <th className="text-left p-2.5 whitespace-nowrap" style={{ color: '#8A9BB8' }}>Año</th>
+                    <th className="text-left p-2.5 whitespace-nowrap" style={{ color: '#8A9BB8' }}>Partidos</th>
+                    <th className="text-left p-2.5 whitespace-nowrap" style={{ color: '#8A9BB8' }}>Minutos</th>
+                    <th className="text-left p-2.5 whitespace-nowrap" style={{ color: '#8A9BB8' }}>Goles</th>
+                    <th className="text-left p-2.5 whitespace-nowrap" style={{ color: '#8A9BB8' }}>Asist.</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {estadisticasPorAnio.map((a, i) => (
+                    <tr key={a.anio} style={{ backgroundColor: i % 2 === 0 ? 'transparent' : '#151D2A' }}>
+                      <td className="p-2.5 font-medium whitespace-nowrap" style={{ color: '#F0F2F5' }}>{a.anio}</td>
+                      <td className="p-2.5 whitespace-nowrap" style={{ color: '#8A9BB8' }}>{a.partidos}</td>
+                      <td className="p-2.5 whitespace-nowrap" style={{ color: '#8A9BB8' }}>{a.minutos}</td>
+                      <td className="p-2.5 whitespace-nowrap" style={{ color: '#8A9BB8' }}>{a.goles}</td>
+                      <td className="p-2.5 whitespace-nowrap" style={{ color: '#8A9BB8' }}>{a.asistencias}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+
         <p className="text-xs tracking-widest uppercase mb-3" style={{ color: '#5B6B85' }}>
           Áreas
         </p>
@@ -632,6 +678,14 @@ function PerfilJugador({ jugadorId, onVolver, onVerFichaMedica, onVerVideos, onV
                       </p>
                     </div>
                   ))}
+                  <div>
+                    <p className="text-[9px] uppercase tracking-wide" style={{ color: '#7DD3FC' }}>
+                      RPE (1-10)
+                    </p>
+                    <p className="text-sm" style={{ color: '#F0F2F5' }}>
+                      {sesionFisicaSeleccionada.rpe ?? '—'}
+                    </p>
+                  </div>
                 </div>
               )}
             </div>

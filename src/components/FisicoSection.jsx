@@ -207,7 +207,9 @@ function FisicoSection({ perfil, partidoInicialId, onConsumirPartidoInicial }) {
 
   function tieneAlgunValor(fila) {
     if (!fila) return false
-    return CAMPOS.some((c) => fila[c.clave] !== undefined && fila[c.clave] !== '' && fila[c.clave] !== null)
+    const tieneCampoGps = CAMPOS.some((c) => fila[c.clave] !== undefined && fila[c.clave] !== '' && fila[c.clave] !== null)
+    const tieneRpe = fila.rpe !== undefined && fila.rpe !== '' && fila.rpe !== null
+    return tieneCampoGps || tieneRpe
   }
 
   async function handleGuardar() {
@@ -228,6 +230,7 @@ function FisicoSection({ perfil, partidoInicialId, onConsumirPartidoInicial }) {
           const v = fila[c.clave]
           registro[c.clave] = v === '' || v === undefined || v === null ? null : Number(v)
         })
+        registro.rpe = fila.rpe === '' || fila.rpe === undefined || fila.rpe === null ? null : Number(fila.rpe)
         return registro
       })
 
@@ -283,7 +286,7 @@ function FisicoSection({ perfil, partidoInicialId, onConsumirPartidoInicial }) {
           Físico
         </h1>
         <p className="text-sm mb-6" style={{ color: '#5B6B85' }}>
-          Métricas resumen de GPS (Catapult) por jugador y sesión.
+          Métricas resumen de GPS (Catapult) y esfuerzo percibido (RPE) por jugador y sesión.
         </p>
 
         <div className="grid sm:grid-cols-3 gap-3 mb-3">
@@ -432,6 +435,12 @@ function FisicoSection({ perfil, partidoInicialId, onConsumirPartidoInicial }) {
                         {c.label}
                       </th>
                     ))}
+                    <th
+                      className="text-left p-2.5 whitespace-nowrap"
+                      style={{ color: '#7DD3FC', borderLeft: '1px solid #2A3548' }}
+                    >
+                      RPE (1-10)
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -470,6 +479,17 @@ function FisicoSection({ perfil, partidoInicialId, onConsumirPartidoInicial }) {
                           />
                         </td>
                       ))}
+                      <td className="p-1.5" style={{ borderLeft: '1px solid #2A3548' }}>
+                        <input
+                          type="number"
+                          min="1"
+                          max="10"
+                          value={datos[j.id]?.rpe ?? ''}
+                          onChange={(e) => cambiarValor(j.id, 'rpe', e.target.value)}
+                          className="w-20 p-1.5 rounded-lg outline-none text-sm"
+                          style={{ ...inputStyle, borderColor: '#7DD3FC' }}
+                        />
+                      </td>
                     </tr>
                   ))}
                 </tbody>
