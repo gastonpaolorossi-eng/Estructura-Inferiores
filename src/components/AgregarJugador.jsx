@@ -42,6 +42,11 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
   const [pensiones, setPensiones] = useState([])
   const [pensionId, setPensionId] = useState('')
   const [costoPension, setCostoPension] = useState('')
+  const [representantesTodos, setRepresentantesTodos] = useState([])
+  const [representanteId, setRepresentanteId] = useState('')
+  const [nuevoRepresentanteNombre, setNuevoRepresentanteNombre] = useState('')
+  const [asignacionVigenteId, setAsignacionVigenteId] = useState(null)
+  const [representanteVigenteId, setRepresentanteVigenteId] = useState('')
   const [guardando, setGuardando] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
   const [cargando, setCargando] = useState(!!jugadorIdEditar)
@@ -66,6 +71,34 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
     }
     cargarPensiones()
   }, [])
+
+  useEffect(() => {
+    async function cargarRepresentantes() {
+      const { data } = await supabase.from('representantes').select('*').order('nombre')
+      setRepresentantesTodos(data || [])
+    }
+    cargarRepresentantes()
+  }, [])
+
+  useEffect(() => {
+    async function cargarRepresentanteVigente() {
+      if (!jugadorIdEditar) return
+      const { data } = await supabase
+        .from('jugador_representantes')
+        .select('id, representante_id')
+        .eq('jugador_id', jugadorIdEditar)
+        .is('fecha_fin', null)
+        .order('fecha_inicio', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      if (data) {
+        setAsignacionVigenteId(data.id)
+        setRepresentanteId(data.representante_id)
+        setRepresentanteVigenteId(data.representante_id)
+      }
+    }
+    cargarRepresentanteVigente()
+  }, [jugadorIdEditar])
 
   useEffect(() => {
     async function cargarJugador() {
@@ -160,17 +193,61 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
       costo_pension: pensionId ? costoPension || null : null,
     }
 
-    const { error } = esEdicion
-      ? await supabase.from('jugadores').update(datos).eq('id', jugadorIdEditar)
-      : await supabase.from('jugadores').insert(datos)
+    const { data: jugadorGuardado, error } = esEdicion
+      ? await supabase.from('jugadores').update(datos).eq('id', jugadorIdEditar).select().single()
+      : await supabase.from('jugadores').insert(datos).select().single()
+
+    if (error) {
+      setGuardando(false)
+      setErrorMsg('Error al guardar: ' + error.message)
+      return
+    }
+
+    const errorRepresentante = await sincronizarRepresentante(jugadorGuardado.id)
 
     setGuardando(false)
 
-    if (error) {
-      setErrorMsg('Error al guardar: ' + error.message)
+    if (errorRepresentante) {
+      setErrorMsg('El jugador se guardó, pero hubo un error con el representante: ' + errorRepresentante)
     } else {
       onGuardado()
     }
+  }
+
+  async function sincronizarRepresentante(jugadorId) {
+    let representanteFinalId = representanteId || null
+
+    if (representanteId === '__nuevo__') {
+      if (!nuevoRepresentanteNombre.trim()) return null
+      const { data: nuevoRep, error: errorNuevo } = await supabase
+        .from('representantes')
+        .insert({ nombre: nuevoRepresentanteNombre.trim() })
+        .select()
+        .single()
+      if (errorNuevo) return errorNuevo.message
+      representanteFinalId = nuevoRep.id
+    }
+
+    if (representanteFinalId === (representanteVigenteId || null)) return null
+
+    if (asignacionVigenteId) {
+      const { error } = await supabase
+        .from('jugador_representantes')
+        .update({ fecha_fin: new Date().toISOString().slice(0, 10) })
+        .eq('id', asignacionVigenteId)
+      if (error) return error.message
+    }
+
+    if (representanteFinalId) {
+      const { error } = await supabase.from('jugador_representantes').insert({
+        jugador_id: jugadorId,
+        representante_id: representanteFinalId,
+        fecha_inicio: new Date().toISOString().slice(0, 10),
+      })
+      if (error) return error.message
+    }
+
+    return null
   }
 
   const inputStyle = {
@@ -488,6 +565,41 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
               />
             </div>
           </div>
+
+          <p className="text-xs tracking-widest uppercase pt-2" style={{ color: '#5B6B85' }}>
+            Representante
+          </p>
+
+          <div>
+            <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: '#5B6B85' }}>
+              ¿Tiene representante?
+            </label>
+            <select
+              value={representanteId}
+              onChange={(e) => setRepresentanteId(e.target.value)}
+              className="w-full p-3 rounded-xl outline-none"
+              style={inputStyle}
+            >
+              <option value="">No tiene representante</option>
+              {representantesTodos.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.nombre}
+                </option>
+              ))}
+              <option value="__nuevo__">+ Agregar nuevo representante...</option>
+            </select>
+          </div>
+
+          {representanteId === '__nuevo__' && (
+            <input
+              type="text"
+              placeholder="Nombre del representante"
+              value={nuevoRepresentanteNombre}
+              onChange={(e) => setNuevoRepresentanteNombre(e.target.value)}
+              className="w-full p-3 rounded-xl outline-none"
+              style={inputStyle}
+            />
+          )}
 
           <p className="text-xs tracking-widest uppercase pt-2" style={{ color: '#5B6B85' }}>
             Pensión / alojamiento

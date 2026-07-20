@@ -86,6 +86,7 @@ function PerfilJugador({ jugadorId, onVolver, onVerFichaMedica, onVerVideos, onV
   const [sesionesFisicas, setSesionesFisicas] = useState([])
   const [fichasNutricion, setFichasNutricion] = useState([])
   const [fichasPsicologicas, setFichasPsicologicas] = useState([])
+  const [representanteVigente, setRepresentanteVigente] = useState(null)
   const [eliminando, setEliminando] = useState(false)
   const [filtroStat, setFiltroStat] = useState(null)
   const [mostrarPdf, setMostrarPdf] = useState(false)
@@ -153,6 +154,16 @@ function PerfilJugador({ jugadorId, onVolver, onVerFichaMedica, onVerVideos, onV
         .eq('jugador_id', jugadorId)
         .order('fecha', { ascending: false })
       setFichasPsicologicas(psicologiaData || [])
+
+      const { data: representanteData } = await supabase
+        .from('jugador_representantes')
+        .select('*, representantes(nombre, telefono, email)')
+        .eq('jugador_id', jugadorId)
+        .is('fecha_fin', null)
+        .order('fecha_inicio', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      setRepresentanteVigente(representanteData || null)
     }
     cargarDatos()
   }, [jugadorId])
@@ -279,6 +290,11 @@ function PerfilJugador({ jugadorId, onVolver, onVerFichaMedica, onVerVideos, onV
       extra: jugador.fecha_inicio_contrato ? `desde ${formatearFecha(jugador.fecha_inicio_contrato)}` : null,
     },
     { label: 'Pensión', valor: jugador.pensiones?.nombre, extra: costoPensionLabel[jugador.costo_pension] },
+    {
+      label: 'Representante',
+      valor: representanteVigente?.representantes?.nombre,
+      extra: representanteVigente?.representantes?.telefono,
+    },
   ].filter((d) => d.valor)
 
   const diasParaVencerContrato = diasHasta(jugador.fecha_fin_contrato)
