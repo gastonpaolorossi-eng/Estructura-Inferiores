@@ -156,6 +156,11 @@ function ListaPartidos({ categoriaId, categoriaNombre, onVolver, onElegirPartido
                   )}
                   <p className="text-base font-medium flex items-center gap-2" style={{ color: '#F0F2F5' }}>
                     vs {p.rival}
+                    {p.resultado && (
+                      <span className="text-sm font-mono" style={{ color: '#8A9BB8' }}>
+                        {p.resultado}
+                      </span>
+                    )}
                     {colorResultado(p.resultado) && (
                       <span
                         title={p.resultado}
