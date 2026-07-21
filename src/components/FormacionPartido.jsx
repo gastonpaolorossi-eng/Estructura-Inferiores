@@ -10,6 +10,7 @@ function FormacionPartido({ partidoId, onVolver, onGuardado }) {
   const [formacion, setFormacion] = useState('4-4-2')
   const [asignaciones, setAsignaciones] = useState({})
   const [posicionesCustom, setPosicionesCustom] = useState({})
+  const [historial, setHistorial] = useState([])
   const [slotActivo, setSlotActivo] = useState(null)
   const [guardando, setGuardando] = useState(false)
   const [guardado, setGuardado] = useState(false)
@@ -45,6 +46,7 @@ function FormacionPartido({ partidoId, onVolver, onGuardado }) {
       })
       setAsignaciones(asign)
       setPosicionesCustom(posCustom)
+      setHistorial([])
     }
     cargarDatos()
   }, [partidoId])
@@ -71,6 +73,9 @@ function FormacionPartido({ partidoId, onVolver, onGuardado }) {
       if (info.codigo && !info.moved) {
         setSlotActivo(info.codigo)
       }
+      if (info.codigo && info.moved) {
+        setHistorial((h) => [...h, info.snapshot])
+      }
       arrastreRef.current = { codigo: null, moved: false, startX: 0, startY: 0 }
     }
 
@@ -82,16 +87,43 @@ function FormacionPartido({ partidoId, onVolver, onGuardado }) {
     }
   }, [])
 
+  function deshacer() {
+    setHistorial((prev) => {
+      if (prev.length === 0) return prev
+      const copia = [...prev]
+      const anterior = copia.pop()
+      setPosicionesCustom(anterior)
+      return copia
+    })
+  }
+
+  useEffect(() => {
+    function onKeyDown(e) {
+      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key.toLowerCase() === 'z') {
+        e.preventDefault()
+        deshacer()
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [])
+
   function iniciarArrastre(e, codigo) {
     e.preventDefault()
-    arrastreRef.current = { codigo, moved: false, startX: e.clientX, startY: e.clientY }
+    arrastreRef.current = { codigo, moved: false, startX: e.clientX, startY: e.clientY, snapshot: posicionesCustom }
   }
 
   function cambiarFormacion(nueva) {
     setFormacion(nueva)
     setAsignaciones({})
     setPosicionesCustom({})
+    setHistorial([])
     setSlotActivo(null)
+  }
+
+  function restablecerPosiciones() {
+    setHistorial((h) => [...h, posicionesCustom])
+    setPosicionesCustom({})
   }
 
   function asignarJugador(codigo, jugadorId) {
@@ -210,10 +242,20 @@ function FormacionPartido({ partidoId, onVolver, onGuardado }) {
               ))}
             </select>
           </div>
+          <button
+            type="button"
+            onClick={deshacer}
+            disabled={historial.length === 0}
+            title="Deshacer (Ctrl/Cmd+Z)"
+            className="text-xs px-3 py-2.5 rounded-xl hover:opacity-80 disabled:opacity-30"
+            style={{ backgroundColor: '#1A2332', color: '#8A9BB8', border: '1px solid #2A3548' }}
+          >
+            ↶ Deshacer
+          </button>
           {Object.keys(posicionesCustom).length > 0 && (
             <button
               type="button"
-              onClick={() => setPosicionesCustom({})}
+              onClick={restablecerPosiciones}
               className="text-xs px-3 py-2.5 rounded-xl hover:opacity-80"
               style={{ backgroundColor: '#1A2332', color: '#8A9BB8', border: '1px solid #2A3548' }}
             >
@@ -222,7 +264,7 @@ function FormacionPartido({ partidoId, onVolver, onGuardado }) {
           )}
         </div>
         <p className="text-xs mb-4" style={{ color: '#5B6B85' }}>
-          Arrastrá las fichas en la cancha para ubicarlas donde quieras.
+          Arrastrá las fichas en la cancha para ubicarlas donde quieras. Ctrl/Cmd+Z para deshacer.
         </p>
 
         <div className="grid md:grid-cols-[1fr_260px] gap-6 mb-6">
