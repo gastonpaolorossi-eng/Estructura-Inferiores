@@ -21,6 +21,7 @@ function AgregarPartido({ categoriaId, onVolver, onGuardado, partidoIdEditar }) 
   const [lugar, setLugar] = useState('')
   const [localVisitante, setLocalVisitante] = useState('local')
   const [link, setLink] = useState('')
+  const [resultado, setResultado] = useState('')
   const [guardando, setGuardando] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
   const [cargando, setCargando] = useState(!!partidoIdEditar)
@@ -51,6 +52,7 @@ function AgregarPartido({ categoriaId, onVolver, onGuardado, partidoIdEditar }) 
         setLugar(data.lugar || '')
         setLocalVisitante(data.local_visitante || 'local')
         setLink(data.link || '')
+        setResultado(data.resultado || '')
         if (data.equipo_id) {
           setEquipoId(data.equipo_id)
         } else {
@@ -129,6 +131,7 @@ function AgregarPartido({ categoriaId, onVolver, onGuardado, partidoIdEditar }) 
       local_visitante: localVisitante,
       categoria_id: categoriaId,
       link: link || null,
+      resultado: resultado || null,
     }
 
     const { error } = esEdicion
@@ -308,6 +311,19 @@ function AgregarPartido({ categoriaId, onVolver, onGuardado, partidoIdEditar }) 
             className="w-full p-2.5 rounded-xl outline-none text-sm"
             style={inputStyle}
           />
+          <div>
+            <label className="text-[10px] uppercase tracking-wide block mb-1.5" style={{ color: '#5B6B85' }}>
+              Resultado (una vez jugado)
+            </label>
+            <input
+              type="text"
+              placeholder="Ej: 3-1"
+              value={resultado}
+              onChange={(e) => setResultado(e.target.value)}
+              className="w-full p-2.5 rounded-xl outline-none text-sm"
+              style={inputStyle}
+            />
+          </div>
         </div>
 
         {errorMsg && (
