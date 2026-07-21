@@ -229,6 +229,8 @@ create table if not exists citaciones (
   dorsal integer,
   titular boolean default false,
   posicion_cancha text,
+  pos_x numeric,
+  pos_y numeric,
   unique (partido_id, jugador_id)
 );
 

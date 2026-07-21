@@ -1,15 +1,21 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { FORMACIONES } from '../data/formaciones'
+
+const UMBRAL_ARRASTRE = 4
 
 function FormacionPartido({ partidoId, onVolver, onGuardado }) {
   const [partido, setPartido] = useState(null)
   const [citaciones, setCitaciones] = useState([])
   const [formacion, setFormacion] = useState('4-4-2')
   const [asignaciones, setAsignaciones] = useState({})
+  const [posicionesCustom, setPosicionesCustom] = useState({})
   const [slotActivo, setSlotActivo] = useState(null)
   const [guardando, setGuardando] = useState(false)
   const [guardado, setGuardado] = useState(false)
+
+  const canchaRef = useRef(null)
+  const arrastreRef = useRef({ codigo: null, moved: false, startX: 0, startY: 0 })
 
   useEffect(() => {
     async function cargarDatos() {
@@ -28,19 +34,63 @@ function FormacionPartido({ partidoId, onVolver, onGuardado }) {
       setCitaciones(citacionesData || [])
 
       const asign = {}
+      const posCustom = {}
       ;(citacionesData || []).forEach((c) => {
         if (c.titular && c.posicion_cancha) {
           asign[c.posicion_cancha] = c.jugador_id
+          if (c.pos_x !== null && c.pos_x !== undefined && c.pos_y !== null && c.pos_y !== undefined) {
+            posCustom[c.posicion_cancha] = { x: c.pos_x, y: c.pos_y }
+          }
         }
       })
       setAsignaciones(asign)
+      setPosicionesCustom(posCustom)
     }
     cargarDatos()
   }, [partidoId])
 
+  useEffect(() => {
+    function moverPuntero(e) {
+      const info = arrastreRef.current
+      if (!info.codigo || !canchaRef.current) return
+      const dx = Math.abs(e.clientX - info.startX)
+      const dy = Math.abs(e.clientY - info.startY)
+      if (dx > UMBRAL_ARRASTRE || dy > UMBRAL_ARRASTRE) info.moved = true
+      if (!info.moved) return
+
+      const rect = canchaRef.current.getBoundingClientRect()
+      let x = ((e.clientX - rect.left) / rect.width) * 100
+      let y = ((e.clientY - rect.top) / rect.height) * 100
+      x = Math.min(96, Math.max(4, x))
+      y = Math.min(96, Math.max(4, y))
+      setPosicionesCustom((prev) => ({ ...prev, [info.codigo]: { x, y } }))
+    }
+
+    function soltarPuntero() {
+      const info = arrastreRef.current
+      if (info.codigo && !info.moved) {
+        setSlotActivo(info.codigo)
+      }
+      arrastreRef.current = { codigo: null, moved: false, startX: 0, startY: 0 }
+    }
+
+    window.addEventListener('pointermove', moverPuntero)
+    window.addEventListener('pointerup', soltarPuntero)
+    return () => {
+      window.removeEventListener('pointermove', moverPuntero)
+      window.removeEventListener('pointerup', soltarPuntero)
+    }
+  }, [])
+
+  function iniciarArrastre(e, codigo) {
+    e.preventDefault()
+    arrastreRef.current = { codigo, moved: false, startX: e.clientX, startY: e.clientY }
+  }
+
   function cambiarFormacion(nueva) {
     setFormacion(nueva)
     setAsignaciones({})
+    setPosicionesCustom({})
     setSlotActivo(null)
   }
 
@@ -73,11 +123,15 @@ function FormacionPartido({ partidoId, onVolver, onGuardado }) {
       const codigoAsignado = Object.keys(asignaciones).find(
         (cod) => asignaciones[cod] === c.jugador_id
       )
+      const slotPorDefecto = slots.find((s) => s.codigo === codigoAsignado)
+      const pos = codigoAsignado ? posicionesCustom[codigoAsignado] || slotPorDefecto : null
       await supabase
         .from('citaciones')
         .update({
           titular: !!codigoAsignado,
           posicion_cancha: codigoAsignado || null,
+          pos_x: pos?.x ?? null,
+          pos_y: pos?.y ?? null,
         })
         .eq('id', c.id)
     }
@@ -138,33 +192,50 @@ function FormacionPartido({ partidoId, onVolver, onGuardado }) {
           {partido.fecha} {partido.hora && `· ${partido.hora}`}
         </p>
 
-        <div className="mb-4">
-          <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: '#5B6B85' }}>
-            Formación
-          </label>
-          <select
-            value={formacion}
-            onChange={(e) => cambiarFormacion(e.target.value)}
-            className="p-2.5 rounded-xl outline-none text-sm"
-            style={{ backgroundColor: '#1A2332', border: '1px solid #2A3548', color: '#F0F2F5' }}
-          >
-            {Object.keys(FORMACIONES).map((f) => (
-              <option key={f} value={f}>
-                {f}
-              </option>
-            ))}
-          </select>
+        <div className="mb-4 flex items-end gap-3 flex-wrap">
+          <div>
+            <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: '#5B6B85' }}>
+              Formación
+            </label>
+            <select
+              value={formacion}
+              onChange={(e) => cambiarFormacion(e.target.value)}
+              className="p-2.5 rounded-xl outline-none text-sm"
+              style={{ backgroundColor: '#1A2332', border: '1px solid #2A3548', color: '#F0F2F5' }}
+            >
+              {Object.keys(FORMACIONES).map((f) => (
+                <option key={f} value={f}>
+                  {f}
+                </option>
+              ))}
+            </select>
+          </div>
+          {Object.keys(posicionesCustom).length > 0 && (
+            <button
+              type="button"
+              onClick={() => setPosicionesCustom({})}
+              className="text-xs px-3 py-2.5 rounded-xl hover:opacity-80"
+              style={{ backgroundColor: '#1A2332', color: '#8A9BB8', border: '1px solid #2A3548' }}
+            >
+              ↺ Restablecer posiciones
+            </button>
+          )}
         </div>
+        <p className="text-xs mb-4" style={{ color: '#5B6B85' }}>
+          Arrastrá las fichas en la cancha para ubicarlas donde quieras.
+        </p>
 
         <div className="grid md:grid-cols-[1fr_260px] gap-6 mb-6">
           {/* Cancha */}
           <div
+            ref={canchaRef}
             className="relative mx-auto w-full rounded-2xl overflow-hidden"
             style={{
               maxWidth: 380,
               aspectRatio: '68 / 100',
               backgroundColor: '#183A2A',
               border: '1px solid #2A3548',
+              touchAction: 'none',
             }}
           >
             <div
@@ -197,16 +268,19 @@ function FormacionPartido({ partidoId, onVolver, onGuardado }) {
             {slots.map((slot) => {
               const jugadorId = asignaciones[slot.codigo]
               const citacion = citaciones.find((c) => c.jugador_id === jugadorId)
+              const pos = posicionesCustom[slot.codigo] || slot
 
               return (
                 <div
                   key={slot.codigo}
-                  onClick={() => setSlotActivo(slot.codigo)}
-                  className="absolute flex flex-col items-center cursor-pointer"
+                  onPointerDown={(e) => iniciarArrastre(e, slot.codigo)}
+                  className="absolute flex flex-col items-center select-none"
                   style={{
-                    left: `${slot.x}%`,
-                    top: `${slot.y}%`,
+                    left: `${pos.x}%`,
+                    top: `${pos.y}%`,
                     transform: 'translate(-50%, -50%)',
+                    touchAction: 'none',
+                    cursor: 'grab',
                   }}
                 >
                   <div
