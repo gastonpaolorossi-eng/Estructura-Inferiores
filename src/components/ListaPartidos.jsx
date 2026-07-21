@@ -3,6 +3,19 @@ import { supabase } from '../supabaseClient'
 import { generarCitacionPDF } from '../utils/generarCitacion'
 import { exportarEstadisticasPDF, exportarEstadisticasCSV } from '../utils/exportarEstadisticas'
 
+// Interpreta el resultado como "goles propios-goles rival" (ej: "2-1")
+// y devuelve el color del punto: verde ganado, amarillo empate, rojo perdido.
+function colorResultado(resultado) {
+  if (!resultado) return null
+  const match = /(\d+)\s*[-–]\s*(\d+)/.exec(resultado)
+  if (!match) return null
+  const propios = Number(match[1])
+  const rival = Number(match[2])
+  if (propios > rival) return '#4ADE80'
+  if (propios < rival) return '#F87171'
+  return '#FACC15'
+}
+
 function ListaPartidos({ categoriaId, categoriaNombre, onVolver, onElegirPartido, onNuevoPartido, onGestionarEquipos, onVerEstadisticas, onEditarPartido, refrescar }) {
   const [partidos, setPartidos] = useState([])
   const [cargando, setCargando] = useState(true)
@@ -141,8 +154,15 @@ function ListaPartidos({ categoriaId, categoriaNombre, onVolver, onElegirPartido
                       🛡️
                     </span>
                   )}
-                  <p className="text-base font-medium" style={{ color: '#F0F2F5' }}>
+                  <p className="text-base font-medium flex items-center gap-2" style={{ color: '#F0F2F5' }}>
                     vs {p.rival}
+                    {colorResultado(p.resultado) && (
+                      <span
+                        title={p.resultado}
+                        className="inline-block w-2.5 h-2.5 rounded-full shrink-0"
+                        style={{ backgroundColor: colorResultado(p.resultado) }}
+                      />
+                    )}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -188,14 +208,6 @@ function ListaPartidos({ categoriaId, categoriaNombre, onVolver, onElegirPartido
                   >
                     ✏️
                   </button>
-                  {p.resultado && (
-                    <span
-                      className="text-xs font-mono px-2 py-1 rounded-full"
-                      style={{ backgroundColor: '#0F1419', color: '#8A9BB8', border: '1px solid #2A3548' }}
-                    >
-                      {p.resultado}
-                    </span>
-                  )}
                   <button
                     onClick={(e) => handleEliminar(e, p.id)}
                     className="text-xs px-2 py-1 rounded-full hover:opacity-80"
