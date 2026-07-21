@@ -20,6 +20,13 @@
 --      "categorias").
 -- =========================================================
 
+-- Esto le dice a Postgres que no valide los nombres de tabla dentro
+-- de las funciones en el momento de crearlas (las funciones de acá
+-- abajo se crean antes que las tablas, a propósito). Sin esta línea
+-- tira error "la relación no existe" aunque el resto del script esté
+-- bien.
+SET check_function_bodies = false;
+
 
 -- =========================================================
 -- 1) FUNCIONES AUXILIARES
@@ -371,60 +378,80 @@ alter table convocatorias_seleccion enable row level security;
 -- =========================================================
 
 -- perfiles
+drop policy if exists "ver propio perfil" on perfiles;
 create policy "ver propio perfil" on perfiles for select
   using (email = auth.jwt() ->> 'email');
+drop policy if exists "coordinacion ve todos los perfiles" on perfiles;
 create policy "coordinacion ve todos los perfiles" on perfiles for select
   using (mi_rol() = 'coordinacion');
+drop policy if exists "coordinacion gestiona perfiles" on perfiles;
 create policy "coordinacion gestiona perfiles" on perfiles for insert
   with check (mi_rol() = 'coordinacion');
+drop policy if exists "coordinacion edita perfiles" on perfiles;
 create policy "coordinacion edita perfiles" on perfiles for update
   using (mi_rol() = 'coordinacion') with check (mi_rol() = 'coordinacion');
+drop policy if exists "coordinacion borra perfiles" on perfiles;
 create policy "coordinacion borra perfiles" on perfiles for delete
   using (mi_rol() = 'coordinacion');
 
 -- categorias
+drop policy if exists "leer categorias" on categorias;
 create policy "leer categorias" on categorias for select
   using (auth.role() = 'authenticated');
+drop policy if exists "coordinacion gestiona categorias" on categorias;
 create policy "coordinacion gestiona categorias" on categorias for all
   using (mi_rol() = 'coordinacion') with check (mi_rol() = 'coordinacion');
+drop policy if exists "publico ve categorias" on categorias;
 create policy "publico ve categorias" on categorias for select to anon
   using (true);
 
 -- jugadores
+drop policy if exists "select jugadores" on jugadores;
 create policy "select jugadores" on jugadores for select
   using (
     mi_rol() in ('coordinacion', 'medico')
     or (mi_rol() = 'tecnico' and categoria_id = mi_categoria())
     or (mi_rol() = 'tecnico' and mi_categoria_es_reserva() and jugador_tambien_reserva(id))
   );
+drop policy if exists "insert jugadores" on jugadores;
 create policy "insert jugadores" on jugadores for insert
   with check (mi_rol() = 'coordinacion' or (mi_rol() = 'tecnico' and categoria_id = mi_categoria()));
+drop policy if exists "update jugadores" on jugadores;
 create policy "update jugadores" on jugadores for update
   using (mi_rol() = 'coordinacion' or (mi_rol() = 'tecnico' and categoria_id = mi_categoria()))
   with check (mi_rol() = 'coordinacion' or (mi_rol() = 'tecnico' and categoria_id = mi_categoria()));
+drop policy if exists "delete jugadores" on jugadores;
 create policy "delete jugadores" on jugadores for delete
   using (mi_rol() = 'coordinacion' or (mi_rol() = 'tecnico' and categoria_id = mi_categoria()));
 
 -- fichas médicas / nutrición / psicología: coordinación y médico
+drop policy if exists "acceso ficha medica" on fichas_medicas;
 create policy "acceso ficha medica" on fichas_medicas for all
   using (mi_rol() in ('coordinacion', 'medico')) with check (mi_rol() in ('coordinacion', 'medico'));
+drop policy if exists "acceso ficha nutricion" on fichas_nutricion;
 create policy "acceso ficha nutricion" on fichas_nutricion for all
   using (mi_rol() in ('coordinacion', 'medico')) with check (mi_rol() in ('coordinacion', 'medico'));
+drop policy if exists "acceso ficha psicologica" on fichas_psicologicas;
 create policy "acceso ficha psicologica" on fichas_psicologicas for all
   using (mi_rol() in ('coordinacion', 'medico')) with check (mi_rol() in ('coordinacion', 'medico'));
 
 -- partidos
+drop policy if exists "select partidos" on partidos;
 create policy "select partidos" on partidos for select
   using (mi_rol() = 'coordinacion' or (mi_rol() = 'tecnico' and categoria_id = mi_categoria()));
+drop policy if exists "insert partidos" on partidos;
 create policy "insert partidos" on partidos for insert
   with check (mi_rol() = 'coordinacion' or (mi_rol() = 'tecnico' and categoria_id = mi_categoria()));
+drop policy if exists "update partidos" on partidos;
 create policy "update partidos" on partidos for update
   using (mi_rol() = 'coordinacion' or (mi_rol() = 'tecnico' and categoria_id = mi_categoria()))
   with check (mi_rol() = 'coordinacion' or (mi_rol() = 'tecnico' and categoria_id = mi_categoria()));
+drop policy if exists "delete partidos" on partidos;
 create policy "delete partidos" on partidos for delete
   using (mi_rol() = 'coordinacion' or (mi_rol() = 'tecnico' and categoria_id = mi_categoria()));
 
 -- videos
+drop policy if exists "select videos" on videos;
 create policy "select videos" on videos for select
   using (
     mi_rol() = 'coordinacion'
@@ -435,6 +462,7 @@ create policy "select videos" on videos for select
       or (mi_categoria_es_reserva() and jugador_id is not null and jugador_tambien_reserva(jugador_id))
     ))
   );
+drop policy if exists "insert videos" on videos;
 create policy "insert videos" on videos for insert
   with check (
     mi_rol() = 'coordinacion'
@@ -445,6 +473,7 @@ create policy "insert videos" on videos for insert
       or (mi_categoria_es_reserva() and jugador_id is not null and jugador_tambien_reserva(jugador_id))
     ))
   );
+drop policy if exists "update videos" on videos;
 create policy "update videos" on videos for update
   using (
     mi_rol() = 'coordinacion'
@@ -464,6 +493,7 @@ create policy "update videos" on videos for update
       or (mi_categoria_es_reserva() and jugador_id is not null and jugador_tambien_reserva(jugador_id))
     ))
   );
+drop policy if exists "delete videos" on videos;
 create policy "delete videos" on videos for delete
   using (
     mi_rol() = 'coordinacion'
@@ -477,6 +507,7 @@ create policy "delete videos" on videos for delete
 
 -- citaciones y estadísticas: filtradas por categoría del partido
 -- (incluye cruce Reserva/Inferiores)
+drop policy if exists "acceso citaciones" on citaciones;
 create policy "acceso citaciones" on citaciones for all
   using (
     mi_rol() = 'coordinacion'
@@ -487,6 +518,7 @@ create policy "acceso citaciones" on citaciones for all
     or (mi_rol() = 'tecnico' and categoria_de_partido(partido_id) = mi_categoria())
   );
 
+drop policy if exists "acceso estadisticas" on estadisticas_jugador;
 create policy "acceso estadisticas" on estadisticas_jugador for all
   using (
     mi_rol() = 'coordinacion'
@@ -500,12 +532,15 @@ create policy "acceso estadisticas" on estadisticas_jugador for all
   );
 
 -- equipos y biblioteca: compartidos coordinación + técnicos
+drop policy if exists "acceso equipos" on equipos;
 create policy "acceso equipos" on equipos for all
   using (mi_rol() in ('coordinacion', 'tecnico')) with check (mi_rol() in ('coordinacion', 'tecnico'));
+drop policy if exists "acceso biblioteca" on biblioteca;
 create policy "acceso biblioteca" on biblioteca for all
   using (mi_rol() in ('coordinacion', 'tecnico')) with check (mi_rol() in ('coordinacion', 'tecnico'));
 
 -- asistencias
+drop policy if exists "acceso asistencias" on asistencias;
 create policy "acceso asistencias" on asistencias for all
   using (
     mi_rol() = 'coordinacion'
@@ -517,20 +552,25 @@ create policy "acceso asistencias" on asistencias for all
   );
 
 -- historial de categorías
+drop policy if exists "select historial categorias" on historial_categorias;
 create policy "select historial categorias" on historial_categorias for select
   using (
     mi_rol() = 'coordinacion'
     or (mi_rol() = 'tecnico' and categoria_de_jugador(jugador_id) = mi_categoria())
   );
+drop policy if exists "coordinacion gestiona historial categorias" on historial_categorias;
 create policy "coordinacion gestiona historial categorias" on historial_categorias for insert
   with check (mi_rol() = 'coordinacion');
+drop policy if exists "coordinacion edita historial categorias" on historial_categorias;
 create policy "coordinacion edita historial categorias" on historial_categorias for update
   using (mi_rol() = 'coordinacion') with check (mi_rol() = 'coordinacion');
+drop policy if exists "coordinacion borra historial categorias" on historial_categorias;
 create policy "coordinacion borra historial categorias" on historial_categorias for delete
   using (mi_rol() = 'coordinacion');
 
 -- sesiones físicas (GPS + RPE): cuerpo técnico/coordinación, incluye
 -- cruce Reserva/Inferiores
+drop policy if exists "acceso sesiones_fisicas" on sesiones_fisicas;
 create policy "acceso sesiones_fisicas" on sesiones_fisicas for all
   using (
     mi_rol() = 'coordinacion'
@@ -545,6 +585,7 @@ create policy "acceso sesiones_fisicas" on sesiones_fisicas for all
 
 -- bienestar (wellness): cuerpo técnico/coordinación gestionan,
 -- médico solo lectura
+drop policy if exists "gestionar bienestar" on bienestar;
 create policy "gestionar bienestar" on bienestar for all
   using (
     mi_rol() = 'coordinacion'
@@ -556,22 +597,27 @@ create policy "gestionar bienestar" on bienestar for all
     or (mi_rol() = 'tecnico' and categoria_de_jugador(jugador_id) = mi_categoria())
     or (mi_rol() = 'tecnico' and mi_categoria_es_reserva() and jugador_tambien_reserva(jugador_id))
   );
+drop policy if exists "medico ve bienestar" on bienestar;
 create policy "medico ve bienestar" on bienestar for select
   using (mi_rol() = 'medico');
 
 -- captación (pipeline de pruebas)
+drop policy if exists "gestionar candidatos" on candidatos;
 create policy "gestionar candidatos" on candidatos for all
   using (mi_rol() = 'coordinacion' or (mi_rol() = 'tecnico' and categoria_probada_id = mi_categoria()))
   with check (mi_rol() = 'coordinacion' or (mi_rol() = 'tecnico' and categoria_probada_id = mi_categoria()));
 
 -- pensiones y representantes: catálogos compartidos coordinación + técnicos
+drop policy if exists "acceso pensiones" on pensiones;
 create policy "acceso pensiones" on pensiones for all
   using (mi_rol() in ('coordinacion', 'tecnico')) with check (mi_rol() in ('coordinacion', 'tecnico'));
+drop policy if exists "acceso representantes" on representantes;
 create policy "acceso representantes" on representantes for all
   using (mi_rol() in ('coordinacion', 'tecnico')) with check (mi_rol() in ('coordinacion', 'tecnico'));
 
 -- vínculo jugador-representante y convocatorias a selección: filtrados
 -- por categoría del jugador (incluye cruce Reserva/Inferiores)
+drop policy if exists "acceso jugador_representantes" on jugador_representantes;
 create policy "acceso jugador_representantes" on jugador_representantes for all
   using (
     mi_rol() = 'coordinacion'
@@ -584,6 +630,7 @@ create policy "acceso jugador_representantes" on jugador_representantes for all
     or (mi_rol() = 'tecnico' and mi_categoria_es_reserva() and jugador_tambien_reserva(jugador_id))
   );
 
+drop policy if exists "acceso convocatorias_seleccion" on convocatorias_seleccion;
 create policy "acceso convocatorias_seleccion" on convocatorias_seleccion for all
   using (
     mi_rol() = 'coordinacion'
@@ -604,6 +651,7 @@ create policy "acceso convocatorias_seleccion" on convocatorias_seleccion for al
 grant all on jugadores_publico to anon, authenticated, service_role;
 
 -- Bienestar: el público solo puede cargar/editar el registro DE HOY.
+drop policy if exists "publico bienestar de hoy" on bienestar;
 create policy "publico bienestar de hoy" on bienestar for all to anon
   using (fecha = current_date) with check (fecha = current_date);
 
@@ -612,6 +660,7 @@ create policy "publico bienestar de hoy" on bienestar for all to anon
 -- tipo, rpe). El resto (distancia, sprints, velocidad, player_load,
 -- etc.) queda fuera de su alcance por permiso de columna, aunque la
 -- fila sea visible por la política de arriba.
+drop policy if exists "publico rpe reciente" on sesiones_fisicas;
 create policy "publico rpe reciente" on sesiones_fisicas for all to anon
   using (fecha between current_date - interval '3 days' and current_date)
   with check (fecha between current_date - interval '3 days' and current_date);
@@ -666,12 +715,16 @@ begin
   end loop;
 end $$;
 
+drop policy if exists "Biblioteca select autenticados" on storage.objects;
 create policy "Biblioteca select autenticados" on storage.objects for select
   to authenticated using (bucket_id = 'Biblioteca');
+drop policy if exists "Biblioteca insert autenticados" on storage.objects;
 create policy "Biblioteca insert autenticados" on storage.objects for insert
   to authenticated with check (bucket_id = 'Biblioteca');
+drop policy if exists "Biblioteca update autenticados" on storage.objects;
 create policy "Biblioteca update autenticados" on storage.objects for update
   to authenticated using (bucket_id = 'Biblioteca');
+drop policy if exists "Biblioteca delete autenticados" on storage.objects;
 create policy "Biblioteca delete autenticados" on storage.objects for delete
   to authenticated using (bucket_id = 'Biblioteca');
 

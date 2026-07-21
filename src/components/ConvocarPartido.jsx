@@ -2,6 +2,11 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { obtenerJugadoresDeCategoria } from '../utils/jugadoresCategoria'
 
+const estadoNoConvocableLabel = {
+  lesionado: { texto: 'Lesionado', color: '#FBBF24' },
+  suspendido: { texto: 'Suspendido', color: '#F87171' },
+}
+
 function ConvocarPartido({ partidoId, categoriaId, onVolver, onSiguiente }) {
   const [partido, setPartido] = useState(null)
   const [jugadores, setJugadores] = useState([])
@@ -41,13 +46,18 @@ function ConvocarPartido({ partidoId, categoriaId, onVolver, onSiguiente }) {
     cargarDatos()
   }, [partidoId, categoriaId])
 
-  function toggleConvocado(jugadorId) {
+  function toggleConvocado(jugador) {
     setConvocados((prev) => {
+      const yaMarcado = jugador.id in prev
+      // A un jugador lesionado o suspendido no se lo puede sumar a la
+      // convocatoria. Si ya estaba convocado de antes (por ejemplo, se
+      // lesionó después de citarlo), sí se lo puede sacar.
+      if (!yaMarcado && estadoNoConvocableLabel[jugador.estado]) return prev
       const copia = { ...prev }
-      if (jugadorId in copia) {
-        delete copia[jugadorId]
+      if (yaMarcado) {
+        delete copia[jugador.id]
       } else {
-        copia[jugadorId] = ''
+        copia[jugador.id] = ''
       }
       return copia
     })
@@ -144,15 +154,19 @@ function ConvocarPartido({ partidoId, categoriaId, onVolver, onSiguiente }) {
         <div className="space-y-2 mb-6">
           {jugadores.map((j) => {
             const marcado = j.id in convocados
+            const estadoInfo = estadoNoConvocableLabel[j.estado]
+            const bloqueado = !!estadoInfo && !marcado
             return (
               <div
                 key={j.id}
-                className="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors"
+                className="flex items-center gap-3 p-3 rounded-xl transition-colors"
                 style={{
                   backgroundColor: marcado ? '#1A2332' : 'transparent',
                   border: `1px solid ${marcado ? '#4ADE80' : '#2A3548'}`,
+                  opacity: bloqueado ? 0.5 : 1,
+                  cursor: bloqueado ? 'not-allowed' : 'pointer',
                 }}
-                onClick={() => toggleConvocado(j.id)}
+                onClick={() => toggleConvocado(j)}
               >
                 <div
                   className="w-5 h-5 rounded-md flex items-center justify-center shrink-0"
@@ -179,6 +193,11 @@ function ConvocarPartido({ partidoId, categoriaId, onVolver, onSiguiente }) {
                 )}
                 <p className="flex-1 text-sm" style={{ color: '#F0F2F5' }}>
                   {j.apellido}, {j.nombre}
+                  {estadoInfo && (
+                    <span className="text-xs ml-1.5" style={{ color: estadoInfo.color }}>
+                      {estadoInfo.texto}
+                    </span>
+                  )}
                 </p>
                 {marcado && (
                   <input

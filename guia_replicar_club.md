@@ -102,16 +102,33 @@ Con eso, ese usuario va a poder loguearse en la app y va a tener el rol de coord
 
 ## 9) Cambiar el nombre del club en el código
 
-Estos son los únicos lugares donde el nombre "Estructura Inferiores" está escrito en el código. Se puede editar directo desde GitHub (lápiz de editar en cada archivo) sin instalar nada:
+Hay 4 archivos donde está escrito "Estructura Inferiores". Los 4 se editan de la misma manera, siempre desde el navegador, en el repositorio que forkeaste en el paso 1 (no en el mío). Primero el procedimiento general, y después dónde está cada uno puntualmente.
 
-- `src/components/Login.jsx` → línea con el texto "Estructura Inferiores" (arriba del formulario de login).
-- `src/components/Layout.jsx` → línea con "Estructura Inferiores" (encabezado de la app, arriba de todo).
-- `src/utils/generarCitacion.js` → dos lugares: el texto `'EI'` que son las iniciales del escudo propio en el PDF de citación, y el texto "Estructura Inferiores" que arma el nombre del club junto con la categoría.
-- `src/utils/generarPerfilPDF.js` → el pie de página "Estructura Inferiores — generado el ..." del PDF de perfil de jugador.
+### Cómo editar un archivo en GitHub (siempre estos mismos pasos)
 
-**Importante**: en `src/data/formaciones.js` también aparece el texto `'EI'` varias veces, pero ahí **no hay que tocarlo** — es el código de posición "Extremo Izquierdo" en la cancha, no tiene nada que ver con el nombre del club.
+1. Andá a tu repositorio en GitHub (la URL se ve algo así: `https://github.com/TU-USUARIO/Estructura-Inferiores`, con tu usuario, no el de Gastón).
+2. En la lista de carpetas y archivos que aparece, hacé click en la carpeta `src`.
+3. Adentro de `src`, hacé click en la carpeta que corresponda (`components` o `utils`, ver la lista de abajo).
+4. Hacé click en el nombre del archivo puntual (ej: `Login.jsx`). Se abre el contenido del archivo, con números de línea a la izquierda.
+5. Arriba a la derecha, donde está el ícono de un ojo/lápiz (a veces es un lápiz solo, a veces un ícono de "editar"), hacé click ahí. Si no lo ves, buscá el ícono con forma de lápiz ✏️ en la esquina superior derecha del recuadro con el código.
+6. Ahora el archivo se puede editar como si fuera un Word. Usá **Ctrl+F** (o Cmd+F en Mac) del navegador para buscar el texto "Estructura Inferiores" dentro de esa página y ubicarlo rápido.
+7. Borrá "Estructura Inferiores" y escribí el nombre del club nuevo en su lugar. Ojo: si el texto está entre comillas (`'Estructura Inferiores'` o `"Estructura Inferiores"`), dejá las comillas y cambiá solo lo de adentro.
+8. Bajá hasta el final de la página. Vas a ver un cuadro que dice **"Commit changes"**.
+9. En el campo de texto de ese cuadro podés dejar el mensaje que aparece por defecto, o escribir algo tipo "Cambio de nombre del club".
+10. Dejá tildada la opción **"Commit directly to the main branch"** (viene así por defecto).
+11. Click en el botón verde **"Commit changes"**. Con eso el cambio queda guardado y Vercel arranca solo a republicar la app (tarda 1-2 minutos en verse reflejado en la URL pública).
+12. Repetí estos 11 pasos para cada archivo de la lista de abajo.
 
-Cada vez que edite un archivo en GitHub, tiene que hacer **Commit changes** — eso dispara automáticamente un redeploy en Vercel (tarda 1-2 minutos en verse reflejado).
+### Los 4 archivos a editar
+
+- **`src/components/Login.jsx`** → carpeta `src` → carpeta `components` → archivo `Login.jsx`. Buscar (Ctrl+F) el texto "Estructura Inferiores": aparece una sola vez, arriba del formulario de login.
+- **`src/components/Layout.jsx`** → carpeta `src` → carpeta `components` → archivo `Layout.jsx`. Buscar "Estructura Inferiores": aparece una sola vez, es el encabezado que se ve arriba de todo en cada pantalla de la app.
+- **`src/utils/generarCitacion.js`** → carpeta `src` → carpeta `utils` → archivo `generarCitacion.js`. Acá hay que cambiar **dos cosas distintas**, buscalas por separado:
+  - El texto `'EI'` (con comillas simples, dos letras solas) — son las iniciales del escudo del club en el PDF de citación. Reemplazalo por las iniciales del club nuevo (ej: si el club se llama "Club Atlético San Martín", podría ser `'CASM'` o `'SM'`).
+  - El texto "Estructura Inferiores" — arma el nombre completo del club junto con la categoría en ese mismo PDF.
+- **`src/utils/generarPerfilPDF.js`** → carpeta `src` → carpeta `utils` → archivo `generarPerfilPDF.js`. Buscar "Estructura Inferiores": es el pie de página que dice "Estructura Inferiores — generado el ..." al final del PDF de perfil de cada jugador.
+
+**Importante — no tocar este archivo**: en `src/data/formaciones.js` también aparece el texto `'EI'` muchas veces, pero ahí **no hay que cambiar nada**. Es el código de la posición "Extremo Izquierdo" en la cancha (una abreviatura de fútbol), no tiene nada que ver con el nombre del club. Si lo cambian, se rompen las formaciones.
 
 ---
 
