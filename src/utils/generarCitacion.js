@@ -234,92 +234,81 @@ export async function generarCitacionPDF(partidoId) {
   doc.setTextColor(...BLANCO)
   doc.text('VS', vsCX, filaEquiposY + 4, { align: 'center' })
 
-  // ===== Título "Ficha del Partido" =====
-  const tituloFichaY = filaEquiposY + 46
-  doc.setFont('times', 'bold')
-  doc.setFontSize(19)
-  doc.setTextColor(...NEGRO)
-  doc.text('Ficha del Partido', pageWidth / 2, tituloFichaY, { align: 'center' })
-  doc.setDrawColor(...AZUL)
-  doc.setLineWidth(1)
-  doc.line(margin, tituloFichaY + 12, pageWidth - margin, tituloFichaY + 12)
-
-  // ===== Metadatos: división, fecha, rival / lugar, sistema, resultado =====
+  // ===== Ficha del partido: división, fecha, hora, lugar, sistema, resultado =====
   const { diaSemana, fechaCorta } = formatearFecha(partido.fecha)
-  const colWidth = (pageWidth - margin * 2) / 3
+  const franjaY = filaEquiposY + 42
+  const franjaH = 44
+  const filaGapMeta = 8
+  const gap = 12
+  const franjaW = (pageWidth - margin * 2 - gap * 2) / 3
   const filaMetadatos = [
     [
-      { label: 'División', valor: categoriaNombre || '—' },
-      { label: 'Fecha', valor: fechaCorta ? `${diaSemana.slice(0, 1)}${diaSemana.slice(1).toLowerCase()} ${fechaCorta}` : '—' },
-      { label: 'Rival', valor: partido.rival || '—' },
+      { label: 'DIVISIÓN', valor: categoriaNombre || '—' },
+      { label: 'FECHA', valor: fechaCorta ? `${diaSemana.slice(0, 1)}${diaSemana.slice(1).toLowerCase()} ${fechaCorta}` : '—' },
+      { label: 'HORA', valor: partido.hora ? `${partido.hora} hs` : '—' },
     ],
     [
-      { label: 'Lugar', valor: `${partido.lugar || '—'} · ${nombreLocalVisitante}` },
-      { label: 'Sistema', valor: partido.formacion || '—' },
-      { label: 'Resultado', valor: partido.resultado || 'A jugarse' },
+      { label: 'LUGAR', valor: `${partido.lugar || '—'} · ${nombreLocalVisitante}` },
+      { label: 'SISTEMA', valor: partido.formacion || '—' },
+      { label: 'RESULTADO', valor: partido.resultado || 'A jugarse' },
     ],
   ]
-  let metaY = tituloFichaY + 34
-  filaMetadatos.forEach((fila) => {
+  filaMetadatos.forEach((fila, filaIdx) => {
+    const y = franjaY + filaIdx * (franjaH + filaGapMeta)
     fila.forEach((d, i) => {
-      const colX = margin + i * colWidth
+      const bx = margin + i * (franjaW + gap)
+      const esResultado = d.label === 'RESULTADO' && partido.resultado
+      doc.setFillColor(...(esResultado ? AZUL : GRIS_CLARO))
+      doc.roundedRect(bx, y, franjaW, franjaH, 8, 8, 'F')
       doc.setFont('helvetica', 'bold')
-      doc.setFontSize(10)
-      doc.setTextColor(...AZUL)
-      doc.text(`${d.label}:`, colX, metaY)
-      const wLabel = doc.getTextWidth(`${d.label}: `)
-      const esResultado = d.label === 'Resultado' && partido.resultado
-      doc.setFont('helvetica', esResultado ? 'bold' : 'normal')
-      doc.setTextColor(...NEGRO)
-      doc.text(String(d.valor), colX + wLabel + 2, metaY, { maxWidth: colWidth - wLabel - 10 })
+      doc.setFontSize(8)
+      doc.setTextColor(...(esResultado ? BLANCO : AZUL))
+      doc.text(d.label, bx + 12, y + 16)
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(12)
+      doc.setTextColor(...(esResultado ? BLANCO : NEGRO))
+      doc.text(String(d.valor), bx + 12, y + 33, { maxWidth: franjaW - 22 })
     })
-    metaY += 20
   })
 
-  doc.setDrawColor(...GRIS_CLARO)
-  doc.setLineWidth(1)
-  doc.line(margin, metaY + 4, pageWidth - margin, metaY + 4)
-
-  // ===== Cancha horizontal (izq) + suplentes en grilla (der) =====
+  // ===== Dos columnas: cancha (izq) + titulares (der) =====
   const ordenados = [...citaciones].sort((a, b) => (a.dorsal || 99) - (b.dorsal || 99))
   const suplentes = ordenados.filter((c) => !c.titular)
   const slots = FORMACIONES[partido.formacion] || []
 
-  const contenidoY = metaY + 24
-  const fieldX = margin
-  const fieldW = (pageWidth - margin * 2) * 0.66
-  const fieldH = 190
-  const supX = fieldX + fieldW + 20
-  const supW = pageWidth - margin - supX
-  const fieldY = contenidoY + 8
+  const contenidoY = franjaY + (franjaH + filaGapMeta) * 2 + 22
+  const canchaX = margin
+  const canchaW = 190
+  const titularesX = canchaX + canchaW + 24
+  const titularesW = pageWidth - margin - titularesX
+
+  const filaAltura = 32
+  const filaGap = 5
+  const canchaH = canchaW * 1.5
 
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(9.5)
+  doc.setFontSize(10.5)
   doc.setTextColor(...AZUL)
-  doc.text('TITULARES', fieldX, contenidoY)
-  doc.text('SUPLENTES', supX, contenidoY)
+  doc.text('TITULARES', titularesX, contenidoY)
 
-  // --- Cancha, apaisada: arquero a la izquierda, ataque a la derecha ---
+  // --- Cancha ---
   doc.setFillColor(...VERDE_CANCHA)
-  doc.roundedRect(fieldX, fieldY, fieldW, fieldH, 10, 10, 'F')
+  doc.roundedRect(canchaX, contenidoY + 6, canchaW, canchaH, 10, 10, 'F')
   doc.setDrawColor(...BLANCO)
   doc.setLineWidth(0.7)
-  doc.roundedRect(fieldX + 8, fieldY + 8, fieldW - 16, fieldH - 16, 4, 4)
-  doc.line(fieldX + fieldW / 2, fieldY + 8, fieldX + fieldW / 2, fieldY + fieldH - 8)
-  doc.circle(fieldX + fieldW / 2, fieldY + fieldH / 2, fieldH * 0.18)
+  doc.roundedRect(canchaX + 8, contenidoY + 14, canchaW - 16, canchaH - 16, 4, 4)
+  doc.line(canchaX + 8, contenidoY + 6 + canchaH / 2, canchaX + canchaW - 8, contenidoY + 6 + canchaH / 2)
+  doc.circle(canchaX + canchaW / 2, contenidoY + 6 + canchaH / 2, canchaW * 0.14)
   doc.setFillColor(...BLANCO)
-  doc.circle(fieldX + fieldW / 2, fieldY + fieldH / 2, 1.4, 'F')
+  doc.circle(canchaX + canchaW / 2, contenidoY + 6 + canchaH / 2, 1.4, 'F')
 
-  const fotoCanchaSize = 22
+  const fotoCanchaSize = 24
   slots.forEach((slot) => {
     const citacion = citaciones.find(
       (c) => String(c.posicion_cancha) === String(slot.codigo) && c.titular
     )
-    // La cancha del formulario es vertical (arquero abajo). Acá va apaisada,
-    // así que "y" (fondo→ataque) pasa a ser el eje horizontal y "x"
-    // (izquierda→derecha) el vertical.
-    const px = fieldX + ((100 - slot.y) / 100) * fieldW
-    const py = fieldY + (slot.x / 100) * fieldH
+    const px = canchaX + (slot.x / 100) * canchaW
+    const py = contenidoY + 6 + (slot.y / 100) * canchaH
 
     const dorsalTxt = citacion?.dorsal ? String(citacion.dorsal) : '–'
     dibujarFichaJugador(
@@ -333,28 +322,73 @@ export async function generarCitacionPDF(partidoId) {
     )
 
     const apellido = citacion?.jugadores?.apellido || ''
-    dibujarEtiquetaJugador(doc, px, py + fotoCanchaSize / 2 + 3, 62, citacion?.dorsal, apellido)
+    dibujarEtiquetaJugador(doc, px, py + fotoCanchaSize / 2 + 3, 70, citacion?.dorsal, apellido)
   })
 
-  // --- Suplentes: grilla de 2 columnas al lado de la cancha ---
+  // --- Lista de titulares ---
+  const fotoListaSize = 22
+  let yFila = contenidoY + 36
+  slots.forEach((slot) => {
+    const citacion = citaciones.find(
+      (c) => String(c.posicion_cancha) === String(slot.codigo) && c.titular
+    )
+
+    doc.setFillColor(...GRIS_CLARO)
+    doc.roundedRect(titularesX, yFila - filaAltura + 8, titularesW, filaAltura, 8, 8, 'F')
+
+    const badgeCX = titularesX + 18
+    const badgeCY = yFila - filaAltura / 2 + 8
+    dibujarFichaJugador(
+      doc,
+      badgeCX,
+      badgeCY,
+      fotoListaSize,
+      citacion ? fotosPorJugador[citacion.jugador_id] : null,
+      AZUL,
+      citacion?.dorsal ? String(citacion.dorsal) : '–'
+    )
+
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(10.5)
+    doc.setTextColor(...NEGRO)
+    const nombreJugador = citacion
+      ? `${citacion.jugadores?.apellido || ''}, ${citacion.jugadores?.nombre || ''}`
+      : '–'
+    doc.text(nombreJugador, badgeCX + 22, badgeCY + 4, { maxWidth: titularesW * 0.5 })
+
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(8)
+    doc.setTextColor(...GRIS)
+    doc.text(slot.label.toUpperCase(), titularesX + titularesW - 12, badgeCY + 3, { align: 'right' })
+
+    yFila += filaAltura + filaGap
+  })
+
+  // ===== Suplentes =====
+  const suplentesY = Math.max(contenidoY + 6 + canchaH, yFila - filaGap) + 34
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(10.5)
+  doc.setTextColor(...AZUL)
+  doc.text('SUPLENTES', margin, suplentesY)
+
   if (suplentes.length === 0) {
     doc.setFont('helvetica', 'italic')
-    doc.setFontSize(8.5)
+    doc.setFontSize(9)
     doc.setTextColor(...GRIS)
-    doc.text('Sin suplentes', supX, fieldY + 20)
+    doc.text('Sin suplentes cargados', margin, suplentesY + 20)
   } else {
-    const columnas = 2
-    const supGap = 8
-    const cellW = (supW - supGap * (columnas - 1)) / columnas
-    const supFotoSize = 26
-    const cellH = supFotoSize + 22
+    const columnas = 4
+    const supGap = 12
+    const supW = (pageWidth - margin * 2 - supGap * (columnas - 1)) / columnas
+    const supFotoSize = 30
+    const supCardH = supFotoSize + 26
 
     suplentes.forEach((c, i) => {
       const col = i % columnas
       const fila = Math.floor(i / columnas)
-      const bx = supX + col * (cellW + supGap)
-      const by = fieldY + 6 + fila * (cellH + 8)
-      const cx = bx + cellW / 2
+      const bx = margin + col * (supW + supGap)
+      const by = suplentesY + 14 + fila * (supCardH + 10)
+      const cx = bx + supW / 2
 
       dibujarFichaJugador(
         doc,
@@ -365,7 +399,7 @@ export async function generarCitacionPDF(partidoId) {
         AZUL_CLARO,
         c.dorsal ? String(c.dorsal) : '–'
       )
-      dibujarEtiquetaJugador(doc, cx, by + supFotoSize + 4, cellW, c.dorsal, c.jugadores?.apellido)
+      dibujarEtiquetaJugador(doc, cx, by + supFotoSize + 5, supW, c.dorsal, c.jugadores?.apellido)
     })
   }
 
