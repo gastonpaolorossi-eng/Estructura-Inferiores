@@ -23,6 +23,7 @@ function formatearFecha(fechaStr) {
 }
 
 async function cargarImagenDataURL(url) {
+  if (!url) return null
   try {
     const res = await fetch(url)
     if (!res.ok) return null
@@ -53,6 +54,48 @@ function dibujarEscudo(doc, cx, cy, size, colorFondo, letra, colorTexto) {
   doc.text(letra, cx, cy + size * 0.11, { align: 'center' })
 }
 
+// Ficha cuadrada de un jugador: foto real si hay, si no un cuadrado de
+// color con su inicial/dorsal. Siempre con un borde de color alrededor.
+function dibujarFichaJugador(doc, cx, cy, size, dataUrl, colorBorde, textoFallback) {
+  const half = size / 2
+  let dibujoOk = false
+  if (dataUrl) {
+    try {
+      const formato = formatoDeDataUrl(dataUrl)
+      doc.addImage(dataUrl, formato, cx - half, cy - half, size, size)
+      dibujoOk = true
+    } catch {
+      dibujoOk = false
+    }
+  }
+  if (!dibujoOk) {
+    doc.setFillColor(...colorBorde)
+    doc.roundedRect(cx - half, cy - half, size, size, 4, 4, 'F')
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(size * 0.38)
+    doc.setTextColor(...BLANCO)
+    doc.text(textoFallback, cx, cy + size * 0.13, { align: 'center' })
+  }
+  doc.setDrawColor(...colorBorde)
+  doc.setLineWidth(1.1)
+  doc.roundedRect(cx - half, cy - half, size, size, 4, 4, 'S')
+}
+
+// Etiqueta con dorsal + apellido sobre fondo de color, como la ficha de
+// referencia (mini cartel debajo o al lado de la foto).
+function dibujarEtiquetaJugador(doc, cxOCentro, y, ancho, dorsal, apellido, align = 'center') {
+  const texto = `${dorsal ?? '–'}-${(apellido || '–').toUpperCase()}`
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(7)
+  const anchoTexto = Math.min(doc.getTextWidth(texto) + 10, ancho)
+  const x = align === 'center' ? cxOCentro - anchoTexto / 2 : cxOCentro
+  doc.setFillColor(...AZUL)
+  doc.roundedRect(x, y, anchoTexto, 12, 3, 3, 'F')
+  doc.setTextColor(...BLANCO)
+  doc.text(texto.slice(0, 20), x + anchoTexto / 2, y + 8.5, { align: 'center', maxWidth: anchoTexto - 4 })
+  return anchoTexto
+}
+
 export async function generarCitacionPDF(partidoId) {
   const { data: partido } = await supabase
     .from('partidos')
@@ -62,7 +105,7 @@ export async function generarCitacionPDF(partidoId) {
 
   const { data: citaciones } = await supabase
     .from('citaciones')
-    .select('*, jugadores(nombre, apellido)')
+    .select('*, jugadores(nombre, apellido, foto_url)')
     .eq('partido_id', partidoId)
 
   if (!partido || !citaciones || citaciones.length === 0) {
@@ -71,6 +114,16 @@ export async function generarCitacionPDF(partidoId) {
   }
 
   const escudoRivalDataUrl = partido.escudo_url ? await cargarImagenDataURL(partido.escudo_url) : null
+
+  // Traemos todas las fotos de los convocados de una sola vez.
+  const fotosPorJugador = {}
+  await Promise.all(
+    citaciones.map(async (c) => {
+      if (c.jugadores?.foto_url) {
+        fotosPorJugador[c.jugador_id] = await cargarImagenDataURL(c.jugadores.foto_url)
+      }
+    })
+  )
 
   const doc = new jsPDF({ unit: 'pt', format: 'a4' })
   const pageWidth = doc.internal.pageSize.getWidth()
@@ -108,7 +161,17 @@ export async function generarCitacionPDF(partidoId) {
     : `Partido ${nombreLocalVisitante}`
   doc.text(subtituloHeader, tituloX, iconoCY + 16)
 
-  if (categoriaNombre || partido.formacion) {
+  if (partido.resultado) {
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(11)
+    const wTxt = doc.getTextWidth(partido.resultado)
+    const wPill = wTxt + 26
+    const pillH = 26
+    doc.setFillColor(...BLANCO)
+    doc.roundedRect(pageWidth - margin - wPill, iconoCY - pillH / 2, wPill, pillH, 13, 13, 'F')
+    doc.setTextColor(...AZUL)
+    doc.text(partido.resultado, pageWidth - margin - wPill / 2, iconoCY + 4, { align: 'center' })
+  } else if (categoriaNombre || partido.formacion) {
     const etiqueta = [categoriaNombre.toUpperCase(), partido.formacion].filter(Boolean).join(' · ')
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(10.5)
@@ -171,29 +234,41 @@ export async function generarCitacionPDF(partidoId) {
   doc.setTextColor(...BLANCO)
   doc.text('VS', vsCX, filaEquiposY + 4, { align: 'center' })
 
-  // ===== Franja FECHA / HORA / LUGAR =====
+  // ===== Ficha del partido: división, fecha, hora, lugar, sistema, resultado =====
   const { diaSemana, fechaCorta } = formatearFecha(partido.fecha)
   const franjaY = filaEquiposY + 42
-  const franjaH = 46
+  const franjaH = 44
+  const filaGapMeta = 8
   const gap = 12
   const franjaW = (pageWidth - margin * 2 - gap * 2) / 3
-  const datosFranja = [
-    { label: 'FECHA', valor: fechaCorta ? `${diaSemana.slice(0, 1)}${diaSemana.slice(1).toLowerCase()} ${fechaCorta}` : '—' },
-    { label: 'HORA', valor: partido.hora ? `${partido.hora} hs` : '—' },
-    { label: 'LUGAR', valor: partido.lugar || '—' },
+  const filaMetadatos = [
+    [
+      { label: 'DIVISIÓN', valor: categoriaNombre || '—' },
+      { label: 'FECHA', valor: fechaCorta ? `${diaSemana.slice(0, 1)}${diaSemana.slice(1).toLowerCase()} ${fechaCorta}` : '—' },
+      { label: 'HORA', valor: partido.hora ? `${partido.hora} hs` : '—' },
+    ],
+    [
+      { label: 'LUGAR', valor: `${partido.lugar || '—'} · ${nombreLocalVisitante}` },
+      { label: 'SISTEMA', valor: partido.formacion || '—' },
+      { label: 'RESULTADO', valor: partido.resultado || 'A jugarse' },
+    ],
   ]
-  datosFranja.forEach((d, i) => {
-    const bx = margin + i * (franjaW + gap)
-    doc.setFillColor(...GRIS_CLARO)
-    doc.roundedRect(bx, franjaY, franjaW, franjaH, 8, 8, 'F')
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(8)
-    doc.setTextColor(...AZUL)
-    doc.text(d.label, bx + 12, franjaY + 17)
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(12)
-    doc.setTextColor(...NEGRO)
-    doc.text(String(d.valor), bx + 12, franjaY + 34, { maxWidth: franjaW - 22 })
+  filaMetadatos.forEach((fila, filaIdx) => {
+    const y = franjaY + filaIdx * (franjaH + filaGapMeta)
+    fila.forEach((d, i) => {
+      const bx = margin + i * (franjaW + gap)
+      const esResultado = d.label === 'RESULTADO' && partido.resultado
+      doc.setFillColor(...(esResultado ? AZUL : GRIS_CLARO))
+      doc.roundedRect(bx, y, franjaW, franjaH, 8, 8, 'F')
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(8)
+      doc.setTextColor(...(esResultado ? BLANCO : AZUL))
+      doc.text(d.label, bx + 12, y + 16)
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(12)
+      doc.setTextColor(...(esResultado ? BLANCO : NEGRO))
+      doc.text(String(d.valor), bx + 12, y + 33, { maxWidth: franjaW - 22 })
+    })
   })
 
   // ===== Dos columnas: cancha (izq) + titulares (der) =====
@@ -201,7 +276,7 @@ export async function generarCitacionPDF(partidoId) {
   const suplentes = ordenados.filter((c) => !c.titular)
   const slots = FORMACIONES[partido.formacion] || []
 
-  const contenidoY = franjaY + franjaH + 26
+  const contenidoY = franjaY + (franjaH + filaGapMeta) * 2 + 22
   const canchaX = margin
   const canchaW = 190
   const titularesX = canchaX + canchaW + 24
@@ -227,6 +302,7 @@ export async function generarCitacionPDF(partidoId) {
   doc.setFillColor(...BLANCO)
   doc.circle(canchaX + canchaW / 2, contenidoY + 6 + canchaH / 2, 1.4, 'F')
 
+  const fotoCanchaSize = 24
   slots.forEach((slot) => {
     const citacion = citaciones.find(
       (c) => String(c.posicion_cancha) === String(slot.codigo) && c.titular
@@ -234,26 +310,23 @@ export async function generarCitacionPDF(partidoId) {
     const px = canchaX + (slot.x / 100) * canchaW
     const py = contenidoY + 6 + (slot.y / 100) * canchaH
 
-    const numero = citacion?.dorsal ? String(citacion.dorsal) : '–'
-    doc.setFillColor(...AZUL)
-    doc.circle(px, py, 10, 'F')
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(9)
-    doc.setTextColor(...BLANCO)
-    doc.text(numero, px, py + 3, { align: 'center' })
+    const dorsalTxt = citacion?.dorsal ? String(citacion.dorsal) : '–'
+    dibujarFichaJugador(
+      doc,
+      px,
+      py,
+      fotoCanchaSize,
+      citacion ? fotosPorJugador[citacion.jugador_id] : null,
+      AZUL,
+      dorsalTxt
+    )
 
-    const inicialNombre = citacion?.jugadores?.nombre ? `${citacion.jugadores.nombre[0]}.` : ''
-    const etiqueta = citacion ? `${citacion.jugadores?.apellido || ''} ${inicialNombre}`.trim() : '–'
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(6.3)
-    const anchoTexto = Math.min(doc.getTextWidth(etiqueta) + 8, 60)
-    doc.setFillColor(...BLANCO)
-    doc.roundedRect(px - anchoTexto / 2, py + 13, anchoTexto, 11, 3, 3, 'F')
-    doc.setTextColor(...NEGRO)
-    doc.text(etiqueta.slice(0, 16), px, py + 21, { align: 'center', maxWidth: anchoTexto - 2 })
+    const apellido = citacion?.jugadores?.apellido || ''
+    dibujarEtiquetaJugador(doc, px, py + fotoCanchaSize / 2 + 3, 70, citacion?.dorsal, apellido)
   })
 
   // --- Lista de titulares ---
+  const fotoListaSize = 22
   let yFila = contenidoY + 36
   slots.forEach((slot) => {
     const citacion = citaciones.find(
@@ -263,14 +336,17 @@ export async function generarCitacionPDF(partidoId) {
     doc.setFillColor(...GRIS_CLARO)
     doc.roundedRect(titularesX, yFila - filaAltura + 8, titularesW, filaAltura, 8, 8, 'F')
 
-    const badgeCX = titularesX + 20
+    const badgeCX = titularesX + 18
     const badgeCY = yFila - filaAltura / 2 + 8
-    doc.setFillColor(...AZUL)
-    doc.circle(badgeCX, badgeCY, 10, 'F')
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(9)
-    doc.setTextColor(...BLANCO)
-    doc.text(citacion?.dorsal ? String(citacion.dorsal) : '–', badgeCX, badgeCY + 3, { align: 'center' })
+    dibujarFichaJugador(
+      doc,
+      badgeCX,
+      badgeCY,
+      fotoListaSize,
+      citacion ? fotosPorJugador[citacion.jugador_id] : null,
+      AZUL,
+      citacion?.dorsal ? String(citacion.dorsal) : '–'
+    )
 
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(10.5)
@@ -278,7 +354,7 @@ export async function generarCitacionPDF(partidoId) {
     const nombreJugador = citacion
       ? `${citacion.jugadores?.apellido || ''}, ${citacion.jugadores?.nombre || ''}`
       : '–'
-    doc.text(nombreJugador, badgeCX + 20, badgeCY + 4, { maxWidth: titularesW * 0.5 })
+    doc.text(nombreJugador, badgeCX + 22, badgeCY + 4, { maxWidth: titularesW * 0.5 })
 
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(8)
@@ -289,7 +365,7 @@ export async function generarCitacionPDF(partidoId) {
   })
 
   // ===== Suplentes =====
-  const suplentesY = Math.max(contenidoY + 6 + canchaH, yFila - filaGap) + 30
+  const suplentesY = Math.max(contenidoY + 6 + canchaH, yFila - filaGap) + 34
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(10.5)
   doc.setTextColor(...AZUL)
@@ -301,34 +377,29 @@ export async function generarCitacionPDF(partidoId) {
     doc.setTextColor(...GRIS)
     doc.text('Sin suplentes cargados', margin, suplentesY + 20)
   } else {
-    const columnas = 3
+    const columnas = 4
     const supGap = 12
     const supW = (pageWidth - margin * 2 - supGap * (columnas - 1)) / columnas
-    const supH = 26
+    const supFotoSize = 30
+    const supCardH = supFotoSize + 26
 
     suplentes.forEach((c, i) => {
       const col = i % columnas
       const fila = Math.floor(i / columnas)
       const bx = margin + col * (supW + supGap)
-      const by = suplentesY + 16 + fila * (supH + 6)
+      const by = suplentesY + 14 + fila * (supCardH + 10)
+      const cx = bx + supW / 2
 
-      doc.setFillColor(...GRIS_CLARO)
-      doc.roundedRect(bx, by, supW, supH, 7, 7, 'F')
-
-      const numCX = bx + 17
-      const numCY = by + supH / 2
-      doc.setFillColor(...AZUL)
-      doc.circle(numCX, numCY, 9, 'F')
-      doc.setFont('helvetica', 'bold')
-      doc.setFontSize(8.5)
-      doc.setTextColor(...BLANCO)
-      doc.text(c.dorsal ? String(c.dorsal) : '-', numCX, numCY + 3, { align: 'center' })
-
-      doc.setFont('helvetica', 'normal')
-      doc.setFontSize(9)
-      doc.setTextColor(...NEGRO)
-      const nombreCompleto = `${c.jugadores?.apellido || ''}, ${c.jugadores?.nombre || ''}`
-      doc.text(nombreCompleto, numCX + 15, numCY + 3, { maxWidth: supW - 34 })
+      dibujarFichaJugador(
+        doc,
+        cx,
+        by + supFotoSize / 2,
+        supFotoSize,
+        fotosPorJugador[c.jugador_id],
+        AZUL_CLARO,
+        c.dorsal ? String(c.dorsal) : '–'
+      )
+      dibujarEtiquetaJugador(doc, cx, by + supFotoSize + 5, supW, c.dorsal, c.jugadores?.apellido)
     })
   }
 
