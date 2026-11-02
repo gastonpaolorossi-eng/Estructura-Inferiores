@@ -1,0 +1,13 @@
+.asistencia-premium .dp-gestion-contenido { gap: 1rem; }
+.asistencia-premium .asistencia-filtros { max-width: 760px; margin-bottom: 0; }
+.asistencia-listado { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+.asistencia-premium .asistencia-jugadora { padding: 1rem; gap: 1rem; align-content: start; }
+.asistencia-jugadora > div:first-child { flex: 1 1 100%; }
+.asistencia-jugadora p { white-space: normal; overflow-wrap: anywhere; font-weight: 700; }
+.asistencia-premium .asistencia-jugadora img { width: 44px; height: 44px; }
+.asistencia-premium button { min-height: 44px; }
+.asistencia-jugadora button[aria-pressed] { border: 2px solid transparent; font-size: .75rem; }
+.asistencia-jugadora button[aria-pressed=true] { border-color: currentColor; box-shadow: 0 2px 8px #0002; }
+.asistencia-premium :is(button,input,select):focus-visible { outline: 2px solid var(--ui-foco); outline-offset: 3px; }
+@media (max-width: 900px) { .asistencia-listado { grid-template-columns: minmax(0, 1fr); } }
+@media (prefers-reduced-motion: no-preference) { .asistencia-jugadora button { transition: background-color .15s, box-shadow .15s; } }

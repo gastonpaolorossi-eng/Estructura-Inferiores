@@ -1,3 +1,5 @@
+import EncabezadoSeccion from './ui/EncabezadoSeccion'
+import './asistenciaPremium.css'
 import { BOTON_GESTION, textoGestion, textoSobreEstado } from '../appearance/gestion'
 import { COLORES } from '../theme'
 import { useCallback, useEffect, useState } from 'react'
@@ -174,14 +176,9 @@ function AsistenciaSection({ perfil, fechaInicial, categoriaInicial, onVerPlanif
   }
 
   return (
-    <div className="p-6 md:p-10">
-      <div className="max-w-xl mx-auto">
-        <h1
-          className="text-3xl md:text-4xl mb-6"
-          style={{ fontFamily: "'Archivo Black', sans-serif", color: COLORES.texto }}
-        >
-          Asistencia
-        </h1>
+    <div className="dp-gestion asistencia-premium" style={{ color: COLORES.texto }}>
+      <div className="dp-gestion-contenido">
+        <EncabezadoSeccion titulo="Asistencia" descripcion="Registro diario del plantel. Marcá los estados y guardá los cambios." />
 
         <div className="mb-6">
           <button
@@ -189,7 +186,7 @@ function AsistenciaSection({ perfil, fechaInicial, categoriaInicial, onVerPlanif
             className="text-xs font-medium px-3 py-1.5 rounded-lg transition-opacity hover:opacity-80"
             style={{ backgroundColor: COLORES.fondoTarjeta, color: COLORES.texto, borderTop: `3px solid ${COLORES.acento}`, borderLeft: `1px solid ${COLORES.borde}`, borderRight: `1px solid ${COLORES.borde}`, borderBottom: `1px solid ${COLORES.borde}` }}
           >
-            {mostrarReporte ? 'Cerrar' : '📄 Exportar reporte de asistencia'}
+            {mostrarReporte ? 'Cerrar' : 'Exportar reporte de asistencia'}
           </button>
 
           {mostrarReporte && (
@@ -233,10 +230,11 @@ function AsistenciaSection({ perfil, fechaInicial, categoriaInicial, onVerPlanif
           )}
         </div>
 
-        <div className="grid sm:grid-cols-2 gap-3 mb-6">
+        <div className="asistencia-filtros grid sm:grid-cols-2 gap-3 mb-6">
           <input
             type="date"
             value={fecha}
+            aria-label="Fecha de asistencia"
             onChange={(e) => setFecha(e.target.value)}
             className="w-full p-2.5 rounded-xl ui-control outline-none text-sm"
             style={inputStyle}
@@ -244,6 +242,7 @@ function AsistenciaSection({ perfil, fechaInicial, categoriaInicial, onVerPlanif
           {!esTecnico && (
             <select
               value={categoriaId}
+              aria-label="Categoría"
               onChange={(e) => setCategoriaId(e.target.value)}
               className="w-full p-2.5 rounded-xl ui-control outline-none text-sm"
               style={inputStyle}
@@ -292,11 +291,11 @@ function AsistenciaSection({ perfil, fechaInicial, categoriaInicial, onVerPlanif
               ))}
             </div>
 
-            <div className="space-y-2 mb-6">
+            <div className="asistencia-listado mb-6">
               {jugadores.map((j) => (
                 <div
                   key={j.id}
-                  className="flex items-center justify-between gap-2 p-2.5 rounded-xl flex-wrap"
+                  className="asistencia-jugadora flex items-center justify-between gap-2 p-2.5 rounded-xl flex-wrap"
                   style={inputStyle}
                 >
                   <div className="flex items-center gap-2 min-w-0">
@@ -324,6 +323,8 @@ function AsistenciaSection({ perfil, fechaInicial, categoriaInicial, onVerPlanif
                       return (
                         <button
                           key={e.valor}
+                          aria-pressed={activo}
+                          aria-label={`${j.apellido}, ${j.nombre}: ${e.label}`}
                           onClick={() => marcar(j.id, e.valor)}
                           className="text-[10px] px-2 py-1 rounded-full transition-opacity hover:opacity-80"
                           style={{
