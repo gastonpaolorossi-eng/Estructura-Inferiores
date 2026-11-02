@@ -91,16 +91,16 @@ test('Auditoría 1 y 2: Médico consulta sin Físico/offline; categoría PF, acc
     const {default:Usuarios}=await server.ssrLoadModule('/src/components/UsuariosSection.jsx')
     filasPerfil=[{...perfil,categorias:{nombre:'Primera División'}}]
     await render(Usuarios)
-    await click(boton('✏️'))
+    await click(document.querySelector('button[aria-label^="Editar usuario"]'))
     assert.equal(document.querySelector('[aria-label="Categoría asignada"]').value,cat)
     await escribir(document.querySelector('input[placeholder="Nombre (opcional)"]'),'Nombre actualizado')
     await click(boton('Guardar cambios'))
     assert.equal(escrituras.at(-1).datos.categoria_id,cat,'Editar otro dato conserva categoría PF')
-    await click(boton('✏️'))
+    await click(document.querySelector('button[aria-label^="Editar usuario"]'))
     await seleccionar(document.querySelector('[aria-label="Categoría asignada"]'),'')
     await click(boton('Guardar cambios'))
     assert.equal(escrituras.at(-1).datos.categoria_id,null,'PF puede quedar sin planificación')
-    await click(boton('✏️'))
+    await click(document.querySelector('button[aria-label^="Editar usuario"]'))
     await seleccionar(document.querySelector('[aria-label="Categoría asignada"]'),otra)
     errorGuardar={code:'42501',message:'Denegado'}
     await click(boton('Guardar cambios'))
@@ -108,7 +108,7 @@ test('Auditoría 1 y 2: Médico consulta sin Físico/offline; categoría PF, acc
     assert.equal(document.querySelector('[aria-label="Categoría asignada"]').value,otra,'Rechazo conserva formulario')
     errorGuardar=null
     filasPerfil=[{...perfil,rol:'tecnico',categoria_id:null}]
-    await render(Usuarios);await click(boton('✏️'))
+    await render(Usuarios);await click(document.querySelector('button[aria-label^="Editar usuario"]'))
     const antes=escrituras.length
     await click(boton('Guardar cambios'))
     assert.equal(escrituras.length,antes)

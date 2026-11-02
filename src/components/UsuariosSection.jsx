@@ -1,4 +1,7 @@
-import { BOTON_GESTION, textoGestion } from '../appearance/gestion'
+import EncabezadoSeccion from './ui/EncabezadoSeccion'
+import EstadoContenido from './ui/EstadoContenido'
+import TarjetaIndicador from './ui/TarjetaIndicador'
+import { textoGestion } from '../appearance/gestion'
 import { COLORES } from '../theme'
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
@@ -31,6 +34,7 @@ function UsuariosSection() {
   const [usuarios, setUsuarios] = useState([])
   const [categorias, setCategorias] = useState([])
   const [cargando, setCargando] = useState(true)
+  const [errorCarga, setErrorCarga] = useState(null)
   const [mostrarForm, setMostrarForm] = useState(false)
   const [usuarioEditando, setUsuarioEditando] = useState(null)
 
@@ -60,11 +64,12 @@ function UsuariosSection() {
 
   async function cargarDatos() {
     setCargando(true)
-    const { data: usuariosData } = await supabase
+    const { data: usuariosData, error: errorUsuarios } = await supabase
       .from('perfiles')
       .select('*, categorias(nombre)')
       .order('orden_pdf', { ascending: true, nullsFirst: false })
       .order('rol')
+    setErrorCarga(errorUsuarios || null)
     setUsuarios(usuariosData || [])
     const { data: categoriasData } = await supabase.from('categorias').select('*').order('orden')
     setCategorias(categoriasData || [])
@@ -182,49 +187,28 @@ function UsuariosSection() {
   }
 
   return (
-    <div className="p-6 md:p-10">
-      <div className="max-w-xl mx-auto">
-        <div className="flex items-start justify-between mb-2 gap-3 flex-wrap">
-          <h1
-            className="text-2xl md:text-3xl"
-            style={{ fontFamily: "'Archivo Black', sans-serif", color: COLORES.texto }}
-          >
-            Usuarios
-          </h1>
-          <div className="flex gap-2 flex-wrap">
-            <button
-              onClick={handleExportarBackup}
-              disabled={exportando}
-              className="text-sm font-medium px-4 py-2.5 rounded-xl transition-opacity hover:opacity-80 disabled:opacity-50"
-              style={{ backgroundColor: COLORES.fondoTarjeta, color: COLORES.texto, borderTop: `3px solid ${COLORES.acento}`, borderLeft: `1px solid ${COLORES.borde}`, borderRight: `1px solid ${COLORES.borde}`, borderBottom: `1px solid ${COLORES.borde}` }}
-            >
-              {exportando ? 'Generando...' : '📦 Exportar backup'}
-            </button>
-            <button
-              onClick={mostrarForm ? cancelarForm : abrirNuevo}
-              className="text-sm font-medium px-4 py-2.5 rounded-xl transition-opacity hover:opacity-80"
-              style={BOTON_GESTION}
-            >
-              {mostrarForm ? 'Cancelar' : '+ Nuevo usuario'}
-            </button>
-          </div>
-        </div>
+    <div className="dp-gestion" data-modulo="usuarios">
+      <div className="dp-gestion-contenido">
+        <EncabezadoSeccion titulo="Usuarios" descripcion="Administración de los perfiles del equipo de trabajo." acciones={<><button type="button" onClick={handleExportarBackup} disabled={exportando} aria-busy={exportando} className="dp-accion">{exportando ? 'Generando...' : 'Exportar backup'}</button><button type="button" onClick={mostrarForm ? cancelarForm : abrirNuevo} className={mostrarForm ? 'dp-accion' : 'dp-accion dp-accion-primaria'} aria-expanded={mostrarForm} aria-controls="usuarios-editor">{mostrarForm ? 'Cancelar' : '+ Nuevo usuario'}</button></>}><p className="dp-contexto-cabecera">COMUNICACIONES · EQUIPO DE TRABAJO</p></EncabezadoSeccion>
+
         <p className="text-xs mb-6" style={{ color: COLORES.textoMuted }}>
           Antes de darlo de alta acá, creá el login de esa persona en Supabase
           (Authentication → Add user) con este mismo email.
         </p>
 
         {mostrarForm && (
-          <div
-            className="space-y-3 mb-8 p-4 rounded-xl"
+          <div id="usuarios-editor" role="region" aria-labelledby="usuarios-editor-titulo"
+            className="dp-panel dp-editor"
             style={{ backgroundColor: COLORES.fondoTarjeta, borderTop: `3px solid ${COLORES.acento}`, borderLeft: `1px solid ${COLORES.borde}`, borderRight: `1px solid ${COLORES.borde}`, borderBottom: `1px solid ${COLORES.borde}` }}
           >
+            <div className="dp-panel-cabecera"><div><p className="dp-antetitulo">Perfil del equipo</p><h2 id="usuarios-editor-titulo">{usuarioEditando ? 'Editar usuario' : 'Nuevo usuario'}</h2><p>Identidad, rol, categoría y presentación en citaciones.</p></div><span className="dp-insignia">{usuarioEditando ? 'Edición' : 'Alta'}</span></div>
             {usuarioEditando && (
               <p className="text-xs" style={{ color: COLORES.textoSecundario }}>
                 Editando {usuarioEditando.email}
               </p>
             )}
 
+            <fieldset className="dp-grupo-campos"><legend>01 · Identidad del perfil</legend>
             <div className="flex items-center gap-3">
               <div
                 className="w-14 h-14 rounded-full overflow-hidden flex items-center justify-center text-sm font-medium shrink-0"
@@ -241,11 +225,11 @@ function UsuariosSection() {
                 style={{ backgroundColor: COLORES.fondoPagina, color: COLORES.textoSecundario, border: `1px solid ${COLORES.borde}` }}
               >
                 Cambiar foto
-                <input type="file" accept="image/*" onChange={handleElegirFoto} className="hidden" />
+                <input type="file" accept="image/*" onChange={handleElegirFoto} className="dp-archivo-foto" />
               </label>
             </div>
 
-            <input
+            <label className="dp-campo"><span>Email del login</span><input
               type="email"
               placeholder="Email (el mismo del login de Supabase)"
               value={email}
@@ -253,30 +237,31 @@ function UsuariosSection() {
               disabled={!!usuarioEditando}
               className="w-full p-2.5 rounded-xl ui-control outline-none text-sm disabled:opacity-50"
               style={inputStyle}
-            />
-            <input
+            /></label>
+            <label className="dp-campo"><span>Nombre (opcional)</span><input
               type="text"
               placeholder="Nombre (opcional)"
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
               className="w-full p-2.5 rounded-xl ui-control outline-none text-sm"
               style={inputStyle}
-            />
-            <select
+            /></label>
+            </fieldset><fieldset className="dp-grupo-campos"><legend>02 · Rol y categoría</legend><label className="dp-campo"><span>Rol del sistema</span><select
               value={rol}
               onChange={(e) => setRol(e.target.value)}
               className="w-full p-2.5 rounded-xl ui-control outline-none text-sm"
               style={inputStyle}
             >
-              <option value="coordinacion">Coordinación (acceso total)</option>
-              <option value="medico">Depto. Médico (médicos/nutrición/psicología, todas las categorías)</option>
-              <option value="tecnico">Cuerpo técnico (una sola categoría)</option>
-              <option value="preparador_fisico">Preparador Físico (Físico + Carga + CMJ)</option>
-            </select>
+              <option value="coordinacion">Coordinación</option>
+              <option value="medico">Depto. Médico</option>
+              <option value="tecnico">Cuerpo técnico</option>
+              <option value="preparador_fisico">Preparador Físico</option>
+            </select></label>
+            <p className="dp-ayuda-rol">Se mantienen los accesos existentes de cada rol. La categoría es obligatoria para el cuerpo técnico; un preparador sin categoría no tiene Planificación habilitada.</p>
             {['tecnico', 'preparador_fisico'].includes(rol) && (
-              <select
+<label className="dp-campo"><span>Categoría asignada</span>              <select
                 aria-label="Categoría asignada"
-                value={categoriaId}
+                id="usuarios-categoriaId" value={categoriaId}
                 onChange={(e) => setCategoriaId(e.target.value)}
                 className="w-full p-2.5 rounded-xl ui-control outline-none text-sm"
                 style={inputStyle}
@@ -287,17 +272,18 @@ function UsuariosSection() {
                     {c.nombre}
                   </option>
                 ))}
-              </select>
+              </select></label>
             )}
 
+            </fieldset><fieldset className="dp-grupo-campos dp-campo-completo"><legend>03 · Presentación en citaciones</legend>
             <div>
-              <label className="text-xs block mb-1" style={{ color: COLORES.textoMuted }}>
+              <label htmlFor="usuarios-cargoPdf" className="text-xs block mb-1" style={{ color: COLORES.textoMuted }}>
                 Cargo a mostrar (en el PDF de citación, en vez del rol del sistema)
               </label>
               <input
                 type="text"
                 placeholder="Ej: Videoanalista, Director Técnico, Ayudante de campo..."
-                value={cargoPdf}
+                id="usuarios-cargoPdf" value={cargoPdf}
                 onChange={(e) => setCargoPdf(e.target.value)}
                 className="w-full p-2.5 rounded-xl ui-control outline-none text-sm"
                 style={inputStyle}
@@ -315,14 +301,14 @@ function UsuariosSection() {
 
             {apareceEnPdf && (
               <div>
-                <label className="text-xs block mb-1" style={{ color: COLORES.textoMuted }}>
+                <label htmlFor="usuarios-ordenPdf" className="text-xs block mb-1" style={{ color: COLORES.textoMuted }}>
                   Orden en el PDF (1 = primero, menor número aparece antes)
                 </label>
                 <input
                   type="number"
                   min="1"
                   placeholder="Ej: 1"
-                  value={ordenPdf}
+                  id="usuarios-ordenPdf" value={ordenPdf}
                   onChange={(e) => setOrdenPdf(e.target.value)}
                   className="w-24 p-2.5 rounded-xl ui-control outline-none text-sm"
                   style={inputStyle}
@@ -330,30 +316,29 @@ function UsuariosSection() {
               </div>
             )}
 
-            {errorMsg && (
-              <p className="text-sm" style={{ color: COLORES.peligro }}>
-                {errorMsg}
-              </p>
-            )}
+            </fieldset>
+            {errorMsg && <EstadoContenido estado="error" titulo="Revisá el registro" mensaje={errorMsg} />}
 
             <button
               onClick={handleGuardar}
               disabled={guardando}
               className="w-full p-2.5 rounded-xl font-medium text-sm transition-opacity hover:opacity-80 disabled:opacity-50"
-              style={BOTON_GESTION}
+              data-primario=""
             >
               {guardando ? 'Guardando...' : usuarioEditando ? 'Guardar cambios' : 'Guardar usuario'}
             </button>
           </div>
         )}
 
-        {cargando && <p style={{ color: COLORES.textoMuted }}>Cargando...</p>}
+        {cargando && <EstadoContenido estado="cargando" titulo="Cargando usuarios" />}
+        {!cargando && errorCarga && <EstadoContenido estado={errorCarga.code === '42501' ? 'denegado' : 'error'} titulo="No se pudo consultar la información" mensaje="No equivale a una lista vacía. Podés reintentar la consulta." onReintentar={cargarDatos} />}
 
-        <div className="space-y-2">
-          {usuarios.map((u) => (
+        <div className="dp-resumen-usuarios"><TarjetaIndicador etiqueta="Perfiles registrados" valor={usuarios.length} sinDato={cargando || Boolean(errorCarga)} cobertura="Perfiles devueltos por la consulta actual" /><div className="dp-panel"><p className="dp-antetitulo">Organización del equipo</p><h2>Identidad, rol y categoría</h2><p>El cargo de citación se muestra separado del rol del sistema.</p></div></div>
+        <div className="dp-listado-usuarios">
+          {!cargando && !errorCarga && usuarios.map((u) => (
             <div
               key={u.email}
-              className="p-3 rounded-xl flex items-center justify-between gap-3"
+              className="dp-registro dp-usuario"
               style={{ backgroundColor: COLORES.fondoTarjeta, borderTop: `3px solid ${COLORES.acento}`, borderLeft: `1px solid ${COLORES.borde}`, borderRight: `1px solid ${COLORES.borde}`, borderBottom: `1px solid ${COLORES.borde}` }}
             >
               <div className="flex items-center gap-3 min-w-0">
@@ -368,16 +353,16 @@ function UsuariosSection() {
                   )}
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-medium truncate" style={{ color: COLORES.texto }}>
+                  <p className="dp-nombre-registro" style={{ color: COLORES.texto }}>
                     {u.nombre || u.email}
                   </p>
-                  <p className="text-xs truncate" style={{ color: COLORES.textoSecundario }}>
+                  <p className="dp-datos-usuario" style={{ color: COLORES.textoSecundario }}>
                     {u.email}
                     {u.cargo_pdf ? ` · ${u.cargo_pdf}` : ''}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="dp-rol-acciones">
                 {u.aparece_en_pdf && (
                   <span
                     className="text-xs px-2 py-1 rounded-full"
@@ -388,7 +373,7 @@ function UsuariosSection() {
                   </span>
                 )}
                 <span
-                  className="text-xs font-mono px-2 py-1 rounded-full"
+                  className="dp-insignia"
                   style={{ backgroundColor: COLORES.fondoPagina, color: COLORES.textoSecundario }}
                 >
                   {rolLabel[u.rol] || u.rol}
@@ -396,23 +381,24 @@ function UsuariosSection() {
                   {u.rol === 'preparador_fisico' && !u.categoria_id ? ' · Sin categoría (Planificación no habilitada)' : ''}
                 </span>
                 <button
-                  onClick={() => abrirEditar(u)}
+                  aria-label={`Editar usuario ${u.nombre || u.email}`} onClick={() => abrirEditar(u)}
                   className="text-xs px-2 py-1 rounded-full hover:opacity-80"
                   style={{ backgroundColor: COLORES.fondoPagina, color: COLORES.textoSecundario }}
                 >
-                  ✏️
+                  Editar
                 </button>
                 <button
-                  onClick={() => handleEliminar(u)}
+                  aria-label={`Quitar acceso a ${u.nombre || u.email}`} onClick={() => handleEliminar(u)}
                   className="text-xs px-2 py-1 rounded-full hover:opacity-80"
                   style={{ backgroundColor: COLORES.fondoPagina, color: COLORES.peligro }}
                 >
-                  🗑
+                  Quitar acceso
                 </button>
               </div>
             </div>
           ))}
         </div>
+        {!cargando && !errorCarga && usuarios.length === 0 && <EstadoContenido estado="vacio" titulo="Sin usuarios registrados" mensaje="No hay perfiles devueltos por la consulta actual." />}
       </div>
     </div>
   )

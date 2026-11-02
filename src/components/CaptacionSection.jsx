@@ -1,4 +1,8 @@
-import { BOTON_GESTION, textoGestion } from '../appearance/gestion'
+import EncabezadoSeccion from './ui/EncabezadoSeccion'
+import EstadoContenido from './ui/EstadoContenido'
+import TarjetaIndicador from './ui/TarjetaIndicador'
+import BarraFiltros from './ui/BarraFiltros'
+import { textoGestion } from '../appearance/gestion'
 import { COLORES } from '../theme'
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
@@ -22,6 +26,7 @@ function CaptacionSection({ perfil }) {
   const [categoriaId, setCategoriaId] = useState(esTecnico ? perfil.categoria_id : '')
   const [busqueda, setBusqueda] = useState('')
   const [cargando, setCargando] = useState(true)
+  const [errorCarga, setErrorCarga] = useState(null)
   const [mostrarForm, setMostrarForm] = useState(false)
   const [candidatoEditando, setCandidatoEditando] = useState(null)
   const [convirtiendoId, setConvirtiendoId] = useState(null)
@@ -41,10 +46,11 @@ function CaptacionSection({ perfil }) {
 
   async function cargar() {
     setCargando(true)
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('candidatos')
       .select('*, categorias(nombre)')
       .order('fecha_prueba', { ascending: false })
+    setErrorCarga(error || null)
     setCandidatos(data || [])
     setCargando(false)
   }
@@ -210,74 +216,64 @@ function CaptacionSection({ perfil }) {
   }
 
   return (
-    <div className="p-6 md:p-10">
-      <div className="max-w-2xl mx-auto">
-        <div className="flex items-center justify-between gap-3 mb-6 flex-wrap">
-          <h1
-            className="text-3xl md:text-4xl flex items-center gap-3"
-            style={{ fontFamily: "'Archivo Black', sans-serif", color: COLORES.texto }}
-          >
-            <span>🔎</span> Captación
-          </h1>
-          <button
-            onClick={mostrarForm ? cancelarForm : abrirNuevo}
-            className="text-sm font-medium px-4 py-2.5 rounded-xl transition-opacity hover:opacity-80 shrink-0"
-            style={BOTON_GESTION}
-          >
-            {mostrarForm ? 'Cancelar' : '+ Nuevo candidato'}
-          </button>
-        </div>
+    <div className="dp-gestion" data-modulo="captacion">
+      <div className="dp-gestion-contenido">
+        <EncabezadoSeccion titulo="Captación" descripcion="Seguimiento deportivo de candidatos, pruebas y altas al plantel." acciones={<button type="button" onClick={mostrarForm ? cancelarForm : abrirNuevo} className={mostrarForm ? 'dp-accion' : 'dp-accion dp-accion-primaria'} aria-expanded={mostrarForm} aria-controls="captacion-editor">{mostrarForm ? 'Cancelar' : '+ Nuevo candidato'}</button>}><p className="dp-contexto-cabecera">COMUNICACIONES · DESARROLLO DE TALENTO</p></EncabezadoSeccion>
 
         {mostrarForm && (
-          <div className="space-y-3 mb-6 p-4 rounded-xl" style={{ backgroundColor: COLORES.fondoTarjeta, borderTop: `3px solid ${COLORES.acento}`, borderLeft: `1px solid ${COLORES.borde}`, borderRight: `1px solid ${COLORES.borde}`, borderBottom: `1px solid ${COLORES.borde}` }}>
+          <div id="captacion-editor" role="region" aria-labelledby="captacion-editor-titulo"
+            className="dp-panel dp-editor" style={{ backgroundColor: COLORES.fondoTarjeta, borderTop: `3px solid ${COLORES.acento}`, borderLeft: `1px solid ${COLORES.borde}`, borderRight: `1px solid ${COLORES.borde}`, borderBottom: `1px solid ${COLORES.borde}` }}>
+            <div className="dp-panel-cabecera"><div><p className="dp-antetitulo">Registro de prueba</p><h2 id="captacion-editor-titulo">{candidatoEditando ? 'Editar candidato' : 'Nuevo candidato'}</h2><p>Identidad, contacto y seguimiento deportivo.</p></div><span className="dp-insignia">{candidatoEditando ? 'Edición' : 'Alta'}</span></div>
+            <fieldset className="dp-grupo-campos"><legend>01 · Identidad deportiva</legend>
             <div className="grid sm:grid-cols-2 gap-3">
-              <input
+              <label className="dp-campo"><span>Nombre</span><input
                 type="text"
                 placeholder="Nombre"
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
                 className="w-full p-2.5 rounded-xl ui-control outline-none text-sm"
                 style={inputStyle}
-              />
-              <input
+              /></label>
+              <label className="dp-campo"><span>Apellido</span><input
                 type="text"
                 placeholder="Apellido"
                 value={apellido}
                 onChange={(e) => setApellido(e.target.value)}
                 className="w-full p-2.5 rounded-xl ui-control outline-none text-sm"
                 style={inputStyle}
-              />
+              /></label>
             </div>
             <div className="grid sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-[10px] uppercase" style={{ color: COLORES.textoMuted }}>Fecha de nacimiento</label>
+                <label htmlFor="captacion-fechaNacimiento" className="text-[10px] uppercase" style={{ color: COLORES.textoMuted }}>Fecha de nacimiento</label>
                 <input
                   type="date"
-                  value={fechaNacimiento}
+                  id="captacion-fechaNacimiento" value={fechaNacimiento}
                   onChange={(e) => setFechaNacimiento(e.target.value)}
                   className="w-full p-2.5 rounded-xl ui-control outline-none text-sm"
                   style={inputStyle}
                 />
               </div>
-              <input
+              <label className="dp-campo"><span>Posición</span><input
                 type="text"
                 placeholder="Posición"
                 value={posicion}
                 onChange={(e) => setPosicion(e.target.value)}
                 className="w-full p-2.5 rounded-xl ui-control outline-none text-sm self-end"
                 style={inputStyle}
-              />
+              /></label>
             </div>
+            </fieldset><fieldset className="dp-grupo-campos"><legend>02 · Datos de la prueba</legend>
             <div className="grid sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-[10px] uppercase" style={{ color: COLORES.textoMuted }}>Categoría probada</label>
+                <label htmlFor="captacion-categoriaProbadaId" className="text-[10px] uppercase" style={{ color: COLORES.textoMuted }}>Categoría probada</label>
                 {esTecnico ? (
                   <p className="p-2.5 rounded-xl text-sm" style={{ ...inputStyle, color: COLORES.textoSecundario }}>
                     {perfil?.categorias?.nombre || 'Tu categoría'}
                   </p>
                 ) : (
                   <select
-                    value={categoriaProbadaId}
+                    id="captacion-categoriaProbadaId" value={categoriaProbadaId}
                     onChange={(e) => setCategoriaProbadaId(e.target.value)}
                     className="w-full p-2.5 rounded-xl ui-control outline-none text-sm"
                     style={inputStyle}
@@ -290,46 +286,48 @@ function CaptacionSection({ perfil }) {
                 )}
               </div>
               <div>
-                <label className="text-[10px] uppercase" style={{ color: COLORES.textoMuted }}>Fecha de la prueba</label>
+                <label htmlFor="captacion-fechaPrueba" className="text-[10px] uppercase" style={{ color: COLORES.textoMuted }}>Fecha de la prueba</label>
                 <input
                   type="date"
-                  value={fechaPrueba}
+                  id="captacion-fechaPrueba" value={fechaPrueba}
                   onChange={(e) => setFechaPrueba(e.target.value)}
                   className="w-full p-2.5 rounded-xl ui-control outline-none text-sm"
                   style={inputStyle}
                 />
               </div>
             </div>
+            </fieldset><fieldset className="dp-grupo-campos"><legend>03 · Contacto y observaciones</legend>
             <div className="grid sm:grid-cols-2 gap-3">
-              <input
+              <label className="dp-campo"><span>Contacto (madre, padre o tutor)</span><input
                 type="text"
                 placeholder="Contacto (madre, padre, tutor)"
                 value={contactoNombre}
                 onChange={(e) => setContactoNombre(e.target.value)}
                 className="w-full p-2.5 rounded-xl ui-control outline-none text-sm"
                 style={inputStyle}
-              />
-              <input
+              /></label>
+              <label className="dp-campo"><span>Teléfono de contacto</span><input
                 type="tel"
                 placeholder="Teléfono de contacto"
                 value={telefonoContacto}
                 onChange={(e) => setTelefonoContacto(e.target.value)}
                 className="w-full p-2.5 rounded-xl ui-control outline-none text-sm"
                 style={inputStyle}
-              />
+              /></label>
             </div>
-            <textarea
+            <label className="dp-campo"><span>Notas de la evaluación</span><textarea
               placeholder="Notas de la evaluación (técnica, físico, actitud, etc.)"
               value={notas}
               onChange={(e) => setNotas(e.target.value)}
               rows={3}
               className="w-full p-2.5 rounded-xl ui-control outline-none text-sm resize-none"
               style={inputStyle}
-            />
+            /></label>
+            </fieldset><fieldset className="dp-grupo-campos"><legend>04 · Resultado y seguimiento</legend>
             <div>
-              <label className="text-[10px] uppercase" style={{ color: COLORES.textoMuted }}>Estado</label>
+              <label htmlFor="captacion-estado" className="text-[10px] uppercase" style={{ color: COLORES.textoMuted }}>Estado</label>
               <select
-                value={estado}
+                id="captacion-estado" value={estado}
                 onChange={(e) => setEstado(e.target.value)}
                 className="w-full p-2.5 rounded-xl ui-control outline-none text-sm"
                 style={inputStyle}
@@ -345,48 +343,49 @@ function CaptacionSection({ perfil }) {
               )}
             </div>
 
-            {errorMsg && (
-              <p className="text-sm" style={{ color: COLORES.peligro }}>{errorMsg}</p>
-            )}
+            </fieldset>
+            {errorMsg && <EstadoContenido estado="error" titulo="Revisá el registro" mensaje={errorMsg} />}
 
             <button
               onClick={handleGuardar}
               disabled={guardando}
               className="w-full p-2.5 rounded-xl font-medium text-sm transition-opacity hover:opacity-80 disabled:opacity-50"
-              style={BOTON_GESTION}
+              data-primario=""
             >
               {guardando ? 'Guardando...' : candidatoEditando ? 'Guardar cambios' : 'Guardar candidato'}
             </button>
           </div>
         )}
 
-        <CategoriaFiltro
+        <BarraFiltros etiqueta="Filtros de captación"><div className="dp-filtro-existente"><p className="dp-etiqueta-filtro">Categoría y búsqueda de candidatos</p><CategoriaFiltro
           categoriaId={categoriaId}
           onCategoriaChange={setCategoriaId}
           busqueda={busqueda}
           onBusquedaChange={setBusqueda}
           bloqueada={esTecnico}
           categoriaNombre={perfil?.categorias?.nombre}
-        />
+        /></div></BarraFiltros>
+        <div className="dp-resumen-gestion" aria-label="Candidatos según los filtros actuales">{grupos.map(grupo => <TarjetaIndicador key={grupo.clave} etiqueta={grupo.config.label} valor={grupo.lista.length} periodo="Según los filtros actuales" sinDato={cargando || Boolean(errorCarga)} />)}</div>
 
-        {cargando && <p style={{ color: COLORES.textoMuted }}>Cargando...</p>}
+        {cargando && <EstadoContenido estado="cargando" titulo="Cargando candidatos" />}
+        {!cargando && errorCarga && <EstadoContenido estado={errorCarga.code === '42501' ? 'denegado' : 'error'} titulo="No se pudo consultar la información" mensaje="No equivale a una lista vacía. Podés reintentar la consulta." onReintentar={cargar} />}
 
-        {!cargando &&
+        {!cargando && !errorCarga &&
           grupos.map(
             (grupo) =>
               grupo.lista.length > 0 && (
-                <div key={grupo.clave} className="mb-6">
+                <div key={grupo.clave} className="dp-seccion-listado">
                   <p className="text-xs uppercase tracking-wide mb-2" style={{ color: textoGestion(grupo.config.color) }}>
-                    {grupo.config.icono} {grupo.config.label} ({grupo.lista.length})
+                    {grupo.config.label} ({grupo.lista.length})
                   </p>
-                  <div className="space-y-2">
+                  <div className="dp-listado-tarjetas">
                     {grupo.lista.map((c) => (
                       <div
                         key={c.id}
-                        className="p-3.5 rounded-xl"
+                        className="dp-registro dp-candidato"
                         style={{ backgroundColor: COLORES.fondoTarjeta, border: `1px solid ${grupo.config.color}` }}
                       >
-                        <div className="flex items-center gap-3">
+                        <div className="dp-registro-cabecera">
                           <span
                             className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
                             style={{ backgroundColor: COLORES.fondoPagina, color: COLORES.textoSecundario, fontFamily: "'Archivo Black', sans-serif" }}
@@ -394,7 +393,7 @@ function CaptacionSection({ perfil }) {
                             {iniciales(c.nombre, c.apellido)}
                           </span>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate" style={{ color: COLORES.texto }}>
+                            <p className="dp-nombre-registro" style={{ color: COLORES.texto }}>
                               {c.apellido}, {c.nombre}
                             </p>
                             <p className="text-xs" style={{ color: COLORES.textoSecundario }}>
@@ -403,13 +402,13 @@ function CaptacionSection({ perfil }) {
                               {c.fecha_prueba ? ` · ${c.fecha_prueba}` : ''}
                             </p>
                           </div>
-                          <div className="flex items-center gap-1.5 shrink-0">
+                          <div className="dp-acciones-registro">
                             {c.estado === 'aceptado' && !c.jugador_id && (
                               <button
                                 onClick={() => handleConvertir(c)}
                                 disabled={convirtiendoId === c.id}
                                 className="text-xs px-2.5 py-1 rounded-full hover:opacity-80 disabled:opacity-50"
-                                style={BOTON_GESTION}
+                                data-primario=""
                               >
                                 {convirtiendoId === c.id ? 'Creando...' : '➕ Pasar a plantel'}
                               </button>
@@ -420,23 +419,23 @@ function CaptacionSection({ perfil }) {
                               </span>
                             )}
                             <button
-                              onClick={() => abrirEditar(c)}
+                              aria-label={`Editar candidato ${c.apellido}, ${c.nombre}`} onClick={() => abrirEditar(c)}
                               className="text-xs px-2 py-1 rounded-full hover:opacity-80"
                               style={{ backgroundColor: COLORES.fondoPagina, color: COLORES.textoSecundario }}
                             >
-                              ✏️
+                              Editar
                             </button>
                             <button
-                              onClick={() => handleEliminar(c.id)}
+                              aria-label={`Eliminar candidato ${c.apellido}, ${c.nombre}`} onClick={() => handleEliminar(c.id)}
                               className="text-xs px-2 py-1 rounded-full hover:opacity-80"
                               style={{ backgroundColor: COLORES.fondoPagina, color: COLORES.peligro }}
                             >
-                              🗑
+                              Eliminar
                             </button>
                           </div>
                         </div>
                         {c.notas && (
-                          <p className="text-xs mt-2" style={{ color: COLORES.textoSecundario }}>{c.notas}</p>
+                          <p className="dp-nota-registro" style={{ color: COLORES.textoSecundario }}>{c.notas}</p>
                         )}
                       </div>
                     ))}
@@ -445,11 +444,7 @@ function CaptacionSection({ perfil }) {
               )
           )}
 
-        {!cargando && filtrados.length === 0 && (
-          <p className="text-sm" style={{ color: COLORES.textoMuted }}>
-            No hay candidatos cargados para ese filtro.
-          </p>
-        )}
+        {!cargando && !errorCarga && filtrados.length === 0 && <EstadoContenido estado="vacio" titulo="Sin candidatos para estos filtros" mensaje="No hay candidatos cargados para ese filtro. Podés cambiar la categoría o la búsqueda." />}
       </div>
     </div>
   )

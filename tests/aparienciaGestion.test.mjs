@@ -57,7 +57,9 @@ test('Render de Gestion y Salud sin conexion a Supabase ni efectos de guardado',
     for (const nombre of nombres) {
       const { default: Componente } = await server.ssrLoadModule(`/src/components/${nombre}Section.jsx`)
       const html = renderToStaticMarkup(createElement(Componente, { perfil: { rol: 'coordinacion' }, onVolver() {} }))
-      assert.match(html, /--ui-texto/, nombre)
+      // Estas dos pantallas ahora heredan los tokens del contenedor Premium,
+      // en lugar de necesitar un color inline en el primer render.
+      assert.match(html, ['Captacion', 'Usuarios'].includes(nombre) ? /class="dp-gestion"/ : /--ui-texto/, nombre)
       assert.match(html, /<h1/, nombre)
       assert.doesNotMatch(html, /solid COLORES\.|undefined/, nombre)
     }
