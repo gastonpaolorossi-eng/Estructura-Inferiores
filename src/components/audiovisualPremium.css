@@ -1,0 +1,78 @@
+/* Pantallas de biblioteca. No selecciona el editor de Análisis ni los controles
+   internos de la pizarra; las fotografías originales permanecen intactas. */
+@media screen {
+  .av-premium { min-width: 0; padding: clamp(16px, 2.5vw, 36px); color: var(--ui-texto); }
+  .av-contenido { display: grid; gap: 24px; max-width: 1440px; margin-inline: auto; min-width: 0; }
+  .av-premium .club-foto-encabezado { margin: 0; border-bottom: 3px solid var(--marca-amarillo); background: var(--marca-negro); }
+  .av-premium .club-foto-contenido { align-items: start; justify-content: center; min-height: 320px; padding: clamp(20px, 3vw, 36px); }
+  .av-premium .club-foto-acciones { display: grid; gap: 18px; max-width: 58%; }
+  .av-premium .club-foto-video-premium > img { left: auto; right: 0; width: 43%; object-fit: contain; object-position: 100% 50%; }
+  .av-premium .club-foto-video-premium::before { background: linear-gradient(90deg, #0A0A0A 25%, rgba(10,10,10,.8) 48%, transparent 78%), linear-gradient(0deg, rgba(0,0,0,.35), transparent 60%); }
+  .av-premium .club-foto-entrenamientos-premium > img { left: auto; right: 0; width: 70%; object-fit: cover; object-position: 50% 49%; }
+  .av-premium .club-foto-entrenamientos-premium::before { background: linear-gradient(90deg, #0A0A0A 10%, rgba(10,10,10,.8) 40%, rgba(0,0,0,.1) 100%); }
+  .av-premium .av-bajada { color: #F4F1E9; font-size: clamp(.95rem, 1.4vw, 1.1rem); line-height: 1.6; max-width: 43ch; }
+  .av-marca-biblioteca { color: var(--marca-amarillo); font-size: .7rem; font-weight: 750; letter-spacing: .12em; }
+  .av-acciones-cabecera { display: flex; flex-wrap: wrap; gap: 10px; }
+  .av-premium .av-accion, .av-form-campos > button, .av-ejercicio > .p-3 > button, .av-ejercicio .mt-auto button { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 10px 14px; border: 1px solid var(--ui-borde); border-radius: 10px; color: var(--ui-texto); background: var(--ui-superficie-alternativa); font: inherit; font-size: .875rem; font-weight: 600; cursor: pointer; }
+  .av-premium .av-primario, .av-premium [data-primario] { background: var(--marca-amarillo); color: var(--ui-texto-sobre-acento); border-color: var(--marca-amarillo); font-weight: 700; }
+  .av-acciones-cabecera .av-accion:not(.av-primario) { color: #fff; background: #242422; border-color: #555047; }
+  .av-premium .av-peligro { color: var(--ui-peligro); }
+  .av-premium :is(.av-accion, .av-video-enlace):hover { box-shadow: 0 0 0 1px var(--ui-foco); }
+  .av-premium :is(.av-accion, .av-video-enlace):focus-visible, .av-form-campos :is(input, select, textarea, button):focus-visible, .av-tipos button:focus-visible { outline: 3px solid var(--ui-foco); outline-offset: 3px; }
+  .av-premium .av-accion:disabled, .av-form-campos button:disabled { opacity: .6; cursor: default; }
+  .av-editor { min-width: 0; border: 1px solid var(--ui-borde); border-top: 3px solid var(--marca-amarillo); border-radius: 16px; background: var(--ui-superficie); padding: 24px; display: grid; gap: 20px; }
+  .av-form-campos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; min-width: 0; }
+  .av-form-campos > .grid, .av-form-campos > .av-titulo-panel, .av-form-campos > button, .av-form-campos > div:has(input[type=file]), .av-form-campos > p { grid-column: 1 / -1; }
+  .av-form-campos .av-campo { display: flex; flex-direction: column; gap: 8px; min-width: 0; font-size: .85rem; font-weight: 600; color: var(--ui-texto-secundario); }
+  .av-form-campos .av-campo:has(textarea), .av-form-campos .av-campo:has(input[type=text][placeholder*="video"]), .av-form-campos .av-campo:has(input[placeholder="Link de YouTube"]) { grid-column: 1 / -1; }
+  .av-form-campos :is(input:not([type=checkbox]):not([type=file]), select, textarea), .av-premium .dp-filtros :is(input, select) { width: 100%; max-width: 100%; min-width: 0; min-height: 44px; padding: 11px 12px; border-radius: 9px; font-size: .9rem; color-scheme: dark; }
+  [data-apariencia=claro] .av-form-campos :is(input, select, textarea), [data-apariencia=claro] .av-premium .dp-filtros :is(input, select) { color-scheme: light; }
+  .av-form-campos textarea { min-height: 100px; resize: vertical; }
+  .av-form-campos > label:has(input[type=checkbox]) { display: flex; align-items: center; min-height: 44px; }
+  .av-form-campos input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--marca-amarillo); }
+  .av-archivo { display: block; max-width: 100%; font-size: .8rem; margin-top: 8px; }
+  .av-form-campos .flex:has(input[type=file]) { flex-wrap: wrap; }
+  .av-form-campos .flex:has(input[type=file]) > label { min-width: 0; }
+  .av-premium .dp-filtros { box-shadow: none; }
+  .av-premium .dp-filtros-controles { align-items: end; }
+  .av-premium .dp-filtros .av-campo { flex: 1 1 180px; display: grid; gap: 8px; min-width: 0; font-size: .85rem; font-weight: 600; }
+  .av-premium .dp-filtros button { flex: 0 0 auto; min-height: 44px; }
+  .av-resumen { display: grid; grid-template-columns: minmax(200px, .6fr) minmax(0, 2fr); gap: 24px; align-items: center; }
+  .av-resumen .dp-indicador { box-shadow: none; }
+  .av-titulo-panel { min-width: 0; }
+  .av-titulo-panel > p { margin: 0 0 6px; font-size: .7rem; color: var(--ui-texto-acento); letter-spacing: .12em; font-weight: 750; }
+  .av-titulo-panel h2 { font-size: clamp(1.2rem, 2vw, 1.65rem); font-weight: 750; margin: 0 0 8px; color: var(--ui-texto); }
+  .av-titulo-panel > span { color: var(--ui-texto-secundario); font-size: .9rem; line-height: 1.6; }
+  .av-tipos { display: flex; flex-wrap: wrap; gap: 8px; padding: 6px; border: 1px solid var(--ui-borde); border-radius: 12px; background: var(--ui-superficie); }
+  .av-tipos button { flex: 1 1 160px; min-height: 44px; }
+  .av-tipos button[aria-pressed=true] { box-shadow: inset 0 -3px var(--marca-amarillo); font-weight: 750; }
+  .av-ejercicios { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+  .av-ejercicio { display: flex; flex-direction: column; min-width: 0; border-radius: 14px; overflow: hidden; }
+  .av-ejercicio > .p-3 { padding: 18px; gap: 10px; }
+  .av-ejercicio > .p-3 > .flex { flex-wrap: wrap; }
+  .av-ejercicio .av-descripcion-ejercicio { color: var(--ui-texto); font-size: 1rem; font-weight: 650; line-height: 1.55; overflow-wrap: anywhere; }
+  .av-ejercicio .mt-auto { gap: 8px; flex-wrap: wrap; }
+  .av-ejercicio .mt-auto > div { flex-wrap: wrap; }
+  .av-ejercicio .mt-auto > a { min-height: 44px; display: inline-flex; align-items: center; }
+  .av-ejercicio > .p-3 > .flex > span { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+  .av-videos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+  .av-video-tarjeta { min-width: 0; overflow: hidden; border-radius: 16px; border: 1px solid var(--ui-borde); background: var(--ui-superficie); display: flex; flex-direction: column; transition: border-color 160ms, box-shadow 160ms; }
+  .av-video-tarjeta:focus-within, .av-video-tarjeta:hover { border-color: var(--ui-foco); box-shadow: 0 5px 20px color-mix(in srgb, var(--marca-negro) 8%, transparent); }
+  .av-video-enlace { display: block; text-decoration: none; color: inherit; flex: 1; }
+  .av-video-miniatura { position: relative; aspect-ratio: 16 / 9; background: linear-gradient(135deg, var(--ui-fondo-sidebar), var(--ui-superficie-alternativa)); overflow: hidden; }
+  .av-video-miniatura > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .av-reproducir { position: absolute; inset: 0; display: grid; place-items: center; color: var(--ui-texto-acento); }
+  .av-reproducir svg { width: 64px; height: 64px; }
+  .av-abrir-video { position: absolute; bottom: 14px; left: 14px; padding: 8px 12px; background: var(--marca-amarillo); color: var(--ui-texto-sobre-acento); border-radius: 8px; font-size: .8rem; font-weight: 750; }
+  .av-video-datos { padding: 20px; display: grid; gap: 12px; }
+  .av-video-datos > .flex { flex-wrap: wrap; gap: 10px; }
+  .av-video-datos h3 { font-size: 1.1rem; font-weight: 700; line-height: 1.45; overflow-wrap: anywhere; flex: 1 1 200px; }
+  .av-video-datos .text-xs { font-size: .85rem; line-height: 1.6; overflow-wrap: anywhere; }
+  .av-video-datos .flex > .flex { flex-wrap: wrap; }
+  .av-video-pie { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; border-top: 1px solid var(--ui-borde); margin: auto 20px 0; padding: 14px 0; }
+  .av-video-pie > span { color: var(--ui-texto-secundario); font-size: .8rem; }
+  @media (max-width: 1100px) { .av-ejercicios { grid-template-columns: repeat(2, minmax(0, 1fr)); } .av-form-campos { grid-template-columns: minmax(0, 1fr); } .av-premium .club-foto-contenido { min-height: 300px; } }
+  @media (max-width: 760px) { .av-ejercicios, .av-videos { grid-template-columns: minmax(0, 1fr); } .av-resumen { grid-template-columns: minmax(0, 1fr); gap: 14px; } .av-premium .club-foto-acciones { max-width: 55%; } .av-premium .club-foto-contenido { min-height: 290px; padding: 20px; } .av-premium .club-foto-video-premium > img { width: 48%; object-position: 100% 50%; } .av-tipos button { flex-basis: 120px; } }
+  @media (max-width: 480px) { .av-contenido { gap: 18px; } .av-editor { padding: 16px; } .av-premium .club-foto-video-premium .club-foto-contenido { min-height: 380px; justify-content: flex-start; } .av-premium .club-foto-video-premium .club-foto-acciones { max-width: 100%; } .av-premium .club-foto-video-premium > img { width: 100%; height: 55%; top: auto; bottom: 0; object-position: 100% 100%; } .av-premium .club-foto-video-premium::before { background: linear-gradient(180deg, #0A0A0A 30%, rgba(10,10,10,.65) 47%, transparent 72%); } .av-premium .club-foto-entrenamientos-premium > img { width: 100%; object-position: 50% 46%; } .av-premium .club-foto-entrenamientos-premium .club-foto-acciones { max-width: 100%; } .av-premium .club-foto-entrenamientos-premium::before { background: linear-gradient(90deg, rgba(0,0,0,.88), rgba(0,0,0,.55)); } .av-acciones-cabecera { width: 100%; } .av-acciones-cabecera button { width: 100%; } }
+  @media (prefers-reduced-motion: reduce) { .av-video-tarjeta { transition: none; } }
+}

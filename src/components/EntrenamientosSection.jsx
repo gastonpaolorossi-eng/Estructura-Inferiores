@@ -1,4 +1,3 @@
-import { BOTON_GESTION } from '../appearance/gestion'
 import { COLORES } from '../theme'
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
@@ -7,9 +6,16 @@ import { sanitizarNombreArchivo } from '../utils/archivos'
 import { comprimirImagen } from '../utils/comprimirImagen'
 import PizarraEjercicio from './PizarraEjercicio'
 import { validarPizarra } from '../utils/pizarra'
+import EncabezadoFotografico from './EncabezadoFotografico'
+import BarraFiltros from './ui/BarraFiltros'
+import TarjetaIndicador from './ui/TarjetaIndicador'
+import EstadoContenido from './ui/EstadoContenido'
+import './audiovisualPremium.css'
 
 function EntrenamientosSection({ onPlanificar }) {
   const [entrenamientos, setEntrenamientos] = useState([])
+  const [cargando, setCargando] = useState(true)
+  const [errorCarga, setErrorCarga] = useState(null)
   const [contenidoFiltro, setContenidoFiltro] = useState('')
   const [cantidadFiltro, setCantidadFiltro] = useState('')
   const [busqueda, setBusqueda] = useState('')
@@ -47,11 +53,14 @@ function EntrenamientosSection({ onPlanificar }) {
   }, [mostrarForm, pizarraCambiada])
 
   async function cargarEntrenamientos() {
-    const { data } = await supabase
+    setCargando(true)
+    const { data, error } = await supabase
       .from('biblioteca')
       .select('*')
       .order('fecha', { ascending: false })
     setEntrenamientos(data || [])
+    setErrorCarga(error || null)
+    setCargando(false)
   }
 
   const contenidos = [...new Set(entrenamientos.map((e) => e.contenido).filter(Boolean))].sort()
@@ -168,41 +177,39 @@ function EntrenamientosSection({ onPlanificar }) {
   }
 
   return (
-    <div className="p-6 md:p-10">
-      <div className="max-w-6xl mx-auto">
-        {onPlanificar && <button type="button" onClick={onPlanificar} className="mb-4 rounded-lg border px-4 py-2 text-sm" style={{color: COLORES.texto, borderColor: COLORES.borde, backgroundColor: COLORES.fondoTarjeta}}>▦ Planificación semanal</button>}
-        <div className="flex items-start justify-between mb-6 gap-3 flex-wrap">
-          <h1
-            className="text-3xl md:text-4xl flex items-center gap-3"
-            style={{ fontFamily: "'Archivo Black', sans-serif", color: COLORES.texto }}
-          >
-            <span>🏋️</span> Entrenamientos
-          </h1>
+    <div className="av-premium av-entrenamientos" style={{ color: COLORES.texto }}>
+      <div className="av-contenido">
+        <EncabezadoFotografico titulo="Entrenamientos" imagen="/images/fotos-comunicaciones/banner_entrenamientos.jpg" descripcionImagen="Cancha y tribunas negras y amarillas de Comunicaciones" posicion="entrenamientos-premium">
+          <p className="av-bajada">Planificá el trabajo. Construí tu biblioteca de ejercicios.</p>
+          <div className="av-acciones-cabecera">
+          {onPlanificar && <button type="button" onClick={onPlanificar} className="av-accion">▦ Planificación semanal</button>}
           <button
             onClick={mostrarForm ? cancelarForm : abrirNuevo}
-            className="text-sm font-medium px-4 py-2.5 rounded-xl transition-opacity hover:opacity-80 shrink-0"
-            style={BOTON_GESTION}
+            className="av-accion av-primario" aria-expanded={mostrarForm} aria-controls="entrenamientos-editor"
           >
             {mostrarForm ? 'Cancelar' : '+ Nuevo entrenamiento'}
           </button>
-        </div>
+          </div>
+        </EncabezadoFotografico>
 
         {mostrarForm && (
-          <div className="space-y-3 mb-8 p-4 rounded-xl" style={{ backgroundColor: COLORES.fondoTarjeta, borderTop: `3px solid ${COLORES.acento}`, borderLeft: `1px solid ${COLORES.borde}`, borderRight: `1px solid ${COLORES.borde}`, borderBottom: `1px solid ${COLORES.borde}` }}>
+          <section id="entrenamientos-editor" className="av-editor" aria-labelledby="entrenamientos-editor-titulo">
+            <header className="av-titulo-panel"><p>DISEÑO DEL TRABAJO</p><h2 id="entrenamientos-editor-titulo">{entrenamientoEditando ? 'Editar entrenamiento' : 'Nuevo entrenamiento'}</h2><span>Datos del ejercicio, recursos y pizarra táctica.</span></header>
+            <div className="av-form-campos">
             {entrenamientoEditando && (
               <p className="text-xs" style={{ color: COLORES.textoSecundario }}>
                 Editando entrenamiento del {entrenamientoEditando.fecha}
               </p>
             )}
             <div className="grid sm:grid-cols-2 gap-3">
-              <input
+              <label className="av-campo"><span>Fecha</span><input
                 type="date"
                 value={fecha}
                 onChange={(e) => setFecha(e.target.value)}
                 className="w-full p-2.5 rounded-xl ui-control outline-none text-sm"
                 style={inputStyle}
-              />
-              <input
+              /></label>
+              <label className="av-campo"><span>Contenido</span><input
                 type="text"
                 list="contenidos-lista"
                 placeholder="Contenido (ej: Tenencia, Ofensivos, Tácticos...)"
@@ -210,23 +217,23 @@ function EntrenamientosSection({ onPlanificar }) {
                 onChange={(e) => setContenido(e.target.value)}
                 className="w-full p-2.5 rounded-xl ui-control outline-none text-sm"
                 style={inputStyle}
-              />
+              /></label>
               <datalist id="contenidos-lista">
                 {contenidos.map((c) => (
                   <option key={c} value={c} />
                 ))}
               </datalist>
             </div>
-            <textarea
+            <label className="av-campo"><span>Descripción del ejercicio</span><textarea
               placeholder="Descripción del ejercicio"
               value={descripcion}
               onChange={(e) => setDescripcion(e.target.value)}
               rows={3}
               className="w-full p-2.5 rounded-xl ui-control outline-none text-sm resize-none"
               style={inputStyle}
-            />
+            /></label>
             <div className="grid sm:grid-cols-2 gap-3">
-              <input
+              <label className="av-campo"><span>Cantidad de jugadores</span><input
                 type="number"
                 min="1"
                 placeholder="Cantidad de jugadores"
@@ -234,15 +241,15 @@ function EntrenamientosSection({ onPlanificar }) {
                 onChange={(e) => setCantidadJugadores(e.target.value)}
                 className="w-full p-2.5 rounded-xl ui-control outline-none text-sm"
                 style={inputStyle}
-              />
-              <input
+              /></label>
+              <label className="av-campo"><span>Link de video (opcional)</span><input
                 type="text"
                 placeholder="Link de video (opcional)"
                 value={linkVideo}
                 onChange={(e) => setLinkVideo(e.target.value)}
                 className="w-full p-2.5 rounded-xl ui-control outline-none text-sm"
                 style={inputStyle}
-              />
+              /></label>
             </div>
             <div>
               <label className="text-[10px] uppercase tracking-wide block mb-1.5" style={{ color: COLORES.textoMuted }}>
@@ -267,7 +274,7 @@ function EntrenamientosSection({ onPlanificar }) {
                     accept="image/*"
                     onChange={(e) => handleSubirImagen(e.target.files?.[0])}
                     disabled={subiendoImagen}
-                    className="hidden"
+                    className="av-archivo"
                   />
                 </label>
                 {imagenUrl && (
@@ -286,18 +293,19 @@ function EntrenamientosSection({ onPlanificar }) {
               onClick={handleGuardar}
               disabled={guardando}
               className="w-full p-2.5 rounded-xl font-medium text-sm transition-opacity hover:opacity-80 disabled:opacity-50"
-              style={BOTON_GESTION}
+              data-primario=""
             >
               {guardando ? 'Guardando...' : entrenamientoEditando ? 'Guardar cambios' : 'Guardar entrenamiento'}
             </button>
+            </div>
             <PizarraEjercicio key={entrenamientoEditando?.id || 'nuevo'} valor={pizarra} miniatura={miniatura} nombre={contenido || 'Ejercicio'} onChange={(doc, vista) => { setPizarra(doc); setMiniatura(vista); setPizarraCambiada(true) }} />
             {pizarra && <button type="button" onClick={() => { if (window.confirm('¿Quitar la pizarra de este ejercicio? Las copias de planificación no cambian.')) { setPizarra(null); setMiniatura(''); setPizarraCambiada(true) } }}>Quitar pizarra</button>}
-            {errorGuardar && <p role="alert" style={{ color: COLORES.peligro }}>{errorGuardar}</p>}
-          </div>
+            {errorGuardar && <EstadoContenido estado="error" titulo="No se pudo guardar el ejercicio" mensaje={errorGuardar} />}
+          </section>
         )}
 
-        <div className="flex flex-col sm:flex-row gap-3 mb-6">
-          <select
+        <BarraFiltros etiqueta="Filtros de ejercicios">
+          <label className="av-campo"><span>Contenido</span><select
             value={contenidoFiltro}
             onChange={(e) => setContenidoFiltro(e.target.value)}
             className="p-2.5 rounded-xl ui-control outline-none text-sm sm:w-56"
@@ -307,8 +315,8 @@ function EntrenamientosSection({ onPlanificar }) {
             {contenidos.map((c) => (
               <option key={c} value={c}>{c}</option>
             ))}
-          </select>
-          <select
+          </select></label>
+          <label className="av-campo"><span>Cantidad de jugadores</span><select
             value={cantidadFiltro}
             onChange={(e) => setCantidadFiltro(e.target.value)}
             className="p-2.5 rounded-xl ui-control outline-none text-sm sm:w-48"
@@ -318,22 +326,25 @@ function EntrenamientosSection({ onPlanificar }) {
             {cantidades.map((c) => (
               <option key={c} value={c}>{c} jugadores</option>
             ))}
-          </select>
-          <input
+          </select></label>
+          <label className="av-campo"><span>Buscar en la descripción</span><input
             type="text"
             placeholder="Buscar en la descripción..."
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
             className="p-2.5 rounded-xl ui-control outline-none text-sm flex-1"
             style={inputStyle}
-          />
-        </div>
+          /></label>
+        </BarraFiltros>
+        <div className="av-resumen"><TarjetaIndicador etiqueta="Ejercicios visibles" valor={filtrados.length} sinDato={cargando || Boolean(errorCarga)} cobertura="Según los filtros actuales" /><div className="av-titulo-panel"><p>BIBLIOTECA DE EJERCICIOS</p><h2>Recursos para cada sesión</h2><span>Imágenes, enlaces y pizarras editables en un mismo lugar.</span></div></div>
+        {cargando && <EstadoContenido estado="cargando" titulo="Cargando biblioteca" />}
+        {!cargando && errorCarga && <EstadoContenido estado={errorCarga.code === '42501' ? 'denegado' : 'error'} titulo="No se pudo consultar la biblioteca" mensaje="El error no indica que no existan ejercicios. Tus filtros se conservan." onReintentar={cargarEntrenamientos} />}
 
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-          {filtrados.map((e) => (
+        <div className="av-ejercicios">
+          {!cargando && !errorCarga && filtrados.map((e) => (
             <div
               key={e.id}
-              className="rounded-xl overflow-hidden flex flex-col"
+              className="av-ejercicio"
               style={{ backgroundColor: COLORES.fondoTarjeta, borderTop: `3px solid ${COLORES.acento}`, borderLeft: `1px solid ${COLORES.borde}`, borderRight: `1px solid ${COLORES.borde}`, borderBottom: `1px solid ${COLORES.borde}` }}
             >
               <div
@@ -362,7 +373,7 @@ function EntrenamientosSection({ onPlanificar }) {
                   )}
                   <span className="text-[10px] font-mono" style={{ color: COLORES.textoMuted }}>{e.fecha}</span>
                 </div>
-                <p className="text-xs mb-2" style={{ color: COLORES.texto }}>{e.descripcion}</p>
+                <h3 className="av-descripcion-ejercicio" style={{ color: COLORES.texto }}>{e.descripcion}</h3>
                 {e.cantidad_jugadores && (
                   <p className="text-[10px] mb-2" style={{ color: COLORES.textoSecundario }}>
                     👥 {e.cantidad_jugadores} jugadores
@@ -382,18 +393,18 @@ function EntrenamientosSection({ onPlanificar }) {
                   ) : <span />}
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => abrirEditar(e)}
+                      aria-label={`Editar ejercicio ${e.contenido || e.descripcion}`} onClick={() => abrirEditar(e)}
                       className="text-xs px-2 py-0.5 rounded-full hover:opacity-80"
                       style={{ backgroundColor: COLORES.fondoPagina, color: COLORES.textoSecundario }}
                     >
-                      ✏️
+                      Editar
                     </button>
                     <button
-                      onClick={() => handleEliminar(e.id)}
+                      aria-label={`Eliminar ejercicio ${e.contenido || e.descripcion}`} onClick={() => handleEliminar(e.id)}
                       className="text-xs px-2 py-0.5 rounded-full hover:opacity-80"
                       style={{ backgroundColor: COLORES.fondoPagina, color: COLORES.peligro }}
                     >
-                      🗑
+                      Eliminar
                     </button>
                   </div>
                 </div>
@@ -402,9 +413,7 @@ function EntrenamientosSection({ onPlanificar }) {
           ))}
         </div>
 
-        {filtrados.length === 0 && (
-          <p className="text-sm" style={{ color: COLORES.textoMuted }}>No hay entrenamientos cargados con ese filtro.</p>
-        )}
+        {!cargando && !errorCarga && filtrados.length === 0 && <EstadoContenido estado="vacio" titulo="Sin ejercicios para estos filtros" mensaje="No hay entrenamientos cargados con ese filtro. Podés cambiar el contenido, la cantidad o la búsqueda." />}
       </div>
     </div>
   )

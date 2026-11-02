@@ -45,7 +45,7 @@ test('Render de partidos, convocatorias, Video y estadisticas sin acceso al back
         if (id.endsWith('/ListaPartidos.jsx')) code = code.replace('const [partidos, setPartidos] = useState([])', `const [partidos, setPartidos] = useState([${JSON.stringify(partido)}])`)
         if (id.endsWith('/ConvocarPartido.jsx')) code = code.replace('const [partido, setPartido] = useState(null)', `const [partido, setPartido] = useState(${JSON.stringify(partido)})`).replace('const [jugadores, setJugadores] = useState([])', `const [jugadores, setJugadores] = useState([${JSON.stringify(jugadora)}])`).replace("const [tab, setTab] = useState('convocados')", 'const [tab, setTab] = useState(tabPrueba)') + "\nlet tabPrueba = 'convocados'; export function cambiarTabPrueba(valor) { tabPrueba = valor; }"
         if (id.endsWith('/ComparativaJugadoras.jsx')) code = code.replace('const [filas, setFilas] = useState([])', `const [filas, setFilas] = useState([{...${JSON.stringify(jugadora)}, partidos: 2, titularidades: 1, minutos: 90, goles: 1, asistencias: 2, amarillas: 1, rojas: 0}])`)
-        if (id.endsWith('/VideoSection.jsx')) code = code.replace("const [tipo, setTipo] = useState('colectivo')", 'const [tipo, setTipo] = useState(tipoPrueba)').replace('const [videos, setVideos] = useState([])', "const [videos, setVideos] = useState([{id:'v', tipo:'colectivo', descripcion:'Video de prueba', url:'https://example.com/video'}])") + "\nlet tipoPrueba = 'colectivo'; export function cambiarTipoPrueba(valor) { tipoPrueba = valor; }"
+        if (id.endsWith('/VideoSection.jsx')) code = code.replace("const [tipo, setTipo] = useState('colectivo')", 'const [tipo, setTipo] = useState(tipoPrueba)').replace('const [cargando, setCargando] = useState(true)', 'const [cargando, setCargando] = useState(false)').replace('const [videos, setVideos] = useState([])', "const [videos, setVideos] = useState([{id:'v', tipo:'colectivo', descripcion:'Video de prueba', url:'https://example.com/video'}])") + "\nlet tipoPrueba = 'colectivo'; export function cambiarTipoPrueba(valor) { tipoPrueba = valor; }"
         return code
       },
     }],
@@ -62,7 +62,7 @@ test('Render de partidos, convocatorias, Video y estadisticas sin acceso al back
       if (nombre === 'VideoSection') {
         assert.match(html, /href="https:\/\/example.com\/video"/)
         assert.match(html, /Video de prueba/)
-        for (const tipo of ['individual', 'entrenamiento', 'estadisticas']) { module.cambiarTipoPrueba(tipo); assert.match(render(module.default), /--gestion-primario/); }
+        for (const tipo of ['individual', 'entrenamiento', 'estadisticas']) { module.cambiarTipoPrueba(tipo); assert.match(render(module.default), /aria-pressed="true"/); }
       }
       if (nombre === 'ConvocarPartido') {
         assert.match(html, /Lesionado/)

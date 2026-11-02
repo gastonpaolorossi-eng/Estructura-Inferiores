@@ -1,10 +1,29 @@
-import { BOTON_GESTION } from '../appearance/gestion'
 import { COLORES } from '../theme'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { sanitizarNombreArchivo } from '../utils/archivos'
 import { comprimirImagen } from '../utils/comprimirImagen'
 import EstadisticasEquipo from './EstadisticasEquipo'
+import EncabezadoFotografico from './EncabezadoFotografico'
+import BarraFiltros from './ui/BarraFiltros'
+import EstadoContenido from './ui/EstadoContenido'
+import TarjetaIndicador from './ui/TarjetaIndicador'
+import './audiovisualPremium.css'
+
+// Solo una vista previa de YouTube; el enlace original, incluidos sus tiempos,
+// sigue siendo el destino de reproducción. Otros proveedores conservan su enlace.
+function miniaturaVideo(valor) {
+  try {
+    const url = new URL(valor)
+    if (url.protocol !== 'https:') return null
+    const host = url.hostname.toLowerCase().replace(/^www\./, '')
+    const id = host === 'youtu.be' ? url.pathname.slice(1).split('/')[0]
+      : ['youtube.com', 'm.youtube.com', 'youtube-nocookie.com'].includes(host)
+        ? url.pathname === '/watch' ? url.searchParams.get('v') : /^\/(embed|shorts)\//.test(url.pathname) ? url.pathname.split('/')[2] : null
+        : null
+    return /^[\w-]{11}$/.test(id || '') ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : null
+  } catch { return null }
+}
 
 function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABiblioteca, perfil }) {
   const esTecnico = perfil?.rol === 'tecnico'
@@ -13,6 +32,9 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
   const [jugadores, setJugadores] = useState([])
   const [partidos, setPartidos] = useState([])
   const [videos, setVideos] = useState([])
+  const [cargando, setCargando] = useState(true)
+  const [errorCarga, setErrorCarga] = useState(null)
+  const solicitudVideos = useRef(0)
   const [categoriaId, setCategoriaId] = useState(esTecnico ? perfil.categoria_id : '')
   const [busqueda, setBusqueda] = useState('')
   const [jugadorFiltroId, setJugadorFiltroId] = useState(null)
@@ -71,16 +93,23 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
   }, [jugadorInicialId, onConsumirJugadorInicial])
 
   const cargarVideos = useCallback(async () => {
+    const solicitud = ++solicitudVideos.current
     if (tipo === 'estadisticas') {
       setVideos([])
+      setCargando(false)
+      setErrorCarga(null)
       return
     }
-    const { data } = await supabase
+    setCargando(true)
+    const { data, error } = await supabase
       .from('videos')
       .select('*, categorias(nombre), jugadores(nombre, apellido, categoria_id, foto_url), partidos(rival, fecha, escudo_url)')
       .eq('tipo', tipo)
       .order('fecha', { ascending: false })
+    if (solicitud !== solicitudVideos.current) return
     setVideos(data || [])
+    setErrorCarga(error || null)
+    setCargando(false)
   }, [tipo])
 
   useEffect(() => {
@@ -245,56 +274,50 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
   const nombreCategoriaSeleccionada = categorias.find((c) => c.id === categoriaId)?.nombre
 
   return (
-    <div className="p-6 md:p-10">
-      <div className="max-w-2xl mx-auto" style={tipo === 'estadisticas' ? { maxWidth: '64rem' } : undefined}>
-        <h1
-          className="text-3xl md:text-4xl mb-6 flex items-center gap-3"
-          style={{ fontFamily: "'Archivo Black', sans-serif", color: COLORES.texto }}
-        >
-          <span>🎥</span>
-          <span>Videoanálisis</span>
-        </h1>
+    <div className="av-premium av-video" style={{ color: COLORES.texto }}>
+      <div className="av-contenido">
+        <EncabezadoFotografico titulo="Videoanálisis" imagen="/images/fotos-comunicaciones/banner_videoanalisis.jpg" descripcionImagen="Cámara registrando un partido de Comunicaciones desde la tribuna" posicion="video-premium"><p className="av-bajada">Biblioteca audiovisual para observar, compartir y seguir al equipo.</p><span className="av-marca-biblioteca">BIBLIOTECA · SEGUIMIENTO AUDIOVISUAL</span></EncabezadoFotografico>
 
-        <div className="flex gap-2 mb-6 flex-wrap">
+        <div className="av-tipos" role="group" aria-label="Tipo de biblioteca">
           <button
-            onClick={() => cambiarTipo('colectivo')}
+            aria-pressed={tipo === 'colectivo'} onClick={() => cambiarTipo('colectivo')}
             className="px-4 py-2 rounded-xl text-sm font-medium transition-opacity hover:opacity-80"
             style={{
-              backgroundColor: tipo === 'colectivo' ? BOTON_GESTION.backgroundColor : COLORES.fondoTarjeta,
-              color: tipo === 'colectivo' ? BOTON_GESTION.color : COLORES.textoSecundario,
+              backgroundColor: tipo === 'colectivo' ? 'var(--marca-amarillo)' : COLORES.fondoTarjeta,
+              color: tipo === 'colectivo' ? 'var(--ui-texto-sobre-acento)' : COLORES.textoSecundario,
               border: `1px solid ${COLORES.borde}`,
             }}
           >
             Colectivos
           </button>
           <button
-            onClick={() => cambiarTipo('individual')}
+            aria-pressed={tipo === 'individual'} onClick={() => cambiarTipo('individual')}
             className="px-4 py-2 rounded-xl text-sm font-medium transition-opacity hover:opacity-80"
             style={{
-              backgroundColor: tipo === 'individual' ? BOTON_GESTION.backgroundColor : COLORES.fondoTarjeta,
-              color: tipo === 'individual' ? BOTON_GESTION.color : COLORES.textoSecundario,
+              backgroundColor: tipo === 'individual' ? 'var(--marca-amarillo)' : COLORES.fondoTarjeta,
+              color: tipo === 'individual' ? 'var(--ui-texto-sobre-acento)' : COLORES.textoSecundario,
               border: `1px solid ${COLORES.borde}`,
             }}
           >
             Individuales
           </button>
           <button
-            onClick={() => cambiarTipo('entrenamiento')}
+            aria-pressed={tipo === 'entrenamiento'} onClick={() => cambiarTipo('entrenamiento')}
             className="px-4 py-2 rounded-xl text-sm font-medium transition-opacity hover:opacity-80"
             style={{
-              backgroundColor: tipo === 'entrenamiento' ? BOTON_GESTION.backgroundColor : COLORES.fondoTarjeta,
-              color: tipo === 'entrenamiento' ? BOTON_GESTION.color : COLORES.textoSecundario,
+              backgroundColor: tipo === 'entrenamiento' ? 'var(--marca-amarillo)' : COLORES.fondoTarjeta,
+              color: tipo === 'entrenamiento' ? 'var(--ui-texto-sobre-acento)' : COLORES.textoSecundario,
               border: `1px solid ${COLORES.borde}`,
             }}
           >
             Entrenamientos
           </button>
           <button
-            onClick={() => cambiarTipo('estadisticas')}
+            aria-pressed={tipo === 'estadisticas'} onClick={() => cambiarTipo('estadisticas')}
             className="px-4 py-2 rounded-xl text-sm font-medium transition-opacity hover:opacity-80"
             style={{
-              backgroundColor: tipo === 'estadisticas' ? BOTON_GESTION.backgroundColor : COLORES.fondoTarjeta,
-              color: tipo === 'estadisticas' ? BOTON_GESTION.color : COLORES.textoSecundario,
+              backgroundColor: tipo === 'estadisticas' ? 'var(--marca-amarillo)' : COLORES.fondoTarjeta,
+              color: tipo === 'estadisticas' ? 'var(--ui-texto-sobre-acento)' : COLORES.textoSecundario,
               border: `1px solid ${COLORES.borde}`,
             }}
           >
@@ -326,7 +349,7 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
           </div>
         )}
 
-        <div className="flex flex-col sm:flex-row gap-3 mb-4">
+        <BarraFiltros etiqueta="Filtros de videos">
           {!(tipo === 'individual' && jugadorFiltroId) && (
             esTecnico ? (
               <span
@@ -336,7 +359,7 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
                 {perfil?.categorias?.nombre || 'Tu categoría'}
               </span>
             ) : (
-              <select
+              <label className="av-campo"><span>Categoría</span><select
                 value={categoriaId}
                 onChange={(e) => setCategoriaId(e.target.value)}
                 className="p-2.5 rounded-xl ui-control outline-none text-sm sm:w-48"
@@ -348,23 +371,23 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
                     {c.nombre}
                   </option>
                 ))}
-              </select>
+              </select></label>
             )
           )}
 
           {tipo === 'individual' && !jugadorFiltroId && (
-            <input
+            <label className="av-campo"><span>Buscar jugadora</span><input
               type="text"
               placeholder="Buscar jugador..."
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
               className="p-2.5 rounded-xl ui-control outline-none text-sm flex-1"
               style={inputStyle}
-            />
+            /></label>
           )}
 
           {tipo === 'colectivo' && (
-            <select
+            <label className="av-campo"><span>Momento del análisis</span><select
               value={momentoFiltro}
               onChange={(e) => setMomentoFiltro(e.target.value)}
               className="p-2.5 rounded-xl ui-control outline-none text-sm sm:w-44"
@@ -374,20 +397,20 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
               <option value="Prepartido">Prepartido</option>
               <option value="Postpartido">Postpartido</option>
               <option value="Entrenamiento">Entrenamiento</option>
-            </select>
+            </select></label>
           )}
 
           {tipo === 'entrenamiento' && (
             <>
-              <input
+              <label className="av-campo"><span>Buscar por contenido</span><input
                 type="text"
                 placeholder="Buscar por contenido (ej: definición, presión...)"
                 value={busquedaContenido}
                 onChange={(e) => setBusquedaContenido(e.target.value)}
                 className="p-2.5 rounded-xl ui-control outline-none text-sm flex-1"
                 style={inputStyle}
-              />
-              <select
+              /></label>
+              <label className="av-campo"><span>Cantidad de jugadores</span><select
                 value={cantidadFiltro}
                 onChange={(e) => setCantidadFiltro(e.target.value)}
                 className="p-2.5 rounded-xl ui-control outline-none text-sm sm:w-44"
@@ -397,7 +420,7 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
                 {cantidadesDisponibles.map((c) => (
                   <option key={c} value={c}>{c} jugadores</option>
                 ))}
-              </select>
+              </select></label>
             </>
           )}
 
@@ -405,12 +428,12 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
             <button
               onClick={abrirFormulario}
               className="text-sm font-medium px-4 py-2.5 rounded-xl transition-opacity hover:opacity-80 shrink-0"
-              style={BOTON_GESTION}
+              data-primario=""
             >
               {mostrarForm ? 'Cancelar' : '+ Nuevo video'}
             </button>
           )}
-        </div>
+        </BarraFiltros>
 
         {tipo === 'entrenamiento' && onIrABiblioteca && (
           <button
@@ -424,16 +447,17 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
 
         {mostrarForm && tipo !== 'estadisticas' && (
           <div
-            className="space-y-3 mb-6 p-4 rounded-xl"
+            className="av-editor av-form-campos"
             style={{ backgroundColor: COLORES.fondoTarjeta, borderTop: `3px solid ${COLORES.acento}`, borderLeft: `1px solid ${COLORES.borde}`, borderRight: `1px solid ${COLORES.borde}`, borderBottom: `1px solid ${COLORES.borde}` }}
           >
-            <input
+            <header className="av-titulo-panel av-campo-completo"><p>BIBLIOTECA AUDIOVISUAL</p><h2>Nuevo video</h2><span>Conservá el vínculo con su categoría, jugadora o partido.</span></header>
+            <label className="av-campo"><span>Fecha</span><input
               type="date"
               value={fecha}
               onChange={(e) => setFecha(e.target.value)}
               className="w-full p-2.5 rounded-xl ui-control outline-none text-sm"
               style={inputStyle}
-            />
+            /></label>
 
             {tipo === 'colectivo' && (
               <>
@@ -445,7 +469,7 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
                     {perfil?.categorias?.nombre || 'Tu categoría'}
                   </span>
                 ) : (
-                <select
+                <label className="av-campo"><span>Categoría</span><select
                   value={catForm}
                   onChange={(e) => setCatForm(e.target.value)}
                   className="w-full p-2.5 rounded-xl ui-control outline-none text-sm"
@@ -457,9 +481,9 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
                       {c.nombre}
                     </option>
                   ))}
-                </select>
+                </select></label>
                 )}
-                <select
+                <label className="av-campo"><span>Momento del análisis</span><select
                   value={momentoForm}
                   onChange={(e) => setMomentoForm(e.target.value)}
                   className="w-full p-2.5 rounded-xl ui-control outline-none text-sm"
@@ -469,8 +493,8 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
                   <option value="Prepartido">Prepartido</option>
                   <option value="Postpartido">Postpartido</option>
                   <option value="Entrenamiento">Entrenamiento</option>
-                </select>
-                <select
+                </select></label>
+                <label className="av-campo"><span>Partido (opcional)</span><select
                   value={partidoForm}
                   onChange={(e) => setPartidoForm(e.target.value)}
                   className="w-full p-2.5 rounded-xl ui-control outline-none text-sm"
@@ -482,21 +506,21 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
                       vs {p.rival} — {p.fecha}
                     </option>
                   ))}
-                </select>
-                <textarea
+                </select></label>
+                <label className="av-campo"><span>Descripción</span><textarea
                   placeholder="Descripción (ej: entrenamiento martes, partido vs Boca)"
                   value={descripcion}
                   onChange={(e) => setDescripcion(e.target.value)}
                   rows={2}
                   className="w-full p-2.5 rounded-xl ui-control outline-none text-sm resize-none"
                   style={inputStyle}
-                />
+                /></label>
               </>
             )}
 
             {tipo === 'individual' && (
               <>
-                <select
+                <label className="av-campo"><span>Jugadora</span><select
                   value={jugadorForm}
                   onChange={(e) => setJugadorForm(e.target.value)}
                   className="w-full p-2.5 rounded-xl ui-control outline-none text-sm"
@@ -508,8 +532,8 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
                       {j.apellido}, {j.nombre} ({j.categorias ? j.categorias.nombre : ''})
                     </option>
                   ))}
-                </select>
-                <select
+                </select></label>
+                <label className="av-campo"><span>Partido (opcional)</span><select
                   value={partidoForm}
                   onChange={(e) => setPartidoForm(e.target.value)}
                   className="w-full p-2.5 rounded-xl ui-control outline-none text-sm"
@@ -521,7 +545,7 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
                       vs {p.rival} — {p.fecha}
                     </option>
                   ))}
-                </select>
+                </select></label>
               </>
             )}
 
@@ -535,7 +559,7 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
                     {perfil?.categorias?.nombre || 'Tu categoría'}
                   </span>
                 ) : (
-                <select
+                <label className="av-campo"><span>Categoría</span><select
                   value={catForm}
                   onChange={(e) => setCatForm(e.target.value)}
                   className="w-full p-2.5 rounded-xl ui-control outline-none text-sm"
@@ -547,32 +571,32 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
                       {c.nombre}
                     </option>
                   ))}
-                </select>
+                </select></label>
                 )}
-                <input
+                <label className="av-campo"><span>Contenido</span><input
                   type="text"
                   placeholder="Contenido (ej: definición, presión alta, salida de arco)"
                   value={contenido}
                   onChange={(e) => setContenido(e.target.value)}
                   className="w-full p-2.5 rounded-xl ui-control outline-none text-sm"
                   style={inputStyle}
-                />
-                <textarea
+                /></label>
+                <label className="av-campo"><span>Descripción</span><textarea
                   placeholder="Descripción adicional (opcional)"
                   value={descripcion}
                   onChange={(e) => setDescripcion(e.target.value)}
                   rows={2}
                   className="w-full p-2.5 rounded-xl ui-control outline-none text-sm resize-none"
                   style={inputStyle}
-                />
-                <input
+                /></label>
+                <label className="av-campo"><span>Cantidad de jugadores</span><input
                   type="number"
                   placeholder="Cantidad de jugadores"
                   value={cantidadJugadores}
                   onChange={(e) => setCantidadJugadores(e.target.value)}
                   className="w-full p-2.5 rounded-xl ui-control outline-none text-sm"
                   style={inputStyle}
-                />
+                /></label>
                 <label
                   className="flex items-center gap-2 p-2.5 rounded-xl text-sm cursor-pointer"
                   style={inputStyle}
@@ -628,20 +652,20 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
               </>
             )}
 
-            <input
+            <label className="av-campo"><span>Link de YouTube</span><input
               type="text"
               placeholder="Link de YouTube"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               className="w-full p-2.5 rounded-xl ui-control outline-none text-sm"
               style={inputStyle}
-            />
+            /></label>
 
             <button
               onClick={handleGuardar}
               disabled={guardando}
               className="w-full p-2.5 rounded-xl font-medium text-sm transition-opacity hover:opacity-80 disabled:opacity-50"
-              style={BOTON_GESTION}
+              data-primario=""
             >
               {guardando ? 'Guardando...' : 'Guardar video'}
             </button>
@@ -655,8 +679,11 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
           />
         ) : (
           <>
-            <div className="space-y-2">
-              {videosFiltrados.map((v) => {
+            <div className="av-resumen"><TarjetaIndicador etiqueta="Videos visibles" valor={videosFiltrados.length} sinDato={cargando || Boolean(errorCarga)} cobertura="Según el tipo y los filtros actuales" /><div className="av-titulo-panel"><p>ARCHIVO AUDIOVISUAL</p><h2>{tipo === 'colectivo' ? 'Mirada colectiva' : tipo === 'individual' ? 'Seguimiento individual' : 'Ejercicios en video'}</h2><span>Los videos se abren en su enlace original, en otra pestaña.</span></div></div>
+            {cargando && <EstadoContenido estado="cargando" titulo="Cargando videos" />}
+            {!cargando && errorCarga && <EstadoContenido estado={errorCarga.code === '42501' ? 'denegado' : 'error'} titulo="No se pudo consultar la biblioteca audiovisual" mensaje="Un error de consulta no equivale a una biblioteca vacía. Los filtros se conservan." onReintentar={cargarVideos} />}
+            <div className="av-videos">
+              {!cargando && !errorCarga && videosFiltrados.map((v) => {
                 let titulo
                 let badge
                 if (tipo === 'colectivo') {
@@ -670,19 +697,24 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
                   badge = v.categorias ? v.categorias.nombre : ''
                 }
                 const vsPartido = v.partidos ? `vs ${v.partidos.rival}` : null
+                const miniatura = miniaturaVideo(v.url)
 
                 return (
-                  <a key={v.id}
+                  <article key={v.id} className="av-video-tarjeta">
+                  <a
                     href={v.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="block p-3.5 rounded-xl hover:-translate-y-0.5 transition-all duration-200"
-                    style={{ backgroundColor: COLORES.fondoTarjeta, borderTop: `3px solid ${COLORES.acento}`, borderLeft: `1px solid ${COLORES.borde}`, borderRight: `1px solid ${COLORES.borde}`, borderBottom: `1px solid ${COLORES.borde}` }}
+                    className="av-video-enlace" aria-label={`Abrir video: ${titulo || 'Video sin título'}`}
                   >
+                    <div className="av-video-miniatura">
+                      <span className="av-reproducir" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none"><rect x="3" y="9" width="42" height="30" rx="5" stroke="currentColor" strokeWidth="2" /><path d="m20 16 13 8-13 8Z" fill="currentColor" /></svg></span>
+                      {miniatura && <img src={miniatura} alt="" loading="lazy" referrerPolicy="no-referrer" onError={e => { e.currentTarget.hidden = true }} />}
+                      <span className="av-abrir-video">Abrir video ↗</span>
+                    </div>
+                    <div className="av-video-datos">
                     <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium" style={{ color: COLORES.texto }}>
-                        {titulo}
-                      </p>
+                      <h3>{titulo || 'Video sin título'}</h3>
                       <div className="flex items-center gap-2">
                         {tipo === 'colectivo' && v.momento && (
                           <span
@@ -700,13 +732,6 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
                             {badge}
                           </span>
                         )}
-                        <button
-                          onClick={(e) => handleEliminarVideo(e, v.id)}
-                          className="text-xs px-2 py-1 rounded-full hover:opacity-80"
-                          style={{ backgroundColor: COLORES.fondoPagina, color: COLORES.peligro }}
-                        >
-                          🗑
-                        </button>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 mt-1">
@@ -738,16 +763,15 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
                         </span>
                       )}
                     </div>
+                    </div>
                   </a>
+                  <footer className="av-video-pie"><span>Enlace original · {v.fecha || 'Sin fecha'}</span><button type="button" onClick={(e) => handleEliminarVideo(e, v.id)} className="av-accion av-peligro" aria-label={`Eliminar video ${titulo || v.id}`}>Eliminar</button></footer>
+                  </article>
                 )
               })}
             </div>
 
-            {videosFiltrados.length === 0 && (
-              <p className="text-sm" style={{ color: COLORES.textoMuted }}>
-                No hay videos cargados con ese filtro.
-              </p>
-            )}
+            {!cargando && !errorCarga && videosFiltrados.length === 0 && <EstadoContenido estado="vacio" titulo="Sin videos para estos filtros" mensaje="No hay videos cargados con ese filtro. Podés cambiar la categoría o el tipo de biblioteca." />}
           </>
         )}
       </div>
