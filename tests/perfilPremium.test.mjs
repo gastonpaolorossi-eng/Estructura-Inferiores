@@ -7,7 +7,9 @@ const leer = p => readFileSync(p, 'utf8').replaceAll('\r', '')
 const anterior = p => execFileSync('git', ['show', `9d764909fdf6532421af8bcb955a7f482f78e1cc:${p}`], { encoding: 'utf8' }).replaceAll('\r', '')
 
 test('Perfil Premium: cálculos deportivos, agrupaciones y eliminación se conservan literalmente', () => {
-  const antes = anterior('src/components/PerfilJugador.jsx'), ahora = leer('src/components/PerfilJugador.jsx')
+  // La única ampliación del catálogo es el detalle de minutos, cubierto por la
+  // regresión interactiva. Las fórmulas y todos los otros filtros siguen iguales.
+  const antes = anterior('src/components/PerfilJugador.jsx'), ahora = leer('src/components/PerfilJugador.jsx').replace(/    minutos: \{\n      titulo: 'Minutos jugados',\n      filtro: [^\n]+\n      valor: [^\n]+\n    \},\n/, '')
   for (const [a, b] of [['  const totales =', '  const datosPersonales ='], ['  const evaluacionesPorPeriodo =', '  if (filtroStat) {']]) {
     const finActual = a.includes('evaluacionesPorPeriodo') ? '  const fuentes = lectura.fuentes' : b
     assert.equal(ahora.slice(ahora.indexOf(a), ahora.indexOf(finActual, ahora.indexOf(a))), antes.slice(antes.indexOf(a), antes.indexOf(b, antes.indexOf(a))))

@@ -342,6 +342,11 @@ function PerfilJugador({
       filtro: (e) => !!e.titular,
       valor: (e) => (e.minutos_jugados ? `${e.minutos_jugados}'` : null),
     },
+    minutos: {
+      titulo: 'Minutos jugados',
+      filtro: (e) => e.minutos_jugados !== null && e.minutos_jugados !== undefined && Number.isFinite(Number(e.minutos_jugados)) && Number(e.minutos_jugados) > 0,
+      valor: (e) => `${e.minutos_jugados}'`,
+    },
     goles: {
       titulo: 'Goles',
       filtro: (e) => (e.goles || 0) > 0,
@@ -502,7 +507,7 @@ function PerfilJugador({
         <nav className="perfil-resumen-accesos" aria-label="Accesos del perfil">{[['rendimiento','Rendimiento'],['evaluaciones','Evaluaciones'],['seguimiento','Seguimiento'],['documentos','Documentos']].map(([id, nombre]) => <button key={id} type="button" onClick={() => setPestana(id)}>{nombre} →</button>)}</nav>
       </div> },
       { id: 'rendimiento', etiqueta: 'Rendimiento', contenido: <RendimientoIndividualConDatos activo={pestana === 'rendimiento'} perfil={perfil} key={jugador.id} jugador={jugador} temporadas={estadisticasPorAnio} fuenteOficial={fuentes.estadisticas} onDetalle={abrirDetalle} indicadoresOficiales={totales} sinRegistros={estadisticas.length === 0}
-        detalle={filtroStat ? <DetalleEstadisticaPerfil filtroStat={filtroStat} statConfig={statConfig} estadisticas={estadisticas} jugador={jugador} setFiltroStat={setFiltroStat} /> : null}
+        detalle={filtroStat ? <DetalleEstadisticaPerfil filtroStat={filtroStat} statConfig={statConfig} estadisticas={estadisticas} jugador={jugador} setFiltroStat={setFiltroStat} fuente={fuentes.estadisticas} /> : null}
         historico={<><GraficoTemporadasPerfil estadisticasPorAnio={estadisticasPorAnio} /><ComparativaAnualPerfil estadisticasPorAnio={estadisticasPorAnio} /></>} /> },
       { id: 'evaluaciones', etiqueta: 'Evaluaciones', contenido: <FuentePerfil permitido={puedeConsultarCategoria} fuente={fuentes.evaluaciones?.error ? fuentes.evaluaciones : fuentes.criterios} titulo="Evaluaciones"><EvaluacionesPerfil evaluacionesCargando={evaluacionesCargando} evaluacionesError={evaluacionesError} evaluacionesPorPeriodo={evaluacionesPorPeriodo} criteriosEvaluacion={criteriosEvaluacion} mostrarEvaluaciones={mostrarEvaluaciones} setMostrarEvaluaciones={setMostrarEvaluaciones} periodoAbierto={periodoAbierto} setPeriodoAbierto={setPeriodoAbierto} /></FuentePerfil> },
       { id: 'seguimiento', etiqueta: 'Seguimiento', contenido: <SeguimientoPerfil resumenBienestar={resumenBienestar} disciplinas={areasVisibles} totalAsistenciaMarcada={totalAsistenciaMarcada} resumenAsistencia={resumenAsistencia} sesionesFisicas={sesionesFisicas} datosDistanciaChart={datosDistanciaChart} sesionFisicaSeleccionadaId={sesionFisicaSeleccionadaId} idSesionFisicaPorDefecto={idSesionFisicaPorDefecto} setSesionFisicaSeleccionadaId={setSesionFisicaSeleccionadaId} sesionFisicaSeleccionada={sesionFisicaSeleccionada} fuentes={fuentes} puedeWellness={puedeWellness} puedeFisico={puedeFisico} /> },

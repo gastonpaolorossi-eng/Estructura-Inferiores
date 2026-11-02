@@ -1,11 +1,33 @@
+import { Component } from 'react'
 import { COLORES } from './presentacionPerfil'
 import { textoPlantel } from '../../appearance/plantel'
-export default function DetalleEstadisticaPerfil({ filtroStat, statConfig, estadisticas, jugador, setFiltroStat }) {
-    const config = statConfig[filtroStat]
+import FuentePerfil from './FuentePerfil'
 
-    const partidosFiltrados = estadisticas
+class LimiteDetalle extends Component {
+  state = { fallo: false }
+  static getDerivedStateFromError() { return { fallo: true } }
+  render() {
+    if (this.state.fallo) return <div role="alert"><p>No se pudo mostrar este detalle. Los demás bloques del perfil siguen disponibles.</p><button type="button" onClick={this.props.onCerrar}>Volver al perfil</button></div>
+    return this.props.children
+  }
+}
+
+export default function DetalleEstadisticaPerfil(props) {
+  const cerrar = () => props.setFiltroStat(null)
+  return <LimiteDetalle key={`${props.jugador?.id}:${props.filtroStat}`} onCerrar={cerrar}>
+    {props.fuente?.error && <button type="button" onClick={cerrar}>Volver al perfil</button>}
+    <FuentePerfil fuente={props.fuente} titulo="Detalle de estadísticas deportivas"><ContenidoDetalle {...props} /></FuentePerfil>
+  </LimiteDetalle>
+}
+
+function ContenidoDetalle({ filtroStat, statConfig, estadisticas, jugador, setFiltroStat }) {
+    const config = statConfig?.[filtroStat]
+    if (!config) return <div role="alert"><p>Este detalle no está disponible.</p><button type="button" onClick={() => setFiltroStat(null)}>Volver al perfil</button></div>
+
+    const partidosFiltrados = (Array.isArray(estadisticas) ? estadisticas : [])
+      .filter(e => e && typeof e === 'object')
       .filter(config.filtro)
-      .sort((a, b) => (b.partidos?.fecha || '').localeCompare(a.partidos?.fecha || ''))
+      .sort((a, b) => fechaRegistro(b).localeCompare(fechaRegistro(a)))
 
     return (
       <div className="perfil-detalle-estadistico" style={{ backgroundColor: COLORES.fondo }}>
@@ -59,7 +81,7 @@ export default function DetalleEstadisticaPerfil({ filtroStat, statConfig, estad
                       {e.partidos ? `vs ${e.partidos.rival}` : 'Partido'}
                     </p>
                     <p className="text-xs" style={{ color: COLORES.tenue }}>
-                      {e.partidos?.fecha}
+                      {fechaRegistro(e) || 'Fecha no disponible'}
                     </p>
                   </div>
                 </div>
@@ -79,3 +101,7 @@ export default function DetalleEstadisticaPerfil({ filtroStat, statConfig, estad
       </div>
     )
   }
+
+function fechaRegistro(registro) {
+  return typeof registro.partidos?.fecha === 'string' ? registro.partidos.fecha : ''
+}

@@ -38,7 +38,9 @@ test('Perfil 3.0: temporadas reales, un solo año, sin fechas y evaluación sin 
 
 test('Perfil 3.0: consultas, fórmulas, PDF, permisos y eliminación conservados frente a 2.0', () => {
   const base = ruta => execFileSync('git', ['show', `9865f4df85dc3685afea0d9e187956b2e216c947:${ruta}`], { encoding: 'utf8' }).replaceAll('\r', '')
-  const antes = base('src/components/PerfilJugador.jsx'), ahora = leer('src/components/PerfilJugador.jsx')
+  // Admitir solo el nuevo detalle de minutos; conservar la comparación literal
+  // del resto de consultas, fórmulas, permisos y PDF.
+  const antes = base('src/components/PerfilJugador.jsx'), ahora = leer('src/components/PerfilJugador.jsx').replace(/    minutos: \{\n      titulo: 'Minutos jugados',\n      filtro: [^\n]+\n      valor: [^\n]+\n    \},\n/, '')
   for (const [inicio, fin] of [['  useEffect(() => {', '  const abrirDetalle'], ['  const descargarWellness', '  return <div className="perfil-premium">']]) {
     assert.equal(ahora.slice(ahora.indexOf(inicio), ahora.indexOf(fin, ahora.indexOf(inicio))), antes.slice(antes.indexOf(inicio), antes.indexOf(fin, antes.indexOf(inicio))))
   }
