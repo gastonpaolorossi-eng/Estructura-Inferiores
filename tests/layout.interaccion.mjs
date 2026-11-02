@@ -65,7 +65,7 @@ test('Layout: SVG, foco móvil, Escape, resize, temas y módulos sin remontaje n
     const { default: Proveedor } = await server.ssrLoadModule('/src/appearance/ProveedorApariencia.jsx')
     function Aplicacion() {
       const [seccion, setSeccion] = useState('inicio')
-      return h(Proveedor, null, h(Layout, { perfil: { rol: 'coordinacion', nombre: 'Prueba' }, seccionActiva: seccion, onCambiarSeccion: setSeccion }, h(Modulo)))
+      return h(Proveedor, null, h(Layout, { perfil: { rol: 'coordinacion', nombre: 'Prueba' }, puedeAdministrarAnalisis: true, seccionActiva: seccion, onCambiarSeccion: setSeccion }, h(Modulo)))
     }
     await act(async () => { root.render(h(Aplicacion)); await Promise.resolve() })
     const buscar = label => document.querySelector('button[aria-label="' + label + '"]')

@@ -7,7 +7,7 @@ import {
 
 const control = 'w-full rounded-lg border analisis-control ui-control p-3 text-sm'
 
-export default function DetalleDestinatariaPase({ evento, partido, autora, onClose, onSaved, onVideo }) {
+export default function DetalleDestinatariaPase({ evento, partido, autora, onClose, onSaved, onVideo, puedeEditar = true }) {
   const [datos, setDatos] = useState(null)
   const [estado, setEstado] = useState('pendiente')
   const [destinatariaId, setDestinatariaId] = useState('')
@@ -53,6 +53,7 @@ export default function DetalleDestinatariaPase({ evento, partido, autora, onClo
 
   async function guardar(e) {
     e.preventDefault()
+    if (!puedeEditar) return
     if (ocupado.current || cargando || requiereRecarga || !datos) return
     ocupado.current = true
     setGuardando(true)
@@ -119,7 +120,7 @@ export default function DetalleDestinatariaPase({ evento, partido, autora, onClo
           {error && !guardando && <button type="button" className="text-sm font-bold analisis-link"
             onClick={() => setIntentoCarga((n) => n + 1)}>Recargar datos (reemplaza la selección del formulario)</button>}
           <div className="flex flex-wrap gap-3">
-            <button type="submit" disabled={cargando || guardando || requiereRecarga || !datos ||
+            <button type="submit" disabled={!puedeEditar || cargando || guardando || requiereRecarga || !datos ||
               (estado === 'identificada' && (!destinatariaId || destinatariaId === evento.jugador_id))}
               className="rounded-lg analisis-primario px-4 py-2 font-bold disabled:opacity-40">
               {guardando ? 'Guardando…' : 'Guardar destinataria'}

@@ -1,4 +1,5 @@
 export const UUID_EDITOR_PASES = 'f7562d52-a16a-48b5-95a0-efbcc70080d3'
+import { esCuentaAdministradoraAnalisis } from './permisosAnalisis.js'
 
 export const ESTADOS_DESTINATARIA = {
   pendiente: 'Pendiente',
@@ -89,7 +90,7 @@ export async function cargarOpcionesDestinatarias(client, partido, evento, detal
 
 export async function guardarDestinataria(client, evento, detalle, estado, destinatariaId) {
   const usuario = comprobar(await client.auth.getUser())?.user
-  if (usuario?.id !== UUID_EDITOR_PASES) {
+  if (!esCuentaAdministradoraAnalisis(usuario?.id)) {
     throw { code: '42501', message: 'No tenés autorización para guardar destinatarias.' }
   }
   if (!esPase(evento) || !Object.hasOwn(ESTADOS_DESTINATARIA, estado) ||

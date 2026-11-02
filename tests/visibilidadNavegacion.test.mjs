@@ -30,6 +30,7 @@ test('Navegación real: menú por rol, Inicio, perfil, buscador y recuperación 
         .replace('const [cargando, setCargando] = useState(true)','const [cargando, setCargando] = useState(false)')
         .replace('const [alertasRegistradas, setAlertas] = useState([])',`const [alertasRegistradas, setAlertas] = useState([{id:'oculta',seccion:'nutricion',texto:'ACCESO OCULTO',color:'#F2C230'},{id:'visible',seccion:'medicos',texto:'ACCESO MEDICO VISIBLE',color:'#F2C230'}])`)
       if(id.endsWith('/PerfilJugador.jsx'))return code.replace('const [jugador, setJugador] = useState(null)',`const [jugador, setJugador] = useState(${JSON.stringify(jugadora)})`)
+        .replace("useState({ id: null, estado: 'cargando', fuentes: {} })", "useState({ id: 'prueba', estado: 'listo', fuentes: {} })")
       if(id.endsWith('/App.jsx'))return code
         .replace("const [seccionSolicitada, setSeccionSolicitada] = useState('inicio')","const [seccionSolicitada, setSeccionSolicitada] = useState(globalThis.__seccionAbiertaPrueba)")
         .replace('const [sesion, setSesion] = useState(undefined)',"const [sesion, setSesion] = useState({user:{email:'prueba@example.invalid'}})")
@@ -43,7 +44,7 @@ test('Navegación real: menú por rol, Inicio, perfil, buscador y recuperación 
     const {default:Layout}=await server.ssrLoadModule('/src/components/Layout.jsx')
     const etiquetas=['Representantes','Pensión','Selección','Contratos','Psicología','Nutrición']
     for(const rol of ['coordinacion','medico','preparador_fisico','tecnico']) {
-      const html=render(Layout,{perfil:{rol},seccionActiva:'inicio'})
+      const html=render(Layout,{perfil:{rol},seccionActiva:'inicio',puedeAdministrarAnalisis:rol==='coordinacion'})
       const menu=html.match(/<nav[^>]*>([\s\S]*?)<\/nav>/)[1]
       for(const nombre of etiquetas)assert.ok(!menu.includes(nombre),`${rol}: ${nombre}`)
       for(const nombre of ['Inicio','Evaluaciones'])assert.ok(menu.includes(nombre),`${rol}: ${nombre}`)
@@ -51,8 +52,10 @@ test('Navegación real: menú por rol, Inicio, perfil, buscador y recuperación 
       assert.equal(calendarios, rol === 'medico' ? 0 : 1, `${rol}: un único acceso a Calendario`)
       if(rol !== 'medico') assert.ok(menu.indexOf('aria-label="Partidos"') < menu.indexOf('aria-label="Calendario"') && menu.indexOf('aria-label="Calendario"') < menu.indexOf('aria-label="Entrenamientos"'), `${rol}: orden del menú`)
       if(rol==='coordinacion')for(const nombre of ['Análisis','Médicos','Plantel','Entrenamientos','Planificación semanal','Usuarios'])assert.ok(menu.includes(nombre),nombre)
+      if(rol!=='coordinacion')assert.ok(!menu.includes('aria-label="Análisis"'))
       assert.match(html,/Abrir menú|Abrir men/)
     }
+    assert.doesNotMatch(render(Layout,{perfil:{rol:'coordinacion'},seccionActiva:'inicio',puedeAdministrarAnalisis:false}),/aria-label="Análisis"/)
     const {default:Inicio}=await server.ssrLoadModule('/src/components/InicioSection.jsx')
     for(const rol of ['coordinacion','medico','preparador_fisico','tecnico']) {
       const html=render(Inicio,{perfil:{rol}})

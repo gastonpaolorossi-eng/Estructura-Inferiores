@@ -1,4 +1,5 @@
-import { cargarDetallePase, esPase, nombreDestinataria, UUID_EDITOR_PASES } from './destinatariasPases.js'
+import { cargarDetallePase, esPase, nombreDestinataria } from './destinatariasPases.js'
+import { esCuentaAdministradoraAnalisis } from './permisosAnalisis.js'
 
 export function puntoExacto(x, y) {
   const valido = (v) => (typeof v === 'number' || typeof v === 'string') && String(v).trim() !== '' &&
@@ -41,7 +42,7 @@ export async function cargarFichaDestino(client, eventoId) {
 export async function guardarDestinoPase(client, evento, detalle, destino) {
   const { data, error } = await client.auth.getUser()
   if (error) throw error
-  if (data?.user?.id !== UUID_EDITOR_PASES) {
+  if (!esCuentaAdministradoraAnalisis(data?.user?.id)) {
     throw { code: '42501', message: 'No tenés autorización para guardar destinos.' }
   }
   const punto = destino === null ? null : puntoExacto(destino?.x, destino?.y)

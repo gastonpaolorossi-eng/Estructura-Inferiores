@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
+import { eliminarPartidoSeguro } from '../utils/permisosAnalisis'
 import { generarCitacionPDF } from '../utils/generarCitacion'
 import { generarImagenCitacion } from '../utils/generarImagenCitacion'
 import { exportarEstadisticasPDF, exportarEstadisticasCSV } from '../utils/exportarEstadisticas'
@@ -12,6 +13,8 @@ function ListaPartidos({ categoriaId, categoriaNombre, onVolver, onElegirPartido
   const [partidos, setPartidos] = useState([])
   const [cargando, setCargando] = useState(true)
   const [exportando, setExportando] = useState(false)
+  const [eliminando, setEliminando] = useState(false)
+  const [errorEliminacion, setErrorEliminacion] = useState('')
 
   useEffect(() => {
     async function cargarPartidos() {
@@ -29,15 +32,17 @@ function ListaPartidos({ categoriaId, categoriaNombre, onVolver, onElegirPartido
 
   async function handleEliminar(e, partidoId) {
     e.stopPropagation()
+    if (eliminando) return
     const confirmar = window.confirm('¿Seguro que querés eliminar este partido? También se borran sus citaciones y estadísticas asociadas.')
     if (!confirmar) return
 
-    await supabase.from('citaciones').delete().eq('partido_id', partidoId)
-    await supabase.from('estadisticas_jugador').delete().eq('partido_id', partidoId)
-    await supabase.from('videos').update({ partido_id: null }).eq('partido_id', partidoId)
-    await supabase.from('partidos').delete().eq('id', partidoId)
-
-    setPartidos((prev) => prev.filter((p) => p.id !== partidoId))
+    setEliminando(true); setErrorEliminacion('')
+    try {
+      await eliminarPartidoSeguro(supabase, partidoId)
+      setPartidos((prev) => prev.filter((p) => p.id !== partidoId))
+    } catch (error) {
+      setErrorEliminacion(error?.code === '42501' ? 'No tenés permiso para eliminar este partido. Si tiene Análisis vinculado, solo pueden hacerlo sus dos administradores.' : 'No se pudo confirmar la eliminación. Actualizá el listado antes de reintentar; no se ejecutaron borrados separados desde esta pantalla.')
+    } finally { setEliminando(false) }
   }
 
   async function handleExportar(formato) {
@@ -83,6 +88,8 @@ function ListaPartidos({ categoriaId, categoriaNombre, onVolver, onElegirPartido
   return (
     <div className="pc-premium">
       <div className="pc-contenido">
+        {errorEliminacion && <p role="alert">{errorEliminacion}</p>}
+        {eliminando && <p role="status">Eliminando el partido de forma segura…</p>}
         {onVolver && (
           <button
             onClick={onVolver}

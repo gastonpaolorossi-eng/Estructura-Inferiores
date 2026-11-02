@@ -98,9 +98,11 @@ function seccionesParaRol(rol) {
   ]
 }
 
-function Layout({ seccionActiva, onCambiarSeccion, perfil, children }) {
+// El indicador recibido controla navegación; las escrituras se autorizan aparte en RLS/RPC.
+function Layout({ seccionActiva, onCambiarSeccion, perfil, children, puedeAdministrarAnalisis = false }) {
   const secciones = filtrarSeccionesVisibles(seccionesParaRol(perfil?.rol), 'id')
     .filter(s => s.id !== 'planificacion' || puedePlanificar(perfil))
+    .filter(s => s.id !== 'analisis' || puedeAdministrarAnalisis && perfil?.rol === 'coordinacion')
 
   const subtitulo =
     perfil?.rol === 'tecnico' && perfil?.categorias?.nombre
