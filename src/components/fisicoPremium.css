@@ -1,0 +1,20 @@
+.fisico-premium .fisico-contenido { max-width: 1600px; }
+.fisico-premium .dp-encabezado { padding: clamp(1rem, 2vw, 1.5rem); background: var(--ui-superficie); border: 1px solid var(--ui-borde); border-bottom: 3px solid var(--ui-acento); border-radius: 1rem; }
+.fisico-premium .dp-titulo { font-family: 'Archivo Black', sans-serif; font-size: clamp(1.5rem, 3vw, 2rem); }
+.fisico-premium .fisico-herramientas button { min-height: 60px; flex-direction: row; align-items: center; justify-content: flex-start; padding: .75rem; gap: .6rem; transform: none; }
+.fisico-etiqueta { display: flex; flex-direction: column; gap: .2rem; min-width: 0; }
+.fisico-grupo { font-size: .65rem; font-weight: 500; line-height: 1.3; }
+.fisico-premium :is(button,input,select,textarea):focus-visible { outline: 2px solid var(--ui-foco); outline-offset: 3px; }
+.fisico-premium table th { font-weight: 700; white-space: nowrap; }
+.fisico-premium table :is(td,th) { padding: .8rem; }
+.fisico-premium table tbody tr:hover { background: var(--ui-superficie-alternativa); }
+.fisico-premium input:not([type=checkbox]), .fisico-premium select { min-height: 44px; }
+.fisico-premium .max-w-7xl { max-width: none; }
+@media (max-width: 600px) {
+  .fisico-premium .fisico-herramientas button { min-height: 68px; padding: .65rem; }
+  .fisico-premium table { font-size: .8rem; }
+  .fisico-premium table :is(td,th) { padding: .65rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fisico-premium *, .fisico-premium *::before, .fisico-premium *::after { transition: none !important; animation: none !important; }
+}
