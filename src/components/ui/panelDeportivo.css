@@ -1,5 +1,78 @@
 /* Presentación aislada: sin :root, body, cambios de tema ni reglas de impresión.
    Los colores heredan los tokens de apariencia.css y theme.js. */
+/* Extensión optativa para pantallas de gestión. Ninguna sección anterior adopta
+   estos estilos sin añadir explícitamente .dp-gestion. */
+@media screen {
+  .dp-gestion { padding: clamp(16px, 2.5vw, 36px); color: var(--ui-texto); min-width: 0; }
+  .dp-gestion *, .dp-gestion *::before, .dp-gestion *::after { box-sizing: border-box; }
+  .dp-gestion-contenido { max-width: 1440px; margin-inline: auto; display: grid; gap: 24px; min-width: 0; }
+  .dp-gestion .dp-encabezado { padding: clamp(20px, 3vw, 32px); border: 1px solid var(--ui-borde); border-bottom: 3px solid var(--marca-amarillo); background: linear-gradient(115deg, var(--ui-fondo-sidebar), var(--ui-superficie-alternativa)); color: var(--ui-texto); }
+  .dp-gestion .dp-titulo { font-family: 'Archivo Black', sans-serif; font-size: clamp(1.7rem, 3vw, 2.5rem); }
+  .dp-gestion .dp-encabezado .dp-descripcion { color: var(--ui-texto-secundario); font-size: .95rem; max-width: 65ch; }
+  .dp-gestion .dp-contexto-cabecera { margin: 0; color: var(--ui-texto-acento); font-size: .7rem; letter-spacing: .13em; font-weight: 700; }
+  .dp-gestion .dp-accion, .dp-gestion button { min-height: 44px; border-radius: 10px; font: inherit; font-size: .875rem; padding: 10px 15px; cursor: pointer; transition: background-color 160ms, border-color 160ms, box-shadow 160ms; }
+  .dp-gestion .dp-accion { display: inline-flex; justify-content: center; align-items: center; gap: 8px; border: 1px solid var(--ui-borde); background: var(--ui-superficie-alternativa); color: var(--ui-texto); font-weight: 600; }
+  .dp-gestion .dp-encabezado .dp-accion { background: var(--ui-superficie); color: var(--ui-texto); border-color: var(--ui-borde); }
+  .dp-gestion .dp-accion.dp-accion-primaria, .dp-gestion [data-primario] { background: var(--marca-amarillo); color: var(--ui-texto-sobre-acento); border: 1px solid var(--marca-amarillo); font-weight: 700; }
+  .dp-gestion button:hover:not(:disabled) { box-shadow: 0 0 0 1px var(--ui-foco); }
+  .dp-gestion button:disabled { cursor: default; opacity: .6; }
+  .dp-gestion :is(button, input, select, textarea, a):focus-visible { outline: 3px solid var(--ui-foco); outline-offset: 3px; }
+  .dp-gestion .dp-panel, .dp-gestion .dp-registro { background: var(--ui-superficie); border: 1px solid var(--ui-borde); border-radius: 16px; padding: 24px; min-width: 0; }
+  .dp-gestion .dp-editor { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; scroll-margin-top: 24px; }
+  .dp-gestion .dp-panel-cabecera { grid-column: 1 / -1; display: flex; justify-content: space-between; gap: 16px; align-items: start; }
+  .dp-gestion h2 { font-size: 1.2rem; font-weight: 750; margin: 0; }
+  .dp-gestion .dp-panel p { color: var(--ui-texto-secundario); line-height: 1.6; font-size: .875rem; margin: 6px 0 0; }
+  .dp-gestion .dp-panel .dp-antetitulo { color: var(--ui-texto-acento); font-size: .7rem; letter-spacing: .1em; font-weight: 700; margin: 0 0 6px; text-transform: uppercase; }
+  .dp-gestion .dp-grupo-campos { min-width: 0; display: flex; flex-direction: column; gap: 16px; border: 0; padding: 0; margin: 0; }
+  .dp-gestion legend { padding: 0 0 16px; font-weight: 700; font-size: .9rem; color: var(--ui-texto); }
+  .dp-gestion .dp-campo-completo, .dp-gestion .dp-editor > :is(button, .dp-estado, p) { grid-column: 1 / -1; }
+  .dp-gestion .dp-campo { display: flex; flex-direction: column; gap: 8px; min-width: 0; font-size: .85rem; font-weight: 600; }
+  .dp-gestion .dp-editor label { color: var(--ui-texto-secundario); font-size: .85rem; text-transform: none; }
+  .dp-gestion .dp-editor :is(input:not([type=checkbox]):not([type=file]), select, textarea), .dp-gestion .dp-filtros :is(input, select) { width: 100%; max-width: 100%; min-width: 0; min-height: 44px; border-radius: 9px; padding: 11px 12px; font-size: .9rem; color-scheme: dark; }
+  [data-apariencia='claro'] .dp-gestion :is(input, select, textarea) { color-scheme: light; }
+  .dp-gestion .dp-editor textarea { resize: vertical; min-height: 110px; }
+  .dp-gestion select option { background: var(--ui-control-fondo); color: var(--ui-control-texto); }
+  .dp-gestion input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--marca-amarillo); }
+  .dp-gestion .dp-editor label:has(input[type=checkbox]) { min-height: 44px; }
+  .dp-gestion .dp-archivo-foto { display: block; max-width: 100%; font-size: .8rem; margin-top: 8px; }
+  .dp-gestion .dp-grupo-campos > .flex { flex-wrap: wrap; }
+  .dp-gestion .dp-grupo-campos > .flex > label { min-width: 0; flex: 1 1 200px; }
+  .dp-gestion .dp-resumen-gestion { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  .dp-gestion .dp-resumen-usuarios { display: grid; grid-template-columns: minmax(210px, .7fr) minmax(0, 2fr); gap: 16px; }
+  .dp-gestion .dp-indicador { box-shadow: none; }
+  .dp-gestion .dp-indicador-valor { font-variant-numeric: tabular-nums; }
+  .dp-gestion .dp-seccion-listado > p { font-size: .9rem; font-weight: 750; margin-bottom: 12px; }
+  .dp-gestion .dp-listado-tarjetas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .dp-gestion .dp-listado-usuarios { display: grid; gap: 12px; }
+  .dp-gestion .dp-registro { padding: 20px; transition: border-color 160ms, box-shadow 160ms; }
+  .dp-gestion .dp-registro:hover, .dp-gestion .dp-registro:focus-within { box-shadow: 0 4px 20px color-mix(in srgb, var(--marca-negro) 7%, transparent); }
+  .dp-gestion .dp-registro-cabecera { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+  .dp-gestion .dp-registro-cabecera > .flex-1 { flex: 1 1 180px; }
+  .dp-gestion .dp-acciones-registro { flex: 1 0 100%; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding-top: 14px; border-top: 1px solid var(--ui-borde); }
+  .dp-gestion .dp-usuario { display: grid; grid-template-columns: minmax(240px, 1fr) minmax(0, 1fr); align-items: center; gap: 20px; }
+  .dp-gestion .dp-rol-acciones { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: end; min-width: 0; }
+  .dp-gestion .dp-insignia { font: inherit; font-size: .8rem; font-weight: 600; padding: 7px 10px; border-radius: 8px; background: var(--ui-superficie-alternativa); color: var(--ui-texto-secundario); overflow-wrap: anywhere; }
+  .dp-gestion .dp-nombre-registro { font-size: 1rem; font-weight: 700; overflow-wrap: anywhere; white-space: normal; }
+  .dp-gestion .dp-datos-usuario { font-size: .85rem; line-height: 1.6; color: var(--ui-texto-secundario); overflow-wrap: anywhere; }
+  .dp-gestion .dp-nota-registro { margin-top: 16px; font-size: .85rem; line-height: 1.7; overflow-wrap: anywhere; white-space: pre-wrap; }
+  .dp-gestion .dp-registro .text-xs { font-size: .85rem; line-height: 1.6; }
+  .dp-gestion .dp-filtro-existente { width: 100%; --ui-compartido-superficie: var(--ui-control-fondo); --ui-compartido-texto: var(--ui-texto); --ui-compartido-borde: var(--ui-borde); --ui-compartido-secundario: var(--ui-texto-secundario); }
+  .dp-gestion .dp-filtro-existente > div { margin-bottom: 0; flex-wrap: wrap; }
+  .dp-gestion .dp-filtro-existente > div > :is(select, span) { flex: 0 1 220px; width: 220px; }
+  .dp-gestion .dp-filtro-existente input { flex: 1 1 220px; }
+  .dp-gestion .dp-etiqueta-filtro { margin: 0 0 12px; font-size: .85rem; font-weight: 600; }
+  .dp-gestion .dp-ayuda-rol { font-size: .8rem; line-height: 1.6; color: var(--ui-texto-secundario); }
+  .dp-gestion .dp-tabla-contenedor { max-width: 100%; overflow-x: auto; border: 1px solid var(--ui-borde); border-radius: 12px; }
+  .dp-gestion table { width: 100%; border-collapse: collapse; font-size: .9rem; color: var(--ui-texto); }
+  .dp-gestion :is(th, td) { text-align: start; padding: 14px 16px; border-bottom: 1px solid var(--ui-borde); }
+  .dp-gestion th { background: var(--ui-superficie-alternativa); font-weight: 650; }
+  .dp-gestion td[data-numerico] { text-align: end; font-variant-numeric: tabular-nums; }
+  .dp-gestion caption { padding: 12px 16px; text-align: start; color: var(--ui-texto-secundario); }
+  @media (max-width: 1000px) { .dp-gestion .dp-listado-tarjetas, .dp-gestion .dp-editor { grid-template-columns: minmax(0, 1fr); } .dp-gestion .dp-usuario { grid-template-columns: minmax(0, 1fr); } .dp-gestion .dp-rol-acciones { justify-content: start; } }
+  @media (max-width: 700px) { .dp-gestion-contenido { gap: 18px; } .dp-gestion .dp-editor { grid-template-columns: minmax(0, 1fr); } .dp-gestion .dp-resumen-usuarios { grid-template-columns: minmax(0, 1fr); } .dp-gestion .dp-panel, .dp-gestion .dp-registro { padding: 16px; } .dp-gestion .dp-resumen-gestion { gap: 8px; } .dp-gestion .dp-resumen-gestion .dp-indicador { padding: 12px; } .dp-gestion .dp-indicador-etiqueta, .dp-gestion .dp-indicador-contexto { font-size: .75rem; } .dp-gestion .dp-resumen-gestion .dp-indicador-valor { font-size: 1.6rem; } .dp-gestion .dp-encabezado .dp-acciones { width: 100%; } }
+  @media (max-width: 420px) { .dp-gestion .dp-resumen-gestion { grid-template-columns: minmax(0, 1fr); } .dp-gestion .dp-resumen-gestion .dp-indicador { display: flex; align-items: center; justify-content: space-between; gap: 12px; } .dp-gestion .dp-resumen-gestion .dp-indicador-contexto { max-width: 15ch; margin: 0; } .dp-gestion .dp-encabezado .dp-acciones > button { width: 100%; } }
+  @media (prefers-reduced-motion: reduce) { .dp-gestion *, .dp-gestion *::before, .dp-gestion *::after { transition: none; animation: none; } }
+}
 @media screen {
   .dp-encabezado, .dp-indicador, .dp-filtros, .dp-estado, .dp-pestanas {
     color: var(--ui-texto);
