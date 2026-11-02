@@ -6,7 +6,7 @@ const CAMPOS = {
   estadisticas: 'id,jugador_id,partido_id,minutos_jugados,titular,goles,asistencias,tarjetas_amarillas,tarjetas_rojas',
 }
 const denegado = e => ['42501', 'PGRST301', 'PGRST302'].includes(e?.code) || [401, 403].includes(e?.status)
-async function leerPaginas(consulta) {
+export async function leerPaginas(consulta) {
   const filas = []
   for (let desde = 0; ; desde += 500) {
     const { data, error } = await consulta().order('id').range(desde, desde + 499)
@@ -16,7 +16,7 @@ async function leerPaginas(consulta) {
     if (data.length < 500) return filas
   }
 }
-async function leerPorIds(cliente, tabla, campos, columna, ids) {
+export async function leerPorIds(cliente, tabla, campos, columna, ids) {
   const filas = [], unicos = [...new Set(ids)]
   for (let i = 0; i < unicos.length; i += 100) {
     filas.push(...await leerPaginas(() => cliente.from(tabla).select(campos).in(columna, unicos.slice(i, i + 100))))

@@ -16,9 +16,10 @@ test('Análisis: dos ventanas, un reproductor, comandos confirmados y un guardad
   const authUser={id:'f7562d52-a16a-48b5-95a0-efbcc70080d3',email:'simulado@test.invalid'}
   const j={id:'j',nombre:'Ana',apellido:'Prueba',categoria_id:'cat'}
   const partidos=[{id:'p1',rival:'Rival A',fecha:'2026-10-29',categoria_id:'cat',partido_calendario_id:'c1',video_url:'https://www.youtube.com/watch?v=abc123def45'}, {id:'p2',rival:'Rival B',fecha:'2026-10-30',categoria_id:'cat',partido_calendario_id:'c2',video_url:'https://www.youtube.com/watch?v=xyz123def45'}]
+  let emitirAuth
   let resolverInsert
   const datos={perfiles:{email:authUser.email,nombre:'Kevin Garay',rol:'coordinacion'},partidos:[],analisis_partidos:partidos,analisis_eventos:[],jugadores:[j],citaciones:[{id:'c',jugador_id:'j',dorsal:10,titular:true}]}
-  global('__analisisSupabase', { auth:{getUser:async()=>({data:{user:authUser}}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})},from(tabla){
+  global('__analisisSupabase', { rpc:async nombre=>{assert.equal(nombre,'puede_administrar_analisis');return {data:true}}, auth:{getUser:async()=>({data:{user:authUser}}),onAuthStateChange:fn=>{emitirAuth=fn;return {data:{subscription:{unsubscribe(){}}}}}},from(tabla){
     let registro
     const q={select(){return q},eq(){return q},in(){return q},order(){return q},maybeSingle(){return Promise.resolve({data:datos[tabla]})},insert(d){assert.equal(tabla,'analisis_eventos');registro=d;return q},single(){writes.push(registro);return new Promise(resolve=>{resolverInsert=()=>{datos.analisis_eventos.push(registro);resolve({data:registro})}})},then(resolve,reject){return Promise.resolve({data:structuredClone(datos[tabla] || [])}).then(resolve,reject)}}
     return q
@@ -104,6 +105,16 @@ test('Análisis: dos ventanas, un reproductor, comandos confirmados y un guardad
     const cancha=form.querySelector('svg[role="button"]')
     cancha.getBoundingClientRect=()=>({left:0,top:0,width:100,height:100})
     await act(()=>cancha.dispatchEvent(new cancha.ownerDocument.defaultView.MouseEvent('click',{bubbles:true,clientX:72,clientY:35})))
+    const reproductorAntes = activo(), popupAntes = popup
+    await act(() => { emitirAuth('TOKEN_REFRESHED', { user: authUser }); root.render(createElement(Analisis, { escrituraAutorizada: false })) })
+    assert.equal(activo(), reproductorAntes); assert.equal(popup, popupAntes); assert.equal(popup.closed, false)
+    assert.equal(remoto().querySelector('form'), form)
+    const cantidadAntes = writes.length
+    await act(() => form.dispatchEvent(new (remoto().defaultView.Event)('submit', { bubbles: true, cancelable: true })))
+    assert.equal(writes.length, cantidadAntes, 'Revalidación pausa nuevas escrituras')
+    await act(() => root.render(createElement(Analisis, { escrituraAutorizada: true })))
+    assert.equal(activo(), reproductorAntes)
+    assert.equal(remoto().querySelector('form').querySelectorAll('select')[0].value, 'Despeje')
     // Selección y coordenadas viven en la principal y sobreviven al acoplar.
     await click(remoto(),'Acoplar ventana')
     assert.equal(document.querySelector('form').querySelectorAll('select')[0].value,'Despeje')

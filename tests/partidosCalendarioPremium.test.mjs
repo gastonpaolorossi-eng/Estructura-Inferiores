@@ -9,7 +9,11 @@ test('Partidos y Calendario Premium conservan consultas, cálculos y manejadores
     const antes = execFileSync('git', ['show', `HEAD:${ruta}`], { encoding: 'utf8' }).replaceAll('\r', '')
     const ahora = readFileSync(ruta, 'utf8').replaceAll('\r', '')
     const inicio = s => s.indexOf(`function ${archivo}(`)
+    // El borrado ahora tiene una RPC transaccional probada por separado. Las
+    // consultas, cálculos y exportaciones de la renovación visual se conservan.
     const logica = s => s.slice(inicio(s), s.indexOf('\n  return (', inicio(s)))
+      .replace(/  async function handleEliminar\([\s\S]*?(?=  async function handleExportar)/, '')
+      .replace(/^  const \[(eliminando|errorEliminacion),[^\n]*\n/gm, '')
     assert.equal(logica(ahora), logica(antes), `${archivo}: se conserva la lógica previa al render`)
   }
 })

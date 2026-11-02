@@ -1,6 +1,7 @@
 import PlanificacionSection from './components/PlanificacionSection'
 import { resolverSeccionVisible } from './config/visibilidadSecciones'
 import { puedePlanificar } from './utils/planificacion'
+import useAdministracionAnalisis from './hooks/useAdministracionAnalisis'
 
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from './supabaseClient'
@@ -36,7 +37,10 @@ function App() {
     () => new URLSearchParams(window.location.search).get('bienestar')
   )
   const [sesion, setSesion] = useState(undefined)
+  const usuarioIdSesion = sesion?.user?.id
+  const emailSesion = sesion?.user?.email
   const [perfil, setPerfil] = useState(undefined)
+  const accesoAnalisis = useAdministracionAnalisis(sesion, perfil?.rol)
   const [seccionSolicitada, setSeccionSolicitada] = useState('inicio')
   // Resuelve también una sección que ya estuviera abierta al cambiar la configuración.
   const seccion = resolverSeccionVisible(seccionSolicitada)
@@ -74,24 +78,26 @@ function App() {
   }, [categoriaBienestarId, setSeccion])
 
   useEffect(() => {
+    let vigente = true
     async function cargarPerfil() {
-      if (!sesion) return
+      if (!usuarioIdSesion || !emailSesion) return
 
       const { data, error } = await supabase
         .from('perfiles')
         .select('*, categorias(nombre)')
-        .eq('email', sesion.user.email)
+        .eq('email', emailSesion)
         .maybeSingle()
 
       if (error) {
         console.error('Error cargando perfil:', error)
       }
 
-      setPerfil(data || null)
+      if (vigente) setPerfil(data || null)
     }
 
     cargarPerfil()
-  }, [sesion])
+    return () => { vigente = false }
+  }, [usuarioIdSesion, emailSesion])
 
   function irAMedicosDesdePerfil(jugadorId) {
     setJugadorParaMedicos(jugadorId)
@@ -222,6 +228,7 @@ function App() {
       seccionActiva={seccion}
       onCambiarSeccion={setSeccion}
       perfil={perfil}
+      puedeAdministrarAnalisis={accesoAnalisis.puedeAbrir}
     >
       {seccion === 'inicio' && (
         <InicioSection perfil={perfil} onCambiarSeccion={setSeccion} onVerBienestar={irABienestarDesdePerfil}
@@ -304,7 +311,7 @@ function App() {
       )}
 
       {/* Módulo independiente de análisis de partidos */}
-      {seccion === 'analisis' && <AnalisisSection />}
+      {seccion === 'analisis' && (accesoAnalisis.puedeAbrir ? <AnalisisSection key={usuarioIdSesion} escrituraAutorizada={accesoAnalisis.puedeEscribir} estadoAutorizacion={accesoAnalisis.estado} /> : <div className="p-6" role="alert">El módulo Análisis está reservado a las dos cuentas administradoras autorizadas. Los resultados se consultan desde el perfil individual.<button type="button" onClick={() => setSeccion('inicio')}>Volver a Inicio</button></div>)}
 
       {seccion === 'partidos' && (
         <PartidosSection

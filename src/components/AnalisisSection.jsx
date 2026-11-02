@@ -4,6 +4,7 @@ import { ANALISIS as A, textoAnalisis } from '../appearance/analisis'
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '../supabaseClient'
+import { consultarAdministracionAnalisis, esCuentaAdministradoraAnalisis, faltaRpcAdministracionAnalisis } from '../utils/permisosAnalisis'
 import useVentanaAnalisis from '../hooks/useVentanaAnalisis'
 import ZonaVentanaAnalisis from './ZonaVentanaAnalisis'
 import ControlesVideoAnalisis from './ControlesVideoAnalisis'
@@ -15,7 +16,7 @@ import DetalleDestinoPase from './DetalleDestinoPase'
 import FlechasPases from './FlechasPases'
 import {
   cargarResumenDestinatarias, esPase, ESTADOS_DESTINATARIA,
-  nombreDestinataria, UUID_EDITOR_PASES,
+  nombreDestinataria,
 } from '../utils/destinatariasPases'
 
 const AMARILLO = '#F2C230'
@@ -502,9 +503,12 @@ function cargarYouTubeAPI() {
   return youtubeApiPromise
 }
 
-export default function AnalisisSection() {
+export default function AnalisisSection({ escrituraAutorizada = true, estadoAutorizacion }) {
   const [usuario, setUsuario] = useState(null)
   const [esAdmin, setEsAdmin] = useState(false)
+  const [accesoEditor, setAccesoEditor] = useState(false)
+  const [estadoPermiso, setEstadoPermiso] = useState('verificando')
+  const bloqueoEscritura = !esAdmin || !escrituraAutorizada
   const [puedeEditarDestinatarias, setPuedeEditarDestinatarias] = useState(false)
   const [paseDestinataria, setPaseDestinataria] = useState(null)
   const [paseDestinoId, setPaseDestinoId] = useState(null)
@@ -685,10 +689,11 @@ export default function AnalisisSection() {
       if (authError) throw authError
 
       const authUser = authData?.user
-      setPuedeEditarDestinatarias(authUser?.id === UUID_EDITOR_PASES)
+      setPuedeEditarDestinatarias(false)
 
       if (!authUser?.email) {
         setUsuario(null)
+        setAccesoEditor(false)
         setEsAdmin(false)
         setPartidos([])
         setPartidosCalendario([])
@@ -710,12 +715,26 @@ export default function AnalisisSection() {
 
       setUsuario(perfil || null)
 
-      const admin =
-        perfil?.rol === 'coordinacion' &&
-        perfil?.nombre?.trim().toLowerCase() === 'kevin garay' &&
-        perfil?.email?.toLowerCase() === authUser.email.toLowerCase()
+      if (!esCuentaAdministradoraAnalisis(authUser.id) || perfil?.rol !== 'coordinacion') {
+        setAccesoEditor(false)
+        throw new Error('No tenés autorización para abrir el módulo Análisis.')
+      }
+      let admin = false
+      try {
+        admin = await consultarAdministracionAnalisis(supabase)
+        setEstadoPermiso(admin ? 'permitido' : 'denegado')
+        setAccesoEditor(Boolean(admin))
+        if (!admin) throw Object.assign(new Error('No tenés autorización para administrar Análisis.'), { denegacionExplicita: true })
+      } catch (errorPermiso) {
+        if (errorPermiso.denegacionExplicita) throw errorPermiso
+        // Permite consultar la interfaz a las cuentas verificadas, nunca guardar sin RPC.
+        setEstadoPermiso(faltaRpcAdministracionAnalisis(errorPermiso) ? 'pendiente_migracion' : 'error')
+        setAccesoEditor(true)
+      }
 
       setEsAdmin(Boolean(admin))
+      setPuedeEditarDestinatarias(Boolean(admin))
+
 
       const { data: calendario, error: calendarioError } = await supabase
         .from('partidos')
@@ -814,6 +833,8 @@ export default function AnalisisSection() {
       )
     } catch (e) {
       console.error('Error en Análisis:', e)
+      setEsAdmin(false)
+      setPuedeEditarDestinatarias(false)
       setError(e.message || 'No se pudieron cargar los datos.')
     } finally {
       setCargando(false)
@@ -1144,11 +1165,13 @@ export default function AnalisisSection() {
   ])
 
   useEffect(() => {
-    const { data } = supabase.auth.onAuthStateChange((_evento, sesion) => {
-      const autorizado = sesion?.user?.id === UUID_EDITOR_PASES
-      setPuedeEditarDestinatarias(autorizado)
-      if (!autorizado) setPaseDestinataria(null)
-      if (!autorizado) setPaseDestinoId(null)
+    const { data } = supabase.auth.onAuthStateChange((evento, sesion) => {
+      // Renovar el token conserva el editor. App revalida sin desmontarlo.
+      if (evento === 'SIGNED_OUT' || !sesion?.user?.id) {
+        setEsAdmin(false); setAccesoEditor(false); setPuedeEditarDestinatarias(false)
+        setPaseDestinataria(null); setPaseDestinoId(null)
+        setUsuario(null); setEventos([]); setPartidos([])
+      }
     })
     return () => data.subscription.unsubscribe()
   }, [])
@@ -1352,7 +1375,7 @@ export default function AnalisisSection() {
   }, [citaciones, busquedaJugadora])
 
   async function cambiarDireccionAtaque(direccionElegida) {
-    if (!esAdmin || !partidoActual || guardando) return
+    if (!esAdmin || !escrituraAutorizada || !partidoActual || guardando) return
     const direccion = direccionElegida === 'izquierda' ? 'izquierda' : 'derecha'
     const nuevaDireccionPrimerTiempo = periodoActual === 1 ? direccion : direccionOpuesta(direccion)
     setGuardando(true)
@@ -1418,7 +1441,7 @@ export default function AnalisisSection() {
   }
 
   async function registrarAccionRapida(tipoSeleccionado, idJugadora) {
-    if (!esAdmin || !partidoActual || guardando || registroIncierto) return
+    if (!esAdmin || !escrituraAutorizada || !partidoActual || guardando || registroIncierto) return
 
     if (!ventanas.gestor.conectado() || contextoAnalisisRef.current?.partidoId !== partidoId || contextoAnalisisRef.current?.seccion !== 'video' || !videoListo || !playerRef.current) {
       setError('Esperá a que el video esté conectado antes de etiquetar.')
@@ -1481,7 +1504,7 @@ export default function AnalisisSection() {
   }
 
   function abrirEdicionEvento(evento) {
-    if (!esAdmin) return
+    if (!esAdmin || !escrituraAutorizada) return
 
     setEditandoEventoId(evento.id)
     setEdicionEvento({
@@ -1504,7 +1527,7 @@ export default function AnalisisSection() {
   async function guardarEdicionEvento(e) {
     e.preventDefault()
 
-    if (!esAdmin || !editandoEventoId || guardando) return
+    if (!esAdmin || !escrituraAutorizada || !editandoEventoId || guardando) return
 
     setGuardando(true)
     setError('')
@@ -1555,7 +1578,7 @@ export default function AnalisisSection() {
   }
 
   async function eliminarEvento(evento) {
-    if (!esAdmin) return
+    if (!esAdmin || !escrituraAutorizada) return
 
     if (!window.confirm('¿Querés eliminar esta acción etiquetada?')) return
 
@@ -1609,7 +1632,7 @@ export default function AnalisisSection() {
   }
 
   function editarPartido(partido) {
-    if (!esAdmin) return
+    if (!esAdmin || !escrituraAutorizada) return
 
     setEditandoId(partido.id)
     setPartidoCalendarioId(
@@ -1627,7 +1650,7 @@ export default function AnalisisSection() {
   async function guardarPartido(e) {
     e.preventDefault()
 
-    if (!esAdmin || guardando) return
+    if (!esAdmin || !escrituraAutorizada || guardando) return
 
     setGuardando(true)
     setError('')
@@ -1711,7 +1734,7 @@ export default function AnalisisSection() {
   }
 
   async function eliminarPartido(partido) {
-    if (!esAdmin) return
+    if (!esAdmin || !escrituraAutorizada) return
 
     const confirmar = window.confirm(
       `¿Querés eliminar el análisis de ${partido.rival}? También se eliminarán sus eventos.`,
@@ -1739,7 +1762,7 @@ export default function AnalisisSection() {
   async function guardarEvento(e) {
     e.preventDefault()
 
-    if (!esAdmin || !partidoActual || guardando || registroIncierto) return
+    if (!esAdmin || !escrituraAutorizada || !partidoActual || guardando || registroIncierto) return
     if (!ventanas.gestor.conectado() || contextoAnalisisRef.current?.partidoId !== partidoId || contextoAnalisisRef.current?.seccion !== 'video') {
       setError('La sesión de video no está conectada al partido actual. No se registró la acción.'); return
     }
@@ -1837,6 +1860,7 @@ export default function AnalisisSection() {
     {ventanas.modo === 'reproductor' && controlesVideo}
   </>
 
+  if (!cargando && !accesoEditor) return <div className="p-6" role="alert">{error || 'No se pudo confirmar el acceso a Análisis.'}<button type="button" onClick={cargarDatos}>Reintentar verificación</button></div>
   if (cargando) {
     return (
       <div className="p-6 text-sm" style={{ color: A.secundario }}>
@@ -1850,6 +1874,9 @@ export default function AnalisisSection() {
       className="min-h-screen space-y-5 p-3 md:p-6"
       style={{ backgroundColor: A.fondo, color: A.texto }}
     >
+      {bloqueoEscritura && <p role="status">{(estadoAutorizacion || estadoPermiso) === 'pendiente_migracion'
+        ? 'Análisis en modo consulta: falta activar la función de autorización de la migración pendiente. Crear, guardar, editar y eliminar están bloqueados hasta que el servidor confirme los permisos.'
+        : 'Escrituras pausadas: no se pudo confirmar la autorización del servidor o se está revalidando. Se conserva el trabajo abierto y podés consultar el video.'}</p>}
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <p
@@ -1865,7 +1892,7 @@ export default function AnalisisSection() {
             Etiquetado de acciones, formación y análisis del rendimiento.
           </p>
           <p className="mt-2 text-xs" style={{ color: A.secundario }}>
-            {esAdmin
+            {!bloqueoEscritura
               ? 'Modo administrador · Gestión habilitada'
               : 'Modo consulta · Solo lectura'}
           </p>
@@ -1876,7 +1903,7 @@ export default function AnalisisSection() {
             ↻ Actualizar
           </Boton>
 
-          {esAdmin && (
+          {accesoEditor && (
             <Boton
               onClick={() => {
                 if (mostrarFormulario) {
@@ -1919,7 +1946,7 @@ export default function AnalisisSection() {
         </div>
       )}
 
-      {mostrarFormulario && esAdmin && (
+      {mostrarFormulario && accesoEditor && (
         <Panel>
           <h2 className="mb-2 text-lg font-bold">
             {editandoId ? 'Editar análisis' : 'Vincular análisis a un partido'}
@@ -1988,7 +2015,7 @@ export default function AnalisisSection() {
             </Campo>
 
             <div className="flex flex-wrap gap-2">
-              <Boton submit disabled={guardando || !partidoCalendarioId}>
+              <Boton submit disabled={bloqueoEscritura || guardando || !partidoCalendarioId}>
                 {guardando ? 'Guardando...' : 'Guardar análisis'}
               </Boton>
 
@@ -2094,20 +2121,20 @@ export default function AnalisisSection() {
           </div>
         )}
 
-        {esAdmin && partidoActual && (
+        {accesoEditor && partidoActual && (
           <div className="mt-4 flex flex-wrap gap-3 border-t pt-3" style={{ borderColor: A.borde }}>
             <button
               type="button"
               className="text-xs font-bold"
               style={{ color: textoAnalisis(AMARILLO) }}
-              onClick={() => editarPartido(partidoActual)}
+              disabled={bloqueoEscritura} onClick={() => editarPartido(partidoActual)}
             >
               Editar datos del análisis
             </button>
             <button
               type="button"
               className="text-xs font-bold text-red-300"
-              onClick={() => eliminarPartido(partidoActual)}
+              disabled={bloqueoEscritura} onClick={() => eliminarPartido(partidoActual)}
             >
               Eliminar análisis
             </button>
@@ -2183,7 +2210,7 @@ export default function AnalisisSection() {
                       </select>
                     </Campo>
                     <Campo label={`Dirección real del ataque en ${periodoActual === 1 ? 'el primer' : 'el segundo'} tiempo`}>
-                      <select className={inputClass} style={inputStyle} value={direccionAtaqueActual} onChange={(e) => cambiarDireccionAtaque(e.target.value)} disabled={!esAdmin || guardando}>
+                      <select className={inputClass} style={inputStyle} value={direccionAtaqueActual} onChange={(e) => cambiarDireccionAtaque(e.target.value)} disabled={bloqueoEscritura || guardando}>
                         <option value="derecha">Atacamos hacia la derecha →</option>
                         <option value="izquierda">Atacamos hacia la izquierda ←</option>
                       </select>
@@ -2216,9 +2243,9 @@ export default function AnalisisSection() {
                       <p className="mt-1 text-sm" style={{ color: A.secundario }}>
                         Agregá un enlace de YouTube desde los datos del análisis.
                       </p>
-                      {esAdmin && (
+                      {accesoEditor && (
                         <div className="mt-4">
-                          <Boton onClick={() => editarPartido(partidoActual)}>
+                          <Boton disabled={bloqueoEscritura} onClick={() => editarPartido(partidoActual)}>
                             Agregar video
                           </Boton>
                         </div>
@@ -2317,7 +2344,7 @@ export default function AnalisisSection() {
                                   >
                                     <button
                                       type="button"
-                                      disabled={!esAdmin}
+                                      disabled={bloqueoEscritura}
                                       onClick={() => setJugadorId(c.jugador_id)}
                                       title={nombreJugadora(c.jugadora)}
                                       className="flex h-9 w-9 items-center justify-center rounded-full border-2 text-xs font-black shadow-lg"
@@ -2347,7 +2374,7 @@ export default function AnalisisSection() {
                                 <button
                                   key={c.id}
                                   type="button"
-                                  disabled={!esAdmin}
+                                  disabled={bloqueoEscritura}
                                   onClick={() => setJugadorId(c.jugador_id)}
                                   className="flex w-24 flex-col items-center rounded-lg p-2"
                                   style={{
@@ -2385,7 +2412,7 @@ export default function AnalisisSection() {
                               <button
                                 key={c.id}
                                 type="button"
-                                disabled={!esAdmin}
+                                disabled={bloqueoEscritura}
                                 onClick={() => setJugadorId(c.jugador_id)}
                                 className="flex items-center gap-2 rounded-lg border px-3 py-2 text-left"
                                 style={{
@@ -2438,7 +2465,7 @@ export default function AnalisisSection() {
                     </p>
                   </div>
 
-                  {!esAdmin ? (
+                  {!accesoEditor ? (
                     <p className="text-sm" style={{ color: A.secundario }}>
                       Solo el administrador puede registrar acciones.
                     </p>
@@ -2515,7 +2542,7 @@ export default function AnalisisSection() {
                               <button
                                 key={c.id}
                                 type="button"
-                                disabled={guardando || !videoListo || comandoPendiente || !ventanas.conectado || registroIncierto}
+                                disabled={bloqueoEscritura || guardando || !videoListo || comandoPendiente || !ventanas.conectado || registroIncierto}
                                 onClick={() =>
                                   registrarAccionRapida(tipoRapido, c.jugador_id)
                                 }
@@ -2691,7 +2718,7 @@ export default function AnalisisSection() {
                             />
                           </Campo>
 
-                          <Boton submit disabled={guardando || registroIncierto || !ventanas.conectado || (tiempoAutomatico && comandoPendiente)}>
+                          <Boton submit disabled={bloqueoEscritura || guardando || registroIncierto || !ventanas.conectado || (tiempoAutomatico && comandoPendiente)}>
                             {guardando ? 'Guardando...' : 'Registrar acción'}
                           </Boton>
                         </form>
@@ -2954,7 +2981,7 @@ export default function AnalisisSection() {
                     </div>
 
                     <div className="flex flex-wrap gap-2">
-                      <Boton submit disabled={guardando}>
+                      <Boton submit disabled={bloqueoEscritura || guardando}>
                         {guardando ? 'Guardando...' : 'Guardar cambios'}
                       </Boton>
                       <Boton
@@ -3044,11 +3071,11 @@ export default function AnalisisSection() {
                             {ev.resultado || 'Pendiente'}
                           </span>
 
-                          {esAdmin && (
+                          {accesoEditor && (
                             <div className="flex gap-3">
                               <button
                                 type="button"
-                                onClick={() => abrirEdicionEvento(ev)}
+                                disabled={bloqueoEscritura} onClick={() => abrirEdicionEvento(ev)}
                                 className="text-xs font-bold"
                                 style={{ color: textoAnalisis(AMARILLO) }}
                               >
@@ -3056,7 +3083,7 @@ export default function AnalisisSection() {
                               </button>
                               <button
                                 type="button"
-                                onClick={() => eliminarEvento(ev)}
+                                disabled={bloqueoEscritura} onClick={() => eliminarEvento(ev)}
                                 className="text-xs font-bold text-red-300"
                               >
                                 Eliminar
@@ -3216,7 +3243,7 @@ export default function AnalisisSection() {
               <p className="mt-3 text-xs" style={{ color: A.secundario }}>
                 Los minutos se calculan a partir del segundo guardado en cada acción. Las acciones sin zona o resultado también aparecen y se pueden revisar.
               </p>
-              {paseDestinataria && puedeEditarDestinatarias && <DetalleDestinatariaPase
+              {paseDestinataria && puedeEditarDestinatarias && <DetalleDestinatariaPase puedeEditar={escrituraAutorizada}
                 key={paseDestinataria.id}
                 evento={paseDestinataria}
                 partido={partidos.find((p) => p.id === paseDestinataria.partido_id)}
@@ -3535,7 +3562,7 @@ export default function AnalisisSection() {
                     evento={paseDestinoActual}
                     partido={partidos.find((p) => p.id === paseDestinoActual.partido_id)}
                     autora={nombreJugadora(jugadoras.find((j) => j.id === paseDestinoActual.jugador_id))}
-                    puedeEditar={puedeEditarDestinatarias}
+                    puedeEditar={puedeEditarDestinatarias && escrituraAutorizada}
                     renderCancha={(props) => <CanchaInteractiva {...props} />}
                     onClose={() => setPaseDestinoId(null)}
                     onVideo={abrirEventoEnVideo}
@@ -3852,8 +3879,8 @@ export default function AnalisisSection() {
         className="border-t pt-4 text-xs"
         style={{ borderColor: A.borde, color: A.secundario }}
       >
-        {esAdmin
-          ? 'Administrador: Kevin Garay · Gestión de análisis'
+        {!bloqueoEscritura
+          ? 'Administración autorizada · Gestión de análisis'
           : 'Modo consulta · Los cambios están restringidos'}
       </footer>
 

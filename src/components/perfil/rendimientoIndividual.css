@@ -1,0 +1,154 @@
+/* Exclusivamente Perfil → Rendimiento. No cambia paletas globales ni documentos. */
+.ri-premium{--ri-acento:#F2C230;display:grid;gap:18px;min-width:0;width:100%;color:var(--ui-texto);color-scheme:dark}
+:root[data-apariencia=claro] .ri-premium{color-scheme:light}
+.ri-premium *{box-sizing:border-box}
+.ri-premium h3,.ri-premium h4,.ri-premium p{overflow-wrap:anywhere}
+.ri-premium label{display:grid;gap:6px;min-width:0;font-size:.82rem;font-weight:700}
+.ri-premium select,.ri-premium input{width:100%;min-width:0;min-height:44px;padding:10px 12px;border:1px solid var(--ui-borde);border-radius:10px;background:var(--ui-superficie);color:var(--ui-texto);font:inherit;color-scheme:inherit}
+.ri-premium button{min-height:44px;padding:9px 13px;border:1px solid var(--ui-borde);border-radius:10px;background:var(--ui-superficie);color:var(--ui-texto);font:inherit;cursor:pointer;transition:border-color .18s,background .18s,box-shadow .18s}
+.ri-premium button:hover{border-color:var(--ri-acento);box-shadow:0 2px 12px #0000000c}
+.ri-premium :focus-visible{outline:3px solid var(--ri-acento);outline-offset:3px}
+.ri-premium :disabled{opacity:.6;cursor:not-allowed}
+.ri-sobretitulo{margin:0 0 7px;font-size:.69rem;font-weight:850;letter-spacing:.13em;color:var(--ui-texto-secundario)}
+.ri-nota{margin:10px 0;font-size:.84rem;line-height:1.6;color:var(--ui-texto-secundario)}
+.ri-cabecera{display:grid;grid-template-columns:144px minmax(0,1fr) 215px;gap:24px;align-items:center;padding:22px;border-radius:18px;background:linear-gradient(110deg,#0A0A0A 35%,#1E1C13);color:#fff;border-bottom:3px solid var(--ri-acento);overflow:hidden}
+.ri-cabecera h2{margin:8px 0;font-family:'Archivo Black',sans-serif;font-size:clamp(1.1rem,1.9vw,1.65rem);line-height:1.2;letter-spacing:-.035em}
+.ri-cabecera h2 span{color:var(--ri-acento)}
+.ri-cabecera h3{margin:10px 0;font-size:clamp(1.35rem,2.5vw,2.15rem);font-weight:850;line-height:1.1;letter-spacing:-.035em}
+.ri-cabecera .ri-sobretitulo{color:#F2C230}
+.ri-hero-texto{min-width:0}
+.ri-foto-portada{align-self:stretch;min-height:170px;border-radius:12px;overflow:hidden;background:#242422}
+.ri-foto-portada img,.ri-foto-portada .ri-avatar{display:block;width:100%;height:100%;min-height:170px;object-fit:cover;object-position:center 25%;border-radius:0}
+.ri-foto-portada .ri-avatar{display:grid;place-content:center;font-size:2.8rem}
+.ri-hero-contexto{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.ri-hero-contexto span{padding:6px 10px;border-radius:7px;background:#ffffff0c;color:#D7D6CC;font-size:.82rem}
+.ri-hero-controles{display:grid;gap:10px}
+.ri-hero-controles select{background:#26251F;color:#fff;border-color:#464338;color-scheme:dark}
+.ri-hero-controles p{margin:0;font-size:.8rem;line-height:1.5;color:#BCBAAE}
+.ri-chip-temporada{font-size:.73rem;font-weight:700;color:#F2C230}
+.ri-identidades{display:grid;grid-template-columns:minmax(200px,.7fr) minmax(0,1.5fr);gap:20px;align-items:center;padding:18px 22px;border-radius:16px;background:var(--ui-superficie)}
+.ri-comparador-contexto h3{margin:0 0 8px;font-size:1.2rem;letter-spacing:-.02em}
+.ri-comparador-contexto p:last-child{margin:0;max-width:48ch;font-size:.83rem;line-height:1.5;color:var(--ui-texto-secundario)}
+.ri-comparador{display:flex;flex-wrap:wrap;align-items:center;gap:12px;min-width:0}
+.ri-comparador label{flex:1 1 180px}
+.ri-comparador small{flex-basis:100%;color:var(--ui-texto-secundario)}
+.ri-segunda-elegida{display:flex;align-items:center;gap:10px;min-width:0;flex:1 1 210px}
+.ri-segunda-elegida img,.ri-segunda-elegida .ri-avatar{width:44px;height:48px;object-fit:cover;border-radius:8px;flex-shrink:0}
+.ri-segunda-elegida strong,.ri-segunda-elegida small{display:block;overflow-wrap:anywhere}
+.ri-segunda-elegida small{font-size:.8rem;margin-top:4px}
+.ri-avatar{display:grid;place-content:center;background:#F2C230;color:#111;font-weight:850;font-size:1.1rem}
+.ri-panel,.ri-mapa{min-width:0;padding:22px;border-radius:16px;background:var(--ui-superficie);box-shadow:0 1px 0 var(--ui-borde)}
+.ri-panel h3,.ri-mapa h3{margin:0 0 9px;font-size:1.3rem;letter-spacing:-.025em;line-height:1.2}
+.ri-panel-cabecera{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.ri-etiqueta-fuente{display:inline-flex;align-items:center;gap:5px;padding:6px 9px;border-radius:7px;background:var(--ui-fondo-pagina);font-size:.72rem;color:var(--ui-texto-secundario)}
+.ri-accesos-oficiales{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;margin:14px 0}
+.ri-accesos-oficiales button{display:grid;gap:6px;text-align:left;padding:12px;background:var(--ui-fondo-pagina);border-color:transparent;min-width:0}
+.ri-accesos-oficiales button>span:first-child{font-size:.76rem;color:var(--ui-texto-secundario);overflow-wrap:anywhere}
+.ri-accesos-oficiales strong{font-size:1.6rem;font-weight:850;line-height:1.1;letter-spacing:-.035em}
+.ri-ver-detalle{font-size:.68rem;color:var(--ui-texto-secundario)}
+.ri-desplegable{margin-top:12px;border-top:1px solid var(--ui-borde)}
+.ri-desplegable summary{min-height:44px;padding:13px 0;font-size:.82rem;font-weight:700;cursor:pointer}
+.ri-desplegable summary::marker{color:#B58F1A}
+.ri-muestra{padding:12px;background:var(--ui-fondo-pagina);border-radius:8px;font-size:.85rem;line-height:1.6}
+.ri-intro-acciones{position:relative}
+.ri-intro-acciones>button{margin:8px 0;background:#F2C230;color:#111;font-weight:800;border-color:#F2C230}
+.ri-integracion{margin-top:18px;padding:20px;border-left:3px solid #F2C230;border-radius:8px;background:var(--ui-fondo-pagina);line-height:1.6}
+.ri-filtros{display:grid;grid-template-columns:minmax(160px,1.7fr) repeat(3,minmax(90px,1fr));gap:12px;margin:16px 0}
+.ri-filtros label:nth-child(5){grid-column:auto}
+.ri-filtros>button{align-self:end;font-size:.8rem}
+.ri-comparacion-resumen{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:14px;margin-top:18px}
+.ri-jugadora-resumen{min-width:0;padding:18px;background:var(--ui-fondo-pagina);border-radius:12px;border-left:3px solid var(--ri-serie)}
+.ri-resumen-identidad{display:flex;align-items:center;gap:12px}
+.ri-resumen-identidad img,.ri-resumen-identidad .ri-avatar{width:48px;height:54px;object-fit:cover;border-radius:8px;flex-shrink:0}
+.ri-resumen-identidad h4{margin:0 0 4px;font-size:1.05rem}
+.ri-resumen-identidad span{font-size:.76rem;color:var(--ui-texto-secundario)}
+.ri-resumen-identidad .ri-sobretitulo{margin-bottom:4px;font-size:.62rem}
+.ri-metricas-acciones{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:18px 0 0}
+.ri-comparacion-resumen.ri-doble .ri-metricas-acciones{grid-template-columns:repeat(2,minmax(0,1fr))}
+.ri-metricas-acciones div{min-width:0}
+.ri-metricas-acciones dt{font-size:.73rem;line-height:1.4;color:var(--ui-texto-secundario)}
+.ri-metricas-acciones dd{margin:6px 0;font-size:clamp(1.3rem,2vw,1.8rem);font-weight:850;letter-spacing:-.04em;line-height:1.15}
+.ri-metricas-acciones small{font-size:.7rem;color:var(--ui-texto-secundario);line-height:1.4}
+.ri-jugadora-resumen>.ri-nota{margin:13px 0 0;font-size:.75rem}
+.ri-calidad summary{font-weight:500;color:var(--ui-texto-secundario)}
+.ri-analitica{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);align-items:start;gap:18px}
+.ri-territorio{grid-column:1;grid-row:1;min-width:0;display:grid;gap:14px}
+.ri-mapas{display:grid;gap:18px;min-width:0}
+.ri-graficos{display:contents}
+.ri-distribucion-panel{grid-column:2;grid-row:1}
+.ri-efectividad-panel{grid-column:1;grid-row:2}
+.ri-evolucion-panel{grid-column:2;grid-row:2}
+.ri-analitica.ri-comparando{grid-template-columns:repeat(2,minmax(0,1fr))}
+.ri-comparando .ri-territorio{grid-column:1/-1}
+.ri-comparando .ri-mapas{grid-template-columns:repeat(2,minmax(0,1fr))}
+.ri-comparando .ri-distribucion-panel{grid-column:1;grid-row:2}
+.ri-comparando .ri-efectividad-panel{grid-column:2;grid-row:2}
+.ri-comparando .ri-evolucion-panel{grid-column:1/-1;grid-row:3}
+.ri-mapa{padding:20px}
+.ri-mapa-autora{margin:0 0 12px;font-size:.84rem;color:var(--ui-texto-secundario)}
+.ri-mapa svg{display:block;width:100%;height:auto;margin:12px 0 16px;border-radius:12px;box-shadow:0 12px 25px #0000001c}
+.ri-mapa svg [role=button]{cursor:pointer}
+.ri-mapa svg [role=button]:focus-visible{outline:none}
+.ri-mapa svg [role=button]:focus-visible circle:last-child{stroke:#fff;stroke-width:1}
+.ri-leyenda{display:flex;flex-wrap:wrap;gap:8px 14px;list-style:none;padding:0;margin:14px 0;font-size:.77rem;line-height:1.45}
+.ri-leyenda li{display:flex;align-items:center;gap:6px;min-width:0;overflow-wrap:anywhere}
+.ri-leyenda li>span,.ri-resultado-cabecera i{display:inline-block;width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.ri-leyenda-series{font-weight:700}
+.ri-distribucion{max-height:540px;overflow-y:auto;padding-right:4px;overscroll-behavior:contain}
+.ri-fila-barra{padding:14px 0;border-bottom:1px solid var(--ui-borde);display:grid;gap:10px}
+.ri-fila-barra>button{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;padding:0;border:0;background:transparent;font-weight:750;text-align:left}
+.ri-fila-barra>button>span{color:var(--ui-texto-secundario)}
+.ri-barra-serie{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:7px}
+.ri-barra-nombre{font-size:.73rem;color:var(--ui-texto-secundario);overflow-wrap:anywhere}
+.ri-barra-serie strong{font-size:1.15rem;letter-spacing:-.02em}
+.ri-barra-serie strong small{font-size:.65rem;font-weight:500;color:var(--ui-texto-secundario)}
+.ri-pista{grid-column:1/-1;height:11px;border-radius:10px;background:var(--ui-fondo-pagina);overflow:hidden}
+.ri-pista span{display:block;height:100%;border-radius:10px;border:1px solid #776325;transition:width .25s ease}
+.ri-efectividad-lista{max-height:500px;overflow-y:auto;overscroll-behavior:contain}
+.ri-efectividad-grupo{padding:14px 0;border-bottom:1px solid var(--ui-borde)}
+.ri-efectividad-grupo h4{margin:0 0 14px;font-size:.95rem;font-weight:750}
+.ri-resultado-serie+.ri-resultado-serie{margin-top:14px}
+.ri-resultado-cabecera{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.ri-resultado-cabecera>span{display:flex;align-items:center;gap:7px;font-size:.77rem;min-width:0}
+.ri-resultado-cabecera strong{font-size:1.35rem;letter-spacing:-.035em;white-space:nowrap}
+.ri-efectividad{display:flex;height:13px;border-radius:7px;overflow:hidden;margin:10px 0;background:var(--ui-fondo-pagina)}
+.ri-efectividad span{height:100%;min-width:0}
+.ri-resultado-contexto{display:flex;flex-wrap:wrap;justify-content:space-between;gap:5px;font-size:.72rem;line-height:1.5;color:var(--ui-texto-secundario)}
+.ri-timeline-scroll{overflow-x:auto;max-width:100%;overscroll-behavior:contain;border-radius:10px;background:var(--ui-fondo-pagina)}
+.ri-evolucion{display:block;width:100%;height:auto;max-height:340px}
+.ri-evolucion text{fill:var(--ui-texto);font-size:12px}
+.ri-evolucion .ri-guia-eje text{fill:var(--ui-texto-secundario);font-size:11px}
+.ri-guia-eje line{stroke:var(--ui-borde);stroke-width:1;stroke-dasharray:3 4}
+.ri-evolucion .ri-fecha-eje{font-weight:750}
+.ri-partidos{padding-left:20px;font-size:.85rem;line-height:1.8}
+.ri-vacio-grafico{display:grid;justify-items:center;align-content:center;min-height:180px;text-align:center;padding:20px;color:var(--ui-texto-secundario)}
+.ri-vacio-grafico>span{font-size:2.5rem;color:#B58F1A}
+.ri-vacio-grafico p{font-size:.88rem;line-height:1.6;max-width:40ch}
+.ri-explorador>label{max-width:280px;margin:16px 0}
+.ri-tabla-scroll{overflow:auto;max-width:100%;max-height:520px;border-radius:10px;overscroll-behavior:contain}
+.ri-premium table{width:100%;border-collapse:collapse;font-size:.88rem;text-align:left}
+.ri-explorador table{min-width:850px}
+.ri-premium th,.ri-premium td{padding:13px 12px;border-bottom:1px solid var(--ui-borde)}
+.ri-premium thead{background:var(--ui-fondo-pagina)}
+.ri-premium tbody tr:hover{background:var(--ui-fondo-pagina)}
+.ri-premium caption{text-align:left;padding:12px 0;font-size:.8rem;color:var(--ui-texto-secundario)}
+.ri-premium table small{display:block;font-size:.74rem;line-height:1.5;color:var(--ui-texto-secundario)}
+.ri-detalle-accion{border-left:3px solid #F2C230}
+.ri-detalle-accion p{font-size:.88rem;line-height:1.6}
+.ri-enlace-video{display:inline-flex;align-items:center;min-height:44px;padding:10px 14px;border-radius:9px;background:#F2C230;color:#111;font-weight:800;text-decoration:none}
+@media(max-width:1050px){
+ .ri-cabecera{grid-template-columns:120px minmax(0,1fr);gap:18px}.ri-hero-controles{grid-column:1/-1;grid-template-columns:1fr 1fr;align-items:center}.ri-hero-controles p{grid-column:2;grid-row:1}.ri-chip-temporada{grid-column:1/-1}
+ .ri-identidades{grid-template-columns:1fr;gap:14px}.ri-comparador-contexto p:last-child{max-width:none}.ri-accesos-oficiales{grid-template-columns:repeat(4,minmax(0,1fr))}
+ .ri-filtros{grid-template-columns:repeat(3,minmax(0,1fr))}.ri-analitica,.ri-analitica.ri-comparando{grid-template-columns:minmax(0,1fr)}
+ .ri-analitica .ri-territorio,.ri-analitica .ri-distribucion-panel,.ri-analitica .ri-efectividad-panel,.ri-analitica .ri-evolucion-panel{grid-column:1;grid-row:auto}
+ .ri-comparando .ri-mapas{grid-template-columns:repeat(2,minmax(0,1fr))}.ri-metricas-acciones{gap:12px}
+}
+@media(max-width:600px){
+ .ri-premium{gap:14px}.ri-cabecera{grid-template-columns:86px minmax(0,1fr);gap:14px;padding:16px}.ri-foto-portada,.ri-foto-portada img,.ri-foto-portada .ri-avatar{min-height:125px}.ri-cabecera h2{font-size:1.05rem}.ri-cabecera h3{font-size:1.3rem}.ri-cabecera .ri-sobretitulo{font-size:.58rem;letter-spacing:.08em}.ri-hero-contexto{gap:6px}.ri-hero-contexto span{font-size:.72rem;padding:4px 6px}
+ .ri-hero-controles{grid-template-columns:1fr}.ri-hero-controles p{grid-column:1;grid-row:auto}.ri-hero-controles label{min-width:0}.ri-panel,.ri-mapa{padding:16px}.ri-identidades{padding:16px}.ri-comparador label{flex-basis:100%}.ri-comparador button{width:100%}
+ .ri-accesos-oficiales{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.ri-accesos-oficiales button{padding:10px}.ri-accesos-oficiales strong{font-size:1.45rem}.ri-ver-detalle{font-size:.62rem}
+ .ri-filtros{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.ri-filtros label:first-child{grid-column:1/-1}.ri-filtros label{font-size:.75rem}
+ .ri-comparacion-resumen{grid-template-columns:1fr}.ri-jugadora-resumen{padding:14px}.ri-metricas-acciones{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.ri-comparando .ri-mapas{grid-template-columns:minmax(0,1fr)}
+ .ri-panel h3,.ri-mapa h3{font-size:1.2rem}.ri-etiqueta-fuente{font-size:.68rem}.ri-leyenda{font-size:.75rem}.ri-mapa svg{border-radius:8px}.ri-barra-serie strong small{display:none}.ri-distribucion{max-height:480px}
+}
+@media(prefers-reduced-motion:reduce){.ri-premium *{transition:none;animation:none}}

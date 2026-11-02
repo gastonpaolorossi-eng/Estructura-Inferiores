@@ -42,7 +42,13 @@ test('Perfil 3.0: consultas, fórmulas, PDF, permisos y eliminación conservados
   for (const [inicio, fin] of [['  useEffect(() => {', '  const abrirDetalle'], ['  const descargarWellness', '  return <div className="perfil-premium">']]) {
     assert.equal(ahora.slice(ahora.indexOf(inicio), ahora.indexOf(fin, ahora.indexOf(inicio))), antes.slice(antes.indexOf(inicio), antes.indexOf(fin, antes.indexOf(inicio))))
   }
-  for (const ruta of ['src/components/PdfPerfilModal.jsx', 'src/utils/generarPerfilPDF.js', 'src/utils/generarBienestarPDF.js', 'src/components/AnalisisSection.jsx']) assert.equal(leer(ruta), base(ruta))
+  for (const ruta of ['src/components/PdfPerfilModal.jsx', 'src/utils/generarPerfilPDF.js', 'src/utils/generarBienestarPDF.js']) assert.equal(leer(ruta), base(ruta))
+  // La autorización de Análisis cambió en una entrega posterior aprobada. Su
+  // catálogo y referencia espacial siguen siendo independientes del perfil.
+  const analisis = leer('src/components/AnalisisSection.jsx'), analisisBase = base('src/components/AnalisisSection.jsx')
+  for (const [inicio, fin] of [['const TIPOS =', 'const inputClass ='], ['function zonaDesdeCoordenadas', 'function colorTipo']]) {
+    assert.equal(analisis.slice(analisis.indexOf(inicio), analisis.indexOf(fin)), analisisBase.slice(analisisBase.indexOf(inicio), analisisBase.indexOf(fin)))
+  }
   const cabecera = leer('src/components/perfil/CabeceraPerfil.jsx')
   assert.match(cabecera, /inicio-equipo-cuerpo-tecnico-original.jpeg/); assert.match(cabecera, /Escudo de Comunicaciones/)
   assert.doesNotMatch(cabecera, /estado_detalle|bienestar|nro_documento|dorsal|altura/)
