@@ -1,3 +1,4 @@
+import EncabezadoSeccion from './ui/EncabezadoSeccion'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { CAMPOS_BLOQUE, CAMPOS_EJERCICIO, cargarSemana, copiarSemana, copiarSesion, eliminarSesion,
@@ -192,7 +193,7 @@ export default function PlanificacionSection({ perfil, fechaInicial, categoriaIn
   if (perfil.rol !== 'coordinacion' && !perfil.categoria_id) return <p className="p-6">Necesitás una categoría asignada en tu perfil para planificar.</p>
 
   return <div className="planificacion p-4 md:p-8">
-    <header className="planificacion-fila planificacion-entre"><div><h1>Planificación semanal</h1><p>Lo previsto, separado de la asistencia y la carga real. Podés guardar aunque falten datos.</p></div></header>
+    <EncabezadoSeccion titulo="Planificación semanal" descripcion="Organizá sesiones, bloques y ejercicios. Lo previsto, separado de la asistencia y la carga real." />
     <fieldset disabled={ocupado} className="planificacion-fila planificacion-tarjeta">
       <label className="planificacion-campo"><span>Categoría</span><select value={categoriaId} disabled={perfil.rol !== 'coordinacion'} onChange={(e) => navegar(lunes, e.target.value)}>
         <option value="">Elegir categoría…</option>{categorias.filter((c) => perfil.rol === 'coordinacion' || c.id === perfil.categoria_id).map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}

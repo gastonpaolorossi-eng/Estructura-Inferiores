@@ -15,7 +15,7 @@
 .planificacion button:hover:not(:disabled) { border-color: var(--ui-foco); }
 .planificacion :is(button,input,select,textarea,summary):focus-visible { outline: 2px solid var(--ui-foco); outline-offset: 2px; }
 .planificacion button.planificacion-primario { background: var(--ui-acento); color: var(--ui-texto-sobre-acento); font-weight: 700; }
-.planificacion-semana { display: grid; grid-template-columns: repeat(7,minmax(135px,1fr)); gap: .6rem; overflow-x: auto; padding-bottom: .4rem; }
+.planificacion-semana { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap: .75rem; padding-bottom: .4rem; }
 .planificacion-dia { padding: .6rem; min-width: 0; }
 .planificacion-hoy { border-color: var(--ui-acento); }
 .planificacion .planificacion-resumen { display: flex; flex-direction: column; text-align: left; gap: .4rem; margin: .8rem 0; width: 100%; overflow-wrap: anywhere; }
@@ -27,3 +27,22 @@
 .planificacion-compartir > label { display: block; }
 .planificacion-ejercicio { padding: .8rem 0 .8rem .8rem; border-left: 3px solid var(--ui-acento); margin: 1rem 0; }
 .planificacion-acciones { margin: 1rem 0; }
+.planificacion { max-width: 1600px; margin-inline: auto; min-width: 0; }
+.planificacion > .dp-encabezado { padding: clamp(1rem, 3vw, 2rem); border-bottom: 3px solid var(--ui-acento); border-radius: 1rem; background: var(--ui-superficie); }
+.planificacion > .dp-encabezado .dp-titulo { font-family: 'Archivo Black', sans-serif; font-size: clamp(1.5rem, 3vw, 2rem); }
+.planificacion > fieldset.planificacion-tarjeta { gap: .75rem; border-radius: 1rem; }
+.planificacion > fieldset.planificacion-tarjeta button,
+.planificacion-dia > button { min-height: 44px; }
+.planificacion-dia { margin: 1rem 0 0; border-radius: 1rem; padding: .8rem; display: flex; flex-direction: column; gap: .6rem; }
+.planificacion-dia h2 { text-transform: capitalize; font-size: .9rem; padding-bottom: .6rem; border-bottom: 1px solid var(--ui-borde); }
+.planificacion-hoy { border-top: 3px solid var(--ui-acento); }
+.planificacion .planificacion-resumen { margin: 0; padding: .8rem; border-left: 3px solid var(--ui-acento); line-height: 1.5; }
+.planificacion-dia > button:last-child { margin-top: auto; }
+.planificacion-editor { border-top: 3px solid var(--ui-acento); }
+@media (max-width: 1200px) { .planificacion-semana { grid-template-columns: repeat(4,minmax(0,1fr)); } }
+@media (max-width: 900px) { .planificacion-semana { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (max-width: 600px) {
+  .planificacion-semana { grid-template-columns: minmax(0,1fr); }
+  .planificacion > fieldset.planificacion-tarjeta > strong { flex-basis: 100%; order: -1; }
+  .planificacion-dia { margin-top: .3rem; }
+}
