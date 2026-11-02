@@ -1,3 +1,5 @@
+import EncabezadoSeccion from './ui/EncabezadoSeccion'
+import './fisicoPremium.css'
 import { WELLNESS as W, textoWellness } from '../appearance/wellness'
 
 import { COLORES } from '../theme'
@@ -315,75 +317,9 @@ function FisicoSection({
   })
 
   return (
-    <div className="min-h-full px-4 py-5 sm:px-6 lg:px-8 lg:py-8" style={{ color: COLORES.texto }}>
-      <div className="mx-auto w-full max-w-7xl space-y-6">
-        {/* Encabezado */}
-        <section
-          className="relative overflow-hidden rounded-2xl sm:rounded-3xl p-5 sm:p-7 lg:p-8"
-          style={{
-            background: W.cabecera,
-            border: "1px solid var(--wellness-borde-panel, #3B3B34)",
-            boxShadow: '0 12px 32px rgba(0,0,0,0.14)',
-          }}
-        >
-          <div
-            className="pointer-events-none absolute -right-8 -top-16 h-56 w-56 rounded-full"
-            style={{
-              background: 'radial-gradient(circle, rgba(242,194,48,0.15) 0%, rgba(242,194,48,0) 70%)',
-            }}
-          />
-          <div
-            className="pointer-events-none absolute right-8 top-0 h-full w-px opacity-30"
-            style={{ background: "linear-gradient(180deg, transparent, var(--wellness-acento, #F2C230), transparent)" }}
-          />
-
-          <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-4">
-              <div
-                className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-2xl font-black sm:h-16 sm:w-16"
-                style={{
-                  background: 'linear-gradient(145deg, #F7D45A, #DDAA16)',
-                  color: '#171715',
-                  boxShadow: '0 6px 20px rgba(242,194,48,0.18)',
-                }}
-              >
-                F
-              </div>
-              <div>
-                <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.24em]" style={{ color: textoWellness(W.acento) }}>
-                  COMUNICACIONES · RENDIMIENTO
-                </p>
-                <h1
-                  className="text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl"
-                  style={{ fontFamily: "'Archivo Black', sans-serif", color: COLORES.texto }}
-                >
-                  Físico
-                </h1>
-                <p className="mt-2 max-w-xl text-sm leading-relaxed sm:text-base" style={{ color: COLORES.textoMuted }}>
-                  Seguimiento, control y análisis de la preparación física del plantel.
-                </p>
-              </div>
-            </div>
-
-            <div
-              className="flex w-fit items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold"
-              style={{
-                backgroundColor: W.interior,
-                border: "1px solid var(--wellness-borde-interior, #454439)",
-                color: W.textoInsignia,
-              }}
-            >
-              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: W.exito, boxShadow: '0 0 8px rgba(151,196,89,0.55)' }} />
-              Panel de rendimiento
-            </div>
-          </div>
-          <div
-            className="relative mt-6 h-1 overflow-hidden rounded-full"
-            style={{ backgroundColor: W.pista }}
-          >
-            <div className="h-full w-1/3 rounded-full" style={{ background: 'linear-gradient(90deg, #DDAA16, #F7D45A, transparent)' }} />
-          </div>
-        </section>
+    <div className="fisico-premium min-h-full px-4 py-5 sm:px-6 lg:px-8 lg:py-8" style={{ color: COLORES.texto }}>
+      <div className="fisico-contenido mx-auto w-full space-y-6">
+        <EncabezadoSeccion titulo="Preparación física" descripcion="Control, seguimiento y evolución del plantel" />
 
         {/* Avisos existentes */}
         <AlertasDatosFisicos incluirCargaYCmj={puedeVerCargaYCmj} />
@@ -410,12 +346,13 @@ function FisicoSection({
             </span>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6">
+          <div className="fisico-herramientas grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6">
             {tabsDisponibles.map((t) => {
               const activo = tab === t.key
               return (
                 <button
                   key={t.key}
+                  data-herramienta={t.key}
                   onClick={() => setTab(t.key)}
                   aria-current={activo ? 'page' : undefined}
                   className="group relative flex min-h-[72px] items-center gap-3 overflow-hidden rounded-xl px-3 py-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:brightness-110 ui-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 sm:min-h-[82px] sm:flex-col sm:items-start sm:justify-center sm:gap-1.5 sm:px-4"
@@ -436,7 +373,7 @@ function FisicoSection({
                   >
                     {t.icon}
                   </span>
-                  <span className="text-xs font-bold leading-tight sm:text-sm">{t.label}</span>
+                  <span className="fisico-etiqueta"><span className="fisico-grupo">{t.key === 'rpe' || t.key === 'cmj' ? 'Rendimiento físico' : t.key === 'carga' ? 'Carga de datos' : 'Seguimiento'}</span><span className="text-xs font-bold leading-tight sm:text-sm">{t.label}</span></span>
                 </button>
               )
             })}
