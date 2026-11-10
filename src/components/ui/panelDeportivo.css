@@ -95,7 +95,10 @@
   .dp-encabezado-foto .dp-eyebrow, .dp-encabezado-foto .dp-descripcion { color: var(--foto-texto-secundario); }
 
   /* Franja de números: separados por líneas finas; en el celular, 2 columnas. */
-  .dp-franja { display: grid; grid-template-columns: repeat(var(--dp-franja-columnas, 4), minmax(0, 1fr)); margin: 0; border-block: 1px solid var(--ui-borde); }
+  .dp-franja { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0; border-block: 1px solid var(--ui-borde); }
+  .dp-franja[data-columnas='3'] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .dp-franja[data-columnas='2'] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dp-franja[data-columnas='1'] { grid-template-columns: minmax(0, 1fr); }
   .dp-franja-item { display: flex; flex-direction: column-reverse; justify-content: flex-end; min-width: 0; padding: 16px 18px 14px; border-left: 1px solid var(--ui-borde); }
   .dp-franja-item:first-child { border-left: 0; padding-left: 0; }
   .dp-franja-valor { margin: 0; font-family: var(--fuente-titulo); font-weight: 700; font-size: clamp(2.1rem, 4.5vw, 3.25rem); line-height: 1; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
@@ -170,7 +173,7 @@
     .dp-encabezado-fila, .dp-filtros { gap: 12px; }
   }
   @media (max-width: 640px) {
-    .dp-franja { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .dp-franja, .dp-franja[data-columnas] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .dp-franja-item:nth-child(odd) { border-left: 0; padding-left: 0; }
     .dp-franja-item:nth-child(n+3) { border-top: 1px solid var(--ui-borde); }
     .dp-chips-etiqueta { width: 100%; }

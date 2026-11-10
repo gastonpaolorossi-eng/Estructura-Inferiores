@@ -44,7 +44,7 @@ function NumeroAnimado({ valor }) {
  * items: [{ etiqueta, valor, unidad? }]. Un valor ausente (null/undefined) se muestra como "—".
  */
 export default function FranjaNumeros({ items = [], etiqueta = 'Resumen en números' }) {
-  return <dl className="dp-franja" aria-label={etiqueta} style={{ '--dp-franja-columnas': Math.min(Math.max(items.length, 1), 4) }}>
+  return <dl className="dp-franja" aria-label={etiqueta} data-columnas={Math.min(Math.max(items.length, 1), 4)}>
     {items.map(item => {
       const ausente = item.valor == null || (typeof item.valor === 'number' && !Number.isFinite(item.valor))
       return <div key={item.etiqueta} className="dp-franja-item">

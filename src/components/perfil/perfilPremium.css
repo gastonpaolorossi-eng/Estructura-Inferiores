@@ -1,5 +1,5 @@
 @media screen {
-  .perfil-premium { padding:24px; min-height:100%; background:var(--plantel-fondo-perfil); color:var(--plantel-texto-perfil); }
+  .perfil-premium { padding:24px; min-height:100%; color:var(--plantel-texto-perfil); }
   .perfil-contenido { max-width:1440px; min-width:0; margin:auto; }
   .perfil-cabecera { background:var(--plantel-cabecera); border:1px solid var(--plantel-borde-perfil); border-top:4px solid var(--ui-acento); border-radius:20px; padding:24px; margin-bottom:22px; }
   .perfil-navegacion { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:22px; }

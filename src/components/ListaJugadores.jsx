@@ -408,7 +408,6 @@ function ListaJugadores({ onSelectJugador: onElegirJugador, onNuevoJugador, onCa
   return (
     <div
       className="min-h-full plantel-premium"
-      style={{ backgroundColor: P.fondoLista }}
     >
       <div className="plantel-premium-contenido">
         <header className="plantel-portada">

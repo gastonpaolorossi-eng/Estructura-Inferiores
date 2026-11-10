@@ -1,4 +1,4 @@
-.planificacion { color: var(--ui-texto); background: var(--ui-fondo-pagina); }
+.planificacion { color: var(--ui-texto); }
 .planificacion h1 { font-size: 1.7rem; font-weight: 800; }
 .planificacion h2, .planificacion h3 { font-weight: 700; }
 .planificacion p { color: var(--ui-texto-secundario); font-size: .85rem; margin: .6rem 0; }

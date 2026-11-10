@@ -33,8 +33,6 @@
 .club-contenido { flex: 1; min-width: 0; padding-top: 56px; }
 /* Escudo de fondo en todas las secciones: fijo, detrás del contenido y sin afectar el scroll. */
 .club-escudo-fondo { position: fixed; z-index: -1; top: 50%; right: -6vw; width: 60vw; max-width: none; transform: translateY(-50%); opacity: var(--escudo-fondo-opacidad); pointer-events: none; user-select: none; }
-/* El fondo de página lo pinta el Layout; la raíz de cada sección queda transparente para dejar ver el escudo. */
-.club-seccion > * { background-color: transparent !important; }
 /* Entrada de cada sección: sus bloques suben 20 px y aparecen, con 70 ms entre bloques. */
 .club-seccion > * > * { animation: club-subir .6s var(--curva-salida) both; }
 .club-seccion > * > :nth-child(2) { animation-delay: 70ms; }

@@ -1853,8 +1853,8 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
 
   return (
     <div
-      className="min-h-screen space-y-5 p-3 md:p-6"
-      style={{ backgroundColor: A.fondo, color: A.texto }}
+      className="min-h-screen space-y-5 p-4 md:p-6"
+      style={{ color: A.texto }}
     >
       {bloqueoEscritura && <p role="status">{(estadoAutorizacion || estadoPermiso) === 'pendiente_migracion'
         ? 'Análisis en modo consulta: falta activar la función de autorización de la migración pendiente. Crear, guardar, editar y eliminar están bloqueados hasta que el servidor confirme los permisos.'

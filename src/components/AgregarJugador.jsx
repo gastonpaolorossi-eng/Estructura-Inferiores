@@ -262,14 +262,14 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
 
   if (cargando) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "var(--ui-compartido-fondo)" }}>
+      <div className="min-h-screen flex items-center justify-center">
         <p style={{ color: "var(--ui-compartido-tenue)" }}>Cargando...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen p-6 md:p-10" style={{ backgroundColor: "var(--ui-compartido-fondo)" }}>
+    <div className="min-h-screen p-6 md:p-10">
       <div className="max-w-md mx-auto">
         <button
           onClick={onVolver}
