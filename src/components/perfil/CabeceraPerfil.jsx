@@ -4,11 +4,11 @@ import { iniciales, calcularEdad, pieHabilLabel, estadoConfig } from './presenta
 import { puestoPlantel } from '../plantel/posicionesPlantel'
 
 // Portada del perfil: foto grande, dorsal gigante en amarillo y apellido enorme. Solo presentación.
-export default function CabeceraPerfil({ jugador, onVolver, onEditar, onPDF, onEliminar, eliminando }) {
+export default function CabeceraPerfil({ jugador, dorsal, onVolver, onEditar, onPDF, onEliminar, eliminando }) {
   const [fallo, setFallo] = useState(false)
   const estado = estadoConfig[jugador.estado]?.label || 'Estado sin confirmar'
   const edad = calcularEdad(jugador.fecha_nacimiento)
-  const tieneDorsal = jugador.dorsal != null && jugador.dorsal !== ''
+  const tieneDorsal = dorsal != null && dorsal !== ''
   return <header className="perfil-cabecera">
     <div className="perfil-navegacion"><button type="button" onClick={onVolver}>← Plantel</button></div>
     <div className="perfil-identidad">
@@ -17,8 +17,8 @@ export default function CabeceraPerfil({ jugador, onVolver, onEditar, onPDF, onE
           : <div className="perfil-foto perfil-iniciales" aria-label="Fotografía no disponible">{iniciales(jugador.nombre, jugador.apellido)}</div>}
       </div>
       <div className="perfil-nombre">
-        <span className="perfil-dorsal" aria-label={tieneDorsal ? 'Dorsal ' + jugador.dorsal : undefined} aria-hidden={tieneDorsal ? undefined : true}>
-          {tieneDorsal ? jugador.dorsal : puestoPlantel(jugador.posicion).abreviatura}
+        <span className="perfil-dorsal" aria-label={tieneDorsal ? 'Dorsal ' + dorsal : undefined} aria-hidden={tieneDorsal ? undefined : true}>
+          {tieneDorsal ? dorsal : puestoPlantel(jugador.posicion).abreviatura}
         </span>
         <p className="dp-eyebrow">{jugador.nombre} · <b>{jugador.posicion || 'Posición sin cargar'}</b></p>
         <h1><span className="perfil-apellido">{jugador.apellido || jugador.nombre}</span><span className="sr-only">, {jugador.nombre}</span></h1>

@@ -17,6 +17,7 @@ import { supabase } from '../supabaseClient'
 import { generarPlantelPDF } from '../utils/generarPlantelPDF'
 import { obtenerCategoriaPrimeraDivision } from '../utils/categoriaPrimera'
 import { obtenerEstadisticasCategoria } from '../utils/exportarEstadisticas'
+import { ultimosDorsales } from '../utils/dorsales'
 
 const filtrosPuesto = [
   { id: 'todas', label: 'Todas' },
@@ -233,6 +234,7 @@ function ListaJugadores({ onSelectJugador: onElegirJugador, onNuevoJugador, onCa
   const [vistaPlantel, setVistaPlantel] = useState(estadoGaleria?.vistaPlantel ?? 'jugadoras')
   const [jugadores, setJugadores] = useState([])
   const [estadisticas, setEstadisticas] = useState({})
+  const [dorsales, setDorsales] = useState({})
   const [formacion, setFormacion] = useState('4-4-2')
   const [busqueda, setBusqueda] = useState(estadoGaleria?.busqueda ?? '')
   const [filtroPuesto, setFiltroPuesto] = useState(estadoGaleria?.filtroPuesto ?? 'todas')
@@ -283,6 +285,8 @@ function ListaJugadores({ onSelectJugador: onElegirJugador, onNuevoJugador, onCa
         }
 
         setJugadores(data || [])
+        // Último dorsal de cada jugadora según citaciones: una sola consulta, sin demorar el listado.
+        ultimosDorsales(supabase, (data || []).map(j => j.id)).then(mapa => { if (activo) setDorsales(mapa) })
 
         try {
           const filasEstadisticas = await obtenerEstadisticasCategoria(
@@ -494,7 +498,7 @@ function ListaJugadores({ onSelectJugador: onElegirJugador, onNuevoJugador, onCa
                 { id: 'jugadoras', etiqueta: 'Jugadoras', contenido: (<div className="plantel-galeria" id="plantel-jugadoras">
   {agruparPlantel(jugadorasFiltradas).map(grupo => <section key={grupo.id} className="plantel-grupo" aria-labelledby={'grupo-' + grupo.id}>
     <header className="plantel-grupo-titulo"><h2 id={'grupo-' + grupo.id}>{grupo.nombre}</h2><span>{grupo.jugadoras.length}</span></header>
-    <div className="plantel-listado club-grilla-foco">{grupo.jugadoras.map(j => <TarjetaJugadora key={j.id} jugadora={j} onAbrir={onSelectJugador} />)}</div>
+    <div className="plantel-listado club-grilla-foco">{grupo.jugadoras.map(j => <TarjetaJugadora key={j.id} jugadora={j} dorsal={dorsales[j.id]} onAbrir={onSelectJugador} />)}</div>
     {grupo.id === 'sin_equivalencia' && <p className="plantel-grupo-aviso">Posiciones sin equivalencia definida.</p>}
   </section>)}
   {jugadorasFiltradas.length === 0 && <EstadoVacio mensaje="Ninguna jugadora con estos filtros."
