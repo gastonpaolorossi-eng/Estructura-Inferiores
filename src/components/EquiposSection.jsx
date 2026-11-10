@@ -1,9 +1,11 @@
-import { BOTON_GESTION } from '../appearance/gestion'
 import { COLORES } from '../theme'
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { sanitizarNombreArchivo } from '../utils/archivos'
 import { comprimirImagen } from '../utils/comprimirImagen'
+import EncabezadoSeccion from './ui/EncabezadoSeccion'
+import Boton from './ui/Boton'
+import EstadoVacio from './ui/EstadoVacio'
 
 function EquiposSection({ onVolver }) {
   const [equipos, setEquipos] = useState([])
@@ -122,20 +124,11 @@ function EquiposSection({ onVolver }) {
           ← Volver
         </button>
 
-        <div className="flex items-start justify-between mb-8 gap-3 flex-wrap">
-          <h1
-            className="text-2xl md:text-3xl"
-            style={{ fontFamily: "'Archivo Black', sans-serif", color: COLORES.texto }}
-          >
-            Equipos
-          </h1>
-          <button
-            onClick={mostrarForm ? cancelarForm : abrirNuevo}
-            className="text-sm font-medium px-4 py-2.5 rounded-xl transition-opacity hover:opacity-80"
-            style={BOTON_GESTION}
-          >
-            {mostrarForm ? 'Cancelar' : '+ Nuevo equipo'}
-          </button>
+        <div className="mb-8">
+          <EncabezadoSeccion eyebrow="Partidos" eyebrowResaltado="Rivales y escudos" titulo="Equi" resaltado="pos"
+            acciones={<Boton variante={mostrarForm ? 'secundario' : 'principal'} onClick={mostrarForm ? cancelarForm : abrirNuevo} aria-expanded={mostrarForm}>
+              {mostrarForm ? 'Cancelar' : '+ Nuevo equipo'}
+            </Boton>} />
         </div>
 
         {mostrarForm && (
@@ -202,14 +195,9 @@ function EquiposSection({ onVolver }) {
               </p>
             )}
 
-            <button
-              onClick={handleGuardar}
-              disabled={guardando}
-              className="w-full p-2.5 rounded-xl font-medium text-sm transition-opacity hover:opacity-80 disabled:opacity-50"
-              style={BOTON_GESTION}
-            >
-              {guardando ? 'Guardando...' : equipoEditando ? 'Guardar cambios' : 'Guardar equipo'}
-            </button>
+            <Boton onClick={handleGuardar} disabled={guardando} aria-busy={guardando} className="w-full">
+              {guardando ? 'Guardando…' : equipoEditando ? 'Guardar cambios' : 'Guardar equipo'}
+            </Boton>
           </div>
         )}
 
@@ -222,10 +210,11 @@ function EquiposSection({ onVolver }) {
           style={inputStyle}
         />
 
-        {cargando && <p style={{ color: COLORES.textoMuted }}>Cargando...</p>}
+        {cargando && <EstadoVacio cargando mensaje="Cargando equipos…" />}
 
         {!cargando && filtrados.length === 0 && (
-          <p style={{ color: COLORES.textoMuted }}>No hay equipos cargados todavía.</p>
+          <EstadoVacio mensaje={busqueda ? 'Ningún equipo coincide con la búsqueda.' : 'Todavía no hay equipos.'}
+            accion={!busqueda && !mostrarForm ? { etiqueta: '+ Nuevo equipo', onClick: abrirNuevo } : undefined} />
         )}
 
         <div className="space-y-2">

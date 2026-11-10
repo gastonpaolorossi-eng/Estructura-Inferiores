@@ -13,8 +13,8 @@ const ESTADOS = [
   { valor: 'presente', label: 'Presente', color: COLORES.exito },
   { valor: 'tarde', label: 'Tarde', color: COLORES.acento },
   { valor: 'ausente', label: 'Ausente', color: COLORES.peligro },
-  { valor: 'lesionado', label: 'Lesionado', color: '#FB923C' },
-  { valor: 'enfermo', label: 'Enfermo', color: '#7DD3FC' },
+  { valor: 'lesionado', label: 'Lesionado', color: 'var(--ui-peligro)' },
+  { valor: 'enfermo', label: 'Enfermo', color: 'var(--ui-neutro)' },
 ]
 
 function AsistenciaSection({ perfil, fechaInicial, categoriaInicial, onVerPlanificacion }) {
@@ -178,7 +178,7 @@ function AsistenciaSection({ perfil, fechaInicial, categoriaInicial, onVerPlanif
   return (
     <div className="dp-gestion asistencia-premium" style={{ color: COLORES.texto }}>
       <div className="dp-gestion-contenido">
-        <EncabezadoSeccion titulo="Asistencia" descripcion="Registro diario del plantel. Marcá los estados y guardá los cambios." />
+        <EncabezadoSeccion eyebrow="Equipo" eyebrowResaltado="Registro diario" titulo="Asisten" resaltado="cia" />
 
         <div className="mb-6">
           <button

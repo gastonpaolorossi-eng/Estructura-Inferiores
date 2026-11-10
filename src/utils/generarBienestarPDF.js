@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf'
 import { cargarDatosBienestar } from './bienestar'
+import { ESCUDO_URL } from '../config/club'
 
 const NEGRO = [23, 23, 23]
 const AMARILLO = [251, 191, 36]
@@ -8,8 +9,6 @@ const GRIS = [90, 100, 115]
 const TEXTO_OSCURO = [30, 30, 30]
 const AMARILLO_CLARO = [255, 251, 235]
 const AZUL_LINEA = [100, 160, 220]
-
-const ESCUDO_CLUB_URL = 'https://qvjviyjkxyngiggoeqlj.supabase.co/storage/v1/object/public/Biblioteca/escudos/Escudo%20simplificado.png'
 
 async function cargarImagenDataURL(url) {
   if (!url) return null
@@ -82,7 +81,7 @@ function dibujarGraficoLinea(doc, serie, escalaMax, x, y, ancho, alto, color) {
 
 export async function generarBienestarPDF(jugador, periodo) {
   const { metricas } = await cargarDatosBienestar(jugador.id, periodo)
-  const escudoDataUrl = await cargarImagenDataURL(ESCUDO_CLUB_URL)
+  const escudoDataUrl = await cargarImagenDataURL(ESCUDO_URL)
 
   const doc = new jsPDF({ unit: 'pt', format: 'a4' })
   const pageWidth = doc.internal.pageSize.getWidth()

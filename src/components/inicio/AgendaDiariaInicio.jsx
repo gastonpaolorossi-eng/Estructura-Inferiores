@@ -3,13 +3,14 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../supabaseClient'
 import { cargarSesionesAgenda, normalizarEventos } from '../../utils/calendario'
 import { fechaArgentina, sumarDias, puedePlanificar } from '../../utils/planificacion'
+import { fechaCorta, fechaLarga } from '../../utils/formatoFecha'
 
 const TIPOS = { partido: 'Partido', video: 'Video de entrenamiento', planificacion: 'Planificación' }
 function Evento({ evento, abrirCalendario, onVerPlanificacion }) {
   const abrirPlan = evento.tipo === 'planificacion' && onVerPlanificacion
   return <button type="button" className="inicio-actividad" data-evento-id={evento.id} onClick={() => abrirPlan
     ? onVerPlanificacion(evento.fecha, evento.categoriaId, evento.originalId) : abrirCalendario(evento.fecha, evento.categoriaId)}>
-    <span className="inicio-dia">{evento.fecha}<strong>{evento.hora || 'Ver horario y detalle'}</strong></span>
+    <span className="inicio-dia">{fechaCorta(evento.fecha)}<strong>{evento.hora?.slice(0, 5) || 'Ver horario y detalle'}</strong></span>
     <span><small>{TIPOS[evento.tipo]}{evento.estado ? ` · ${evento.estado === 'publicado' ? 'Publicado' : 'Borrador'}` : ''}</small>
       <strong>{evento.titulo}</strong>{evento.tipo === 'partido' && <small>{calcularCuentaRegresiva(evento.fecha, evento.hora)}</small>}<small>{[evento.categoria, evento.detalle].filter(Boolean).join(' · ')}</small><small>{abrirPlan ? 'Abrir planificación' : 'Ver en Calendario'} →</small></span>
   </button>
@@ -52,7 +53,7 @@ export default function AgendaDiariaInicio({ perfil, partidos, proximoPartido, c
   return <div className="inicio-agenda-paneles">
     <section className="inicio-bloque inicio-hoy" aria-labelledby="inicio-hoy-titulo">
       <div className="inicio-hoy-portada"><img src="/images/fotos-comunicaciones/pelotas-entrenamiento-comunicaciones.jpeg" alt="Pelotas de entrenamiento de Comunicaciones" loading="lazy" />
-        <div><p className="inicio-antetitulo">AGENDA DEL CUERPO TÉCNICO</p><h2 id="inicio-hoy-titulo">Actividad de hoy</h2><p>{hoy}</p></div></div>
+        <div><p className="inicio-antetitulo">AGENDA DEL CUERPO TÉCNICO</p><h2 id="inicio-hoy-titulo">Actividad de hoy</h2><p>{fechaLarga(hoy)}</p></div></div>
       {cargando && <p role="status">Consultando actividades…</p>}
       {errores.map((e, i) => <p role="alert" key={i}>{e}</p>)}
       {vigente && lectura.errores.length > 0 && <button type="button" disabled={cargando} onClick={() => setIntento(n => n + 1)}>Reintentar videos y planificación</button>}
@@ -66,7 +67,6 @@ export default function AgendaDiariaInicio({ perfil, partidos, proximoPartido, c
       <div className="inicio-agenda">{proximos.map(e => <Evento key={e.id} evento={e} abrirCalendario={abrirCalendario} onVerPlanificacion={puedePlanificar(perfil, e.categoriaId) ? onVerPlanificacion : undefined} />)}
         {partidoPosterior && <Evento evento={{ ...normalizarEventos({ partidos: [partidoPosterior] })[0], hora: partidoPosterior.hora?.slice(0, 5) || '', categoria: partidoPosterior.categoriasNombres?.join(', ') || partidoPosterior.categorias?.nombre }} abrirCalendario={abrirCalendario} />}</div>
       {!cargando && !errores.length && !proximos.length && !partidoPosterior && <p className="inicio-vacio">Sin próximas actividades registradas.</p>}
-      <p className="inicio-secundario">Planificaciones y videos de mañana, y próximo partido posterior disponible. No se repiten las actividades de hoy.</p>
     </section>
   </div>
 }

@@ -1,12 +1,8 @@
 import { COLORES } from '../theme'
 import { useState } from 'react'
 import { supabase } from '../supabaseClient'
-
-// Ajustá el path si el archivo del escudo tiene otro nombre en el bucket
-const { data: escudoData } = supabase.storage
-  .from('Biblioteca')
-  .getPublicUrl('escudos/Escudo simplificado.png')
-const ESCUDO_URL = escudoData.publicUrl
+import { ESCUDO_URL } from '../config/club'
+import './ui/panelDeportivo.css'
 
 function Login() {
   const [email, setEmail] = useState('')
@@ -15,9 +11,9 @@ function Login() {
   const [cargando, setCargando] = useState(false)
 
   const inputStyle = {
-    backgroundColor: 'var(--login-control-fondo, #FFFFFF)',
+    backgroundColor: 'var(--login-control-fondo)',
     border: `1px solid ${COLORES.borde}`,
-    color: 'var(--login-control-texto, #1A1A18)',
+    color: 'var(--login-control-texto)',
   }
 
   async function handleLogin(e) {
@@ -39,18 +35,10 @@ function Login() {
           alt="Escudo Club Comunicaciones"
           className="w-24 h-24 object-contain mb-4"
         />
-        <h1
-          className="text-xl mb-1 text-center"
-          style={{ fontFamily: "'Archivo Black', sans-serif", color: COLORES.texto }}
-        >
-          Club Comunicaciones
+        <p className="dp-eyebrow text-center">Fútbol femenino · <b>Primera División</b></p>
+        <h1 className="dp-titulo text-center mb-8" style={{ fontSize: 'clamp(2.4rem, 11vw, 3.4rem)' }}>
+          Club<br /><em>Comunicaciones</em>
         </h1>
-        <p
-          className="text-xs tracking-widest uppercase mb-8 text-center"
-          style={{ color: 'var(--ui-texto-acento, #F2C230)' }}
-        >
-          Primera División
-        </p>
 
         <div
           className="w-full p-6 rounded-2xl"
@@ -96,7 +84,7 @@ function Login() {
               type="submit"
               disabled={cargando}
               className="w-full p-3 rounded-xl font-medium transition-opacity hover:opacity-80 disabled:opacity-50"
-              style={{ backgroundColor: COLORES.acento, color: 'var(--login-boton-texto, #1A1A18)' }}
+              style={{ backgroundColor: COLORES.acento, color: 'var(--login-boton-texto)' }}
             >
               {cargando ? 'Ingresando...' : 'Ingresar'}
             </button>

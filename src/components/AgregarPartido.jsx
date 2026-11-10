@@ -4,6 +4,8 @@ import { supabase } from '../supabaseClient'
 import { obtenerFechaHoy } from '../utils/fecha'
 import { sanitizarNombreArchivo } from '../utils/archivos'
 import { comprimirImagen } from '../utils/comprimirImagen'
+import EncabezadoSeccion from './ui/EncabezadoSeccion'
+import EstadoVacio from './ui/EstadoVacio'
 
 function AgregarPartido({ categoriaId, onVolver, onGuardado, partidoIdEditar }) {
   const [equipos, setEquipos] = useState([])
@@ -32,7 +34,7 @@ function AgregarPartido({ categoriaId, onVolver, onGuardado, partidoIdEditar }) 
 
   const inputStyle = {
     backgroundColor: P.superficie,
-    border: "1px solid var(--ui-compartido-borde, #2A3548)",
+    border: "1px solid var(--ui-compartido-borde)",
     color: P.texto,
   }
 
@@ -150,7 +152,7 @@ function AgregarPartido({ categoriaId, onVolver, onGuardado, partidoIdEditar }) 
   if (cargando) {
     return (
       <div className="p-6 md:p-10">
-        <p style={{ color: P.tenue }}>Cargando...</p>
+        <EstadoVacio cargando mensaje="Cargando el partido…" />
       </div>
     )
   }
@@ -168,19 +170,10 @@ function AgregarPartido({ categoriaId, onVolver, onGuardado, partidoIdEditar }) 
           ← Volver
         </button>
 
-        <h1
-          className="text-2xl md:text-3xl mb-6"
-          style={{ fontFamily: "'Archivo Black', sans-serif", color: P.texto }}
-        >
-          {esEdicion ? 'Editar partido' : 'Nuevo partido'}
-        </h1>
-
-        {esEdicion && (
-          <p className="text-xs mb-6" style={{ color: P.tenue }}>
-            Los goles, videos, informes y observaciones del partido ahora se cargan desde la pestaña
-            "Post-Partido" dentro de la convocatoria del partido.
-          </p>
-        )}
+        <div className="mb-6">
+          <EncabezadoSeccion eyebrow="Partidos" eyebrowResaltado={esEdicion ? 'Edición' : 'Alta'} titulo={esEdicion ? 'Editar ' : 'Nuevo '} resaltado="partido"
+            descripcion={esEdicion ? 'Goles, videos e informes se cargan en "Post-Partido" de la convocatoria.' : undefined} />
+        </div>
 
         <div className="space-y-3 mb-6">
           <div>
@@ -193,12 +186,12 @@ function AgregarPartido({ categoriaId, onVolver, onGuardado, partidoIdEditar }) 
                   src={escudoAMostrar}
                   alt="Escudo del rival"
                   className="w-10 h-10 rounded-lg object-contain shrink-0"
-                  style={{ backgroundColor: P.fondo, border: "1px solid var(--ui-compartido-borde, #2A3548)" }}
+                  style={{ backgroundColor: P.fondo, border: "1px solid var(--ui-compartido-borde)" }}
                 />
               ) : (
                 <span
                   className="w-10 h-10 rounded-lg flex items-center justify-center text-sm shrink-0"
-                  style={{ backgroundColor: P.fondo, color: P.tenue, border: "1px solid var(--ui-compartido-borde, #2A3548)" }}
+                  style={{ backgroundColor: P.fondo, color: P.tenue, border: "1px solid var(--ui-compartido-borde)" }}
                 >
                   🛡️
                 </span>
@@ -234,7 +227,7 @@ function AgregarPartido({ categoriaId, onVolver, onGuardado, partidoIdEditar }) 
           </div>
 
           {mostrarNuevoEquipo && (
-            <div className="p-3 rounded-xl space-y-2" style={{ backgroundColor: P.fondo, border: "1px solid var(--ui-compartido-borde, #2A3548)" }}>
+            <div className="p-3 rounded-xl space-y-2" style={{ backgroundColor: P.fondo, border: "1px solid var(--ui-compartido-borde)" }}>
               <input
                 type="text"
                 placeholder="Nombre del nuevo equipo"
@@ -249,12 +242,12 @@ function AgregarPartido({ categoriaId, onVolver, onGuardado, partidoIdEditar }) 
                     src={escudoNuevoEquipo}
                     alt="Escudo"
                     className="w-10 h-10 rounded-lg object-contain shrink-0"
-                    style={{ backgroundColor: P.superficie, border: "1px solid var(--ui-compartido-borde, #2A3548)" }}
+                    style={{ backgroundColor: P.superficie, border: "1px solid var(--ui-compartido-borde)" }}
                   />
                 )}
                 <label
                   className="text-sm font-medium px-4 py-2.5 rounded-xl transition-opacity hover:opacity-80 cursor-pointer"
-                  style={{ backgroundColor: P.superficie, color: P.secundario, border: "1px solid var(--ui-compartido-borde, #2A3548)" }}
+                  style={{ backgroundColor: P.superficie, color: P.secundario, border: "1px solid var(--ui-compartido-borde)" }}
                 >
                   {subiendoEscudoNuevo ? 'Subiendo...' : escudoNuevoEquipo ? 'Cambiar escudo' : '📤 Subir escudo'}
                   <input

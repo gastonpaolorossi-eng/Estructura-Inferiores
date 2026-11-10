@@ -4,6 +4,7 @@ import { construirEvolucion, compararPeriodos, METRICAS_EVOLUCION, valorEvolucio
 import { modalidadesMetrica, nombreRanking, participacionRanking } from '../../utils/rendimiento/rankings.js'
 import GraficoEvolucion from './GraficoEvolucion'
 import './evolucion.css'
+import { fechaCorta } from '../../utils/formatoFecha'
 
 const COLORES = ['#AD8500', '#3B82F6', '#CE5684', '#159580', '#A779E9', '#CE6C20']
 const numero = v => v == null ? '—' : v.toLocaleString('es-AR', { maximumFractionDigits: 2 })
@@ -19,7 +20,7 @@ function Periodo({ etiqueta, valor, onCambiar, partidos }) {
   return <fieldset className="evolucion-periodo"><legend>Período {etiqueta}</legend>
     <label>Selección {etiqueta}<select value={valor.modo} onChange={e => onCambiar({ ...valor, modo: e.target.value })}><option value="fechas">Rango de fechas</option><option value="partidos">Grupo de partidos</option></select></label>
     {valor.modo === 'fechas' ? <><label>Desde {etiqueta}<input type="date" value={valor.desde} onChange={e => onCambiar({ ...valor, desde: e.target.value })} /></label>
-      <label>Hasta {etiqueta}<input type="date" value={valor.hasta} onChange={e => onCambiar({ ...valor, hasta: e.target.value })} /></label></> : <div className="evolucion-grupo">{partidos.map(p => <label key={p.id}><input type="checkbox" checked={valor.partidoIds.includes(p.id)} onChange={e => onCambiar({ ...valor, partidoIds: e.target.checked ? [...valor.partidoIds, p.id] : valor.partidoIds.filter(id => id !== p.id) })} />{p.fecha} · {p.rival || 'Rival no informado'}</label>)}</div>}
+      <label>Hasta {etiqueta}<input type="date" value={valor.hasta} onChange={e => onCambiar({ ...valor, hasta: e.target.value })} /></label></> : <div className="evolucion-grupo">{partidos.map(p => <label key={p.id}><input type="checkbox" checked={valor.partidoIds.includes(p.id)} onChange={e => onCambiar({ ...valor, partidoIds: e.target.checked ? [...valor.partidoIds, p.id] : valor.partidoIds.filter(id => id !== p.id) })} />{fechaCorta(p.fecha)} · {p.rival || 'Rival no informado'}</label>)}</div>}
   </fieldset>
 }
 function ValorPeriodo({ fila, porcentaje, unidad }) {

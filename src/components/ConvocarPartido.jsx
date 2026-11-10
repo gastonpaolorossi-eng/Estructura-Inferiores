@@ -4,6 +4,9 @@ import { supabase } from '../supabaseClient'
 import { obtenerJugadoresDeCategoria } from '../utils/jugadoresCategoria'
 import { FORMACIONES } from '../data/formaciones'
 import { CAMPOS_FISICOS } from '../utils/camposFisicos'
+import { fechaHora } from '../utils/formatoFecha'
+import EncabezadoSeccion from './ui/EncabezadoSeccion'
+import EstadoVacio from './ui/EstadoVacio'
 
 function fechaISO(date) {
   const anio = date.getFullYear()
@@ -30,9 +33,9 @@ function nombreDiaCorto(fechaStr) {
 }
 
 const estadoConfig = {
-  lesionado: { color: '#FBBF24', label: 'Lesionado' },
-  suspendido: { color: '#F87171', label: 'Suspendido' },
-  no_disponible: { color: '#8A9BB8', label: 'No disponible' },
+  lesionado: { color: 'var(--ui-alerta)', label: 'Lesionado' },
+  suspendido: { color: 'var(--ui-peligro)', label: 'Suspendido' },
+  no_disponible: { color: 'var(--ui-neutro)', label: 'No disponible' },
 }
 
 const statsVacias = {
@@ -89,7 +92,7 @@ function ConvocarPartido({ partidoId, categoriaId, onVolver, onIrAFisico }) {
 
   const inputStyle = {
     backgroundColor: P.fondo,
-    border: "1px solid var(--ui-compartido-borde, #2A3548)",
+    border: "1px solid var(--ui-compartido-borde)",
     color: P.texto,
   }
 
@@ -417,7 +420,7 @@ function ConvocarPartido({ partidoId, categoriaId, onVolver, onIrAFisico }) {
   if (!partido) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p style={{ color: P.tenue }}>Cargando...</p>
+        <EstadoVacio cargando mensaje="Cargando el partido…" />
       </div>
     )
   }
@@ -445,31 +448,21 @@ function ConvocarPartido({ partidoId, categoriaId, onVolver, onIrAFisico }) {
           ← Volver
         </button>
 
-        <h1
-          className="text-2xl md:text-3xl mb-1 flex items-center gap-2.5"
-          style={{ fontFamily: "'Archivo Black', sans-serif", color: P.texto }}
-        >
-          {partido.escudo_url ? (
+        <div className="mb-6 flex items-end gap-4">
+          {partido.escudo_url && (
             <img
               src={partido.escudo_url}
               alt={partido.rival}
-              className="w-8 h-8 rounded object-contain shrink-0"
-              style={{ backgroundColor: P.fondo }}
+              className="w-14 h-14 md:w-20 md:h-20 object-contain shrink-0"
             />
-          ) : (
-            <span
-              className="w-8 h-8 rounded flex items-center justify-center text-sm shrink-0"
-              style={{ backgroundColor: P.fondo, color: P.tenue }}
-            >
-              🛡️
-            </span>
           )}
-          vs {partido.rival}
-        </h1>
-        <p className="text-sm mb-6" style={{ color: P.secundario }}>
-          {partido.fecha} {partido.hora && `· ${partido.hora}`} {partido.lugar && `· ${partido.lugar}`}
-          {partido.local_visitante && ` · ${partido.local_visitante}`}
-        </p>
+          <div className="min-w-0 flex-1">
+            <EncabezadoSeccion
+              eyebrow={fechaHora(partido.fecha, partido.hora)}
+              eyebrowResaltado={[partido.lugar, partido.local_visitante].filter(Boolean).join(' · ') || undefined}
+              titulo="vs " resaltado={partido.rival} />
+          </div>
+        </div>
 
         <div className="flex gap-2 mb-6 flex-wrap">
           {[
@@ -485,7 +478,7 @@ function ConvocarPartido({ partidoId, categoriaId, onVolver, onIrAFisico }) {
               style={
                 tab === t.key
                   ? { backgroundColor: P.primario, color: P.sobrePrimario }
-                  : { backgroundColor: P.superficie, border: "1px solid var(--ui-compartido-borde, #2A3548)", color: P.secundario }
+                  : { backgroundColor: P.superficie, border: "1px solid var(--ui-compartido-borde)", color: P.secundario }
               }
             >
               {t.label}
@@ -504,7 +497,7 @@ function ConvocarPartido({ partidoId, categoriaId, onVolver, onIrAFisico }) {
               </span>
             </div>
 
-            <div className="overflow-x-auto rounded-xl mb-6" style={{ border: "1px solid var(--ui-compartido-borde, #2A3548)" }}>
+            <div className="overflow-x-auto rounded-xl mb-6" style={{ border: "1px solid var(--ui-compartido-borde)" }}>
               <table className="min-w-full text-xs" style={{ borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ backgroundColor: P.superficie }}>
@@ -702,7 +695,7 @@ function ConvocarPartido({ partidoId, categoriaId, onVolver, onIrAFisico }) {
                 <button
                   onClick={() => onIrAFisico(partidoId)}
                   className="text-xs px-3 py-1.5 rounded-lg transition-opacity hover:opacity-80"
-                  style={{ backgroundColor: P.superficie, color: P.secundario, border: "1px solid var(--ui-compartido-borde, #2A3548)" }}
+                  style={{ backgroundColor: P.superficie, color: P.secundario, border: "1px solid var(--ui-compartido-borde)" }}
                 >
                   📊 Cargar/editar físico
                 </button>
@@ -714,7 +707,7 @@ function ConvocarPartido({ partidoId, categoriaId, onVolver, onIrAFisico }) {
                 Todavía no hay datos físicos cargados para este partido.
               </p>
             ) : (
-              <div className="overflow-x-auto rounded-xl" style={{ border: "1px solid var(--ui-compartido-borde, #2A3548)" }}>
+              <div className="overflow-x-auto rounded-xl" style={{ border: "1px solid var(--ui-compartido-borde)" }}>
                 <table className="min-w-full text-sm" style={{ borderCollapse: 'collapse' }}>
                   <thead>
                     <tr style={{ backgroundColor: P.superficie }}>
@@ -773,7 +766,7 @@ function ConvocarPartido({ partidoId, categoriaId, onVolver, onIrAFisico }) {
                   value={formacion}
                   onChange={(e) => cambiarFormacion(e.target.value)}
                   className="p-2.5 rounded-xl ui-control outline-none text-sm"
-                  style={{ backgroundColor: P.superficie, border: "1px solid var(--ui-compartido-borde, #2A3548)", color: P.texto }}
+                  style={{ backgroundColor: P.superficie, border: "1px solid var(--ui-compartido-borde)", color: P.texto }}
                 >
                   {Object.keys(FORMACIONES).map((f) => (
                     <option key={f} value={f}>
@@ -785,7 +778,7 @@ function ConvocarPartido({ partidoId, categoriaId, onVolver, onIrAFisico }) {
               <button
                 onClick={handleRestablecerPosiciones}
                 className="text-sm px-3 py-2.5 rounded-xl transition-opacity hover:opacity-80"
-                style={{ backgroundColor: P.superficie, color: P.secundario, border: "1px solid var(--ui-compartido-borde, #2A3548)" }}
+                style={{ backgroundColor: P.superficie, color: P.secundario, border: "1px solid var(--ui-compartido-borde)" }}
               >
                 ↺ Restablecer posiciones
               </button>
@@ -804,7 +797,7 @@ function ConvocarPartido({ partidoId, categoriaId, onVolver, onIrAFisico }) {
                   maxWidth: 380,
                   aspectRatio: '68 / 100',
                   backgroundColor: '#183A2A',
-                  border: "1px solid var(--ui-compartido-borde, #2A3548)",
+                  border: "1px solid var(--ui-compartido-borde)",
                   touchAction: 'none',
                 }}
               >
@@ -861,10 +854,10 @@ function ConvocarPartido({ partidoId, categoriaId, onVolver, onIrAFisico }) {
                         style={{
                           width: 34,
                           height: 34,
-                          backgroundColor: '#4ADE80',
-                          color: '#0F1419',
-                          border: '2px solid #4ADE80',
-                          fontFamily: "'Archivo Black', sans-serif",
+                          backgroundColor: 'var(--ui-acento)',
+                          color: 'var(--ui-texto-sobre-acento)',
+                          border: '2px solid var(--ui-acento)',
+                          fontFamily: 'var(--fuente-titulo)', fontStyle: 'italic', fontWeight: 900, textTransform: 'uppercase',
                           boxShadow: activo
                             ? '0 6px 16px rgba(0,0,0,0.5), 0 0 0 4px rgba(74,222,128,0.35)'
                             : '0 2px 6px rgba(0,0,0,0.3)',
@@ -904,7 +897,7 @@ function ConvocarPartido({ partidoId, categoriaId, onVolver, onIrAFisico }) {
                       key={c.jugadorId}
                       onClick={() => agregarACancha(c.jugadorId)}
                       className="w-full flex items-center gap-2 p-2 rounded-lg text-sm text-left hover:opacity-80"
-                      style={{ backgroundColor: P.superficie, border: "1px solid var(--ui-compartido-borde, #2A3548)" }}
+                      style={{ backgroundColor: P.superficie, border: "1px solid var(--ui-compartido-borde)" }}
                     >
                       <span
                         className="w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold shrink-0"
@@ -1026,7 +1019,7 @@ function ConvocarPartido({ partidoId, categoriaId, onVolver, onIrAFisico }) {
                         target="_blank"
                         rel="noreferrer"
                         className="w-9 h-9 rounded-full flex items-center justify-center text-sm shrink-0"
-                        style={{ backgroundColor: P.superficie, border: "1px solid var(--ui-compartido-borde, #2A3548)", color: P.exito }}
+                        style={{ backgroundColor: P.superficie, border: "1px solid var(--ui-compartido-borde)", color: P.exito }}
                         title="Abrir"
                       >
                         ▶

@@ -2,6 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
+import { soloLogica } from './helpers/soloLogica.mjs'
 const leer = ruta => readFileSync(ruta, 'utf8').replaceAll('\r', '')
 
 test('Perfil 3.0: temporadas reales, un solo año, sin fechas y evaluación sin valores inventados', async () => {
@@ -42,9 +43,9 @@ test('Perfil 3.0: consultas, fórmulas, PDF, permisos y eliminación conservados
   // del resto de consultas, fórmulas, permisos y PDF.
   const antes = base('src/components/PerfilJugador.jsx'), ahora = leer('src/components/PerfilJugador.jsx').replace(/    minutos: \{\n      titulo: 'Minutos jugados',\n      filtro: [^\n]+\n      valor: [^\n]+\n    \},\n/, '')
   for (const [inicio, fin] of [['  useEffect(() => {', '  const abrirDetalle'], ['  const descargarWellness', '  return <div className="perfil-premium">']]) {
-    assert.equal(ahora.slice(ahora.indexOf(inicio), ahora.indexOf(fin, ahora.indexOf(inicio))), antes.slice(antes.indexOf(inicio), antes.indexOf(fin, antes.indexOf(inicio))))
+    assert.equal(soloLogica(ahora.slice(ahora.indexOf(inicio), ahora.indexOf(fin, ahora.indexOf(inicio)))), soloLogica(antes.slice(antes.indexOf(inicio), antes.indexOf(fin, antes.indexOf(inicio)))))
   }
-  for (const ruta of ['src/components/PdfPerfilModal.jsx', 'src/utils/generarPerfilPDF.js', 'src/utils/generarBienestarPDF.js']) assert.equal(leer(ruta), base(ruta))
+  for (const ruta of ['src/components/PdfPerfilModal.jsx', 'src/utils/generarPerfilPDF.js', 'src/utils/generarBienestarPDF.js']) assert.equal(soloLogica(leer(ruta)), soloLogica(base(ruta)))
   // La autorización de Análisis cambió en una entrega posterior aprobada. Su
   // catálogo sigue intacto; la referencia espacial tiene pruebas propias de orientación.
   const analisis = leer('src/components/AnalisisSection.jsx'), analisisBase = base('src/components/AnalisisSection.jsx')

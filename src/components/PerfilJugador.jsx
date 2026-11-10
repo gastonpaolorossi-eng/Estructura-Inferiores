@@ -21,6 +21,10 @@ import './perfil/perfilPremium.css'
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import PdfPerfilModal from './PdfPerfilModal'
+import FranjaNumeros from './ui/FranjaNumeros'
+import { estadoConfig } from './perfil/presentacionPerfil'
+import { calcularSemaforoJugador, SEMAFORO_INFO } from '../utils/semaforoRiesgo'
+import { ultimosDorsales } from '../utils/dorsales'
 import { cargarDatosBienestar } from '../utils/bienestar'
 import { generarBienestarPDF } from '../utils/generarBienestarPDF'
 
@@ -63,6 +67,8 @@ function PerfilJugador({
   const [lectura, setLectura] = useState({ id: null, estado: 'cargando', fuentes: {} })
   const [generandoWellness, setGenerandoWellness] = useState(false)
   const [errorWellnessPDF, setErrorWellnessPDF] = useState('')
+  const [lecturaSemaforo, setLecturaSemaforo] = useState({ id: null, resultado: null })
+  const [lecturaDorsal, setLecturaDorsal] = useState({ id: null, dorsal: null })
 
   useEffect(() => {
     let cancelado = false
@@ -276,6 +282,30 @@ function PerfilJugador({
       cancelado = true
     }
   }, [jugadorId])
+
+  // Semáforo de riesgo de esta jugadora (Wellness + sRPE/ACWR + CMJ), con los mismos roles que lo ven en Inicio.
+  const idSemaforo = jugador?.id, categoriaJugadora = jugador?.categoria_id
+  const rolPerfil = perfil?.rol, categoriaPerfil = perfil?.categoria_id
+  const puedeSemaforo = Boolean(idSemaforo) && (['coordinacion', 'preparador_fisico'].includes(rolPerfil) ||
+    rolPerfil === 'tecnico' && Boolean(categoriaPerfil) && categoriaPerfil === categoriaJugadora)
+  useEffect(() => {
+    if (!puedeSemaforo) return
+    let activo = true
+    calcularSemaforoJugador(idSemaforo, categoriaJugadora)
+      .then(resultado => { if (activo) setLecturaSemaforo({ id: idSemaforo, resultado }) })
+      .catch(() => { if (activo) setLecturaSemaforo({ id: idSemaforo, resultado: null }) })
+    return () => { activo = false }
+  }, [puedeSemaforo, idSemaforo, categoriaJugadora])
+  const semaforo = puedeSemaforo && lecturaSemaforo.id === idSemaforo ? lecturaSemaforo.resultado : null
+
+  // Último dorsal citado de esta jugadora (una consulta); sin dato, la portada muestra el puesto.
+  useEffect(() => {
+    if (!idSemaforo) return
+    let activo = true
+    ultimosDorsales(supabase, [idSemaforo]).then(mapa => { if (activo) setLecturaDorsal({ id: idSemaforo, dorsal: mapa[idSemaforo] ?? null }) })
+    return () => { activo = false }
+  }, [idSemaforo])
+  const dorsal = lecturaDorsal.id === idSemaforo ? lecturaDorsal.dorsal : null
 
   async function handleEliminarJugador() {
     const confirmar = window.confirm(
@@ -498,9 +528,17 @@ function PerfilJugador({
     finally { setGenerandoWellness(false) }
   }
   return <div className="perfil-premium"><div className="perfil-contenido">
-    <CabeceraPerfil key={jugador.id} jugador={jugador} onVolver={onVolver} onEditar={onEditar} onPDF={() => setMostrarPdf(true)} onEliminar={handleEliminarJugador} eliminando={eliminando} />
+    <CabeceraPerfil key={jugador.id} jugador={jugador} dorsal={dorsal} onVolver={onVolver} onEditar={onEditar} onPDF={() => setMostrarPdf(true)} onEliminar={handleEliminarJugador} eliminando={eliminando} />
+    <FranjaNumeros etiqueta="Resumen de la jugadora" items={[
+      { etiqueta: 'PJ', valor: fuentes.estadisticas?.error ? null : totales.partidos },
+      { etiqueta: 'Minutos', valor: fuentes.estadisticas?.error ? null : totales.minutos },
+      { etiqueta: 'Goles', valor: fuentes.estadisticas?.error ? null : totales.goles },
+      semaforo
+        ? { etiqueta: 'Estado físico', valor: SEMAFORO_INFO[semaforo.semaforo]?.label ?? null, unidad: `${semaforo.puntos}/6`, nivel: semaforo.semaforo }
+        : { etiqueta: puedeSemaforo ? 'Estado físico' : 'Estado', valor: puedeSemaforo ? null : estadoConfig[jugador.estado]?.label ?? null },
+    ]} />
     <PestanasAccesibles etiqueta="Secciones del perfil individual" seleccionada={pestana} onSeleccionar={setPestana} pestanas={[
-      { id: 'resumen', etiqueta: 'Resumen', contenido: <div className="perfil-resumen"><EncabezadoSeccion titulo="Resumen deportivo" descripcion="Valores acumulados de los registros disponibles. Se conservan los cálculos actuales." nivel={2} />
+      { id: 'resumen', etiqueta: 'Resumen', contenido: <div className="perfil-resumen"><EncabezadoSeccion eyebrow="Acumulado" titulo="Resumen " resaltado="deportivo" nivel={2} />
         <IndicadoresPerfil totales={totales} onDetalle={abrirDetalle} sinDato={Boolean(fuentes.estadisticas?.error)} />
         <FuentePerfil fuente={fuentes.estadisticas} titulo="Estadísticas deportivas">{estadisticas.length === 0 && <EstadoContenido estado="vacio" titulo="Sin estadísticas registradas" mensaje="El acumulado no acredita ausencia de participación deportiva." />}</FuentePerfil>
         <ResumenDeportivoPerfil estadisticasPorAnio={estadisticasPorAnio} fuentes={fuentes} evaluacionesPorPeriodo={evaluacionesPorPeriodo} criteriosEvaluacion={criteriosEvaluacion} puedeConsultarCategoria={puedeConsultarCategoria} puedeWellness={puedeWellness} resumenBienestar={resumenBienestar} resumenAsistencia={resumenAsistencia} totalAsistenciaMarcada={totalAsistenciaMarcada} onPestana={setPestana} onEvaluacion={periodo => { setPeriodoAbierto(periodo); setMostrarEvaluaciones(true); setPestana('evaluaciones') }} />

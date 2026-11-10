@@ -12,6 +12,7 @@ import ControlesVideoAnalisis from './ControlesVideoAnalisis'
 import { crearBloqueoEtiquetado, leerTiempoActivo, registroInciertoTrasError } from '../utils/ventanaAnalisis'
 import { cargarYouTubeEnVentana, mensajeErrorYouTube } from '../utils/youtubeVentana'
 import './ventanasAnalisis.css'
+import EncabezadoSeccion from './ui/EncabezadoSeccion'
 import DetalleDestinatariaPase from './DetalleDestinatariaPase'
 import DetalleDestinoPase from './DetalleDestinoPase'
 import FlechasPases from './FlechasPases'
@@ -113,7 +114,7 @@ function Boton({
       className="rounded-lg px-4 py-2.5 text-sm font-bold transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
       style={secundario
         ? { backgroundColor: A.control, color: A.texto, border: `1px solid ${A.borde}` }
-        : { backgroundColor: AMARILLO, color: '#171717' }}
+        : { backgroundColor: 'var(--ui-acento)', color: 'var(--ui-texto-sobre-acento)' }}
     >
       {children}
     </button>
@@ -215,12 +216,6 @@ function videoCalendario(partido) {
 function nombreJugadora(jugadora) {
   if (!jugadora) return 'Sin jugadora asignada'
   return `${jugadora.nombre || ''} ${jugadora.apellido || ''}`.trim() || 'Sin nombre'
-}
-
-function iniciales(jugadora) {
-  const nombre = jugadora?.nombre?.trim()?.[0] || ''
-  const apellido = jugadora?.apellido?.trim()?.[0] || ''
-  return `${nombre}${apellido}`.toUpperCase() || '?'
 }
 
 function obtenerCoordenadas(posicion) {
@@ -1122,9 +1117,6 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
     return eventos
       .filter((evento) => {
         const partido = partidos.find((p) => p.id === evento.partido_id)
-        const nombre = nombreJugadora(jugadoras.find((j) => j.id === evento.jugador_id)).toLowerCase()
-        const minuto = Math.floor(Number(evento.segundo || 0) / 60)
-
         return (
           (filtroExploradorPartido === 'todos' || evento.partido_id === filtroExploradorPartido) &&
           (filtroExploradorJugadora === 'todos' || evento.jugador_id === filtroExploradorJugadora) &&
@@ -1147,7 +1139,6 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
   }, [
     eventos,
     partidos,
-    jugadoras,
     filtroExploradorPartido,
     filtroExploradorJugadora,
     filtroExploradorTipo,
@@ -1253,14 +1244,6 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
       })
       .sort((a, b) => b.total - a.total)
   }, [eventosEstadisticos, jugadoras])
-
-  const estadisticasZonas = useMemo(
-    () => ZONAS.map((nombre) => ({
-      nombre,
-      total: eventosPartido.filter((e) => zonaEfectivaEvento(e) === nombre).length,
-    })),
-    [eventosPartido],
-  )
 
   const estadisticasInforme = useMemo(() => {
     const resumen = {}
@@ -1871,31 +1854,16 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
 
   return (
     <div
-      className="min-h-screen space-y-5 p-3 md:p-6"
-      style={{ backgroundColor: A.fondo, color: A.texto }}
+      className="min-h-screen space-y-5 p-4 md:p-6"
+      style={{ color: A.texto }}
     >
       {bloqueoEscritura && <p role="status">{(estadoAutorizacion || estadoPermiso) === 'pendiente_migracion'
         ? 'Análisis en modo consulta: falta activar la función de autorización de la migración pendiente. Crear, guardar, editar y eliminar están bloqueados hasta que el servidor confirme los permisos.'
         : 'Escrituras pausadas: no se pudo confirmar la autorización del servidor o se está revalidando. Se conserva el trabajo abierto y podés consultar el video.'}</p>}
-      <header className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <p
-            className="mb-2 text-xs font-bold uppercase tracking-[0.2em]"
-            style={{ color: textoAnalisis(AMARILLO) }}
-          >
-            COMUNICACIONES · PERFORMANCE
-          </p>
-          <h1 className="text-3xl font-black tracking-tight md:text-4xl">
-            Videoanálisis
-          </h1>
-          <p className="mt-2 text-sm" style={{ color: A.secundario }}>
-            Etiquetado de acciones, formación y análisis del rendimiento.
-          </p>
-          <p className="mt-2 text-xs" style={{ color: A.secundario }}>
-            {!bloqueoEscritura
-              ? 'Modo administrador · Gestión habilitada'
-              : 'Modo consulta · Solo lectura'}
-          </p>
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div className="min-w-0">
+          <EncabezadoSeccion eyebrow="Performance" eyebrowResaltado={!bloqueoEscritura ? 'Gestión habilitada' : 'Solo lectura'}
+            titulo="Análi" resaltado="sis" />
         </div>
 
         <div className="flex flex-wrap gap-2">
@@ -2043,7 +2011,7 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
         <div className="flex flex-wrap items-center gap-4">
           <div
             className="flex h-12 w-12 items-center justify-center rounded-xl text-xl font-black"
-            style={{ backgroundColor: AMARILLO, color: '#171717' }}
+            style={{ backgroundColor: 'var(--ui-acento)', color: 'var(--ui-texto-sobre-acento)' }}
           >
             ▶
           </div>
@@ -2158,8 +2126,8 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
                 onClick={() => setSeccion(id)}
                 className="rounded-lg border px-4 py-2.5 text-sm font-bold"
                 style={{
-                  backgroundColor: seccion === id ? AMARILLO : A.panel,
-                  color: seccion === id ? '#171717' : A.texto,
+                  backgroundColor: seccion === id ? 'var(--ui-acento)' : A.panel,
+                  color: seccion === id ? 'var(--ui-texto-sobre-acento)' : A.texto,
                   borderColor: seccion === id ? AMARILLO : A.borde,
                 }}
               >
@@ -2385,7 +2353,7 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
                                 >
                                   <span
                                     className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-black"
-                                    style={{ backgroundColor: AMARILLO, color: '#171717' }}
+                                    style={{ backgroundColor: 'var(--ui-acento)', color: 'var(--ui-texto-sobre-acento)' }}
                                   >
                                     {c.dorsal ?? '—'}
                                   </span>
@@ -2556,8 +2524,8 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
                                 <span
                                   className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-black"
                                   style={{
-                                    backgroundColor: AMARILLO,
-                                    color: '#171717',
+                                    backgroundColor: 'var(--ui-acento)',
+                                    color: 'var(--ui-texto-sobre-acento)',
                                   }}
                                 >
                                   {c.dorsal ?? '—'}
@@ -3290,7 +3258,7 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
                     onClick={() => setAlcanceEstadisticas('partido')}
                     className="rounded-lg border px-4 py-2 text-sm font-bold"
                     style={alcanceEstadisticas === 'partido'
-                      ? { backgroundColor: AMARILLO, color: '#171717', borderColor: AMARILLO }
+                      ? { backgroundColor: 'var(--ui-acento)', color: 'var(--ui-texto-sobre-acento)', borderColor: 'var(--ui-acento)' }
                       : { backgroundColor: A.fondo, color: A.texto, borderColor: A.borde }}
                   >Partido seleccionado</button>
                   <button
@@ -3298,7 +3266,7 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
                     onClick={() => setAlcanceEstadisticas('acumulado')}
                     className="rounded-lg border px-4 py-2 text-sm font-bold"
                     style={alcanceEstadisticas === 'acumulado'
-                      ? { backgroundColor: AMARILLO, color: '#171717', borderColor: AMARILLO }
+                      ? { backgroundColor: 'var(--ui-acento)', color: 'var(--ui-texto-sobre-acento)', borderColor: 'var(--ui-acento)' }
                       : { backgroundColor: A.fondo, color: A.texto, borderColor: A.borde }}
                   >Todos los partidos</button>
                 </div>
@@ -3467,8 +3435,8 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
                     onClick={() => setAlcanceMapa(valor)}
                     className="rounded-lg border px-4 py-2 text-sm font-bold"
                     style={{
-                      backgroundColor: alcanceMapa === valor ? AMARILLO : A.fondo,
-                      color: alcanceMapa === valor ? '#171717' : A.texto,
+                      backgroundColor: alcanceMapa === valor ? 'var(--ui-acento)' : A.fondo,
+                      color: alcanceMapa === valor ? 'var(--ui-texto-sobre-acento)' : A.texto,
                       borderColor: alcanceMapa === valor ? AMARILLO : A.borde,
                     }}
                   >

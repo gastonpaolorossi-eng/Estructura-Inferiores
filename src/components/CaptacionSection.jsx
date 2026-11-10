@@ -1,13 +1,15 @@
 import EncabezadoSeccion from './ui/EncabezadoSeccion'
 import EstadoContenido from './ui/EstadoContenido'
-import TarjetaIndicador from './ui/TarjetaIndicador'
 import BarraFiltros from './ui/BarraFiltros'
+import FranjaNumeros from './ui/FranjaNumeros'
+import Boton from './ui/Boton'
 import { textoGestion } from '../appearance/gestion'
 import { COLORES } from '../theme'
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import CategoriaFiltro from './CategoriaFiltro'
 import { obtenerFechaHoy } from '../utils/fecha'
+import { fechaCorta } from '../utils/formatoFecha'
 
 const ESTADO_CONFIG = {
   en_prueba: { label: 'En prueba', color: COLORES.acento, icono: '🕓' },
@@ -218,7 +220,7 @@ function CaptacionSection({ perfil }) {
   return (
     <div className="dp-gestion" data-modulo="captacion">
       <div className="dp-gestion-contenido">
-        <EncabezadoSeccion titulo="Captación" descripcion="Seguimiento deportivo de candidatos, pruebas y altas al plantel." acciones={<button type="button" onClick={mostrarForm ? cancelarForm : abrirNuevo} className={mostrarForm ? 'dp-accion' : 'dp-accion dp-accion-primaria'} aria-expanded={mostrarForm} aria-controls="captacion-editor">{mostrarForm ? 'Cancelar' : '+ Nuevo candidato'}</button>}><p className="dp-contexto-cabecera">COMUNICACIONES · DESARROLLO DE TALENTO</p></EncabezadoSeccion>
+        <EncabezadoSeccion eyebrow="Gestión" eyebrowResaltado="Desarrollo de talento" titulo="Capta" resaltado="ción" acciones={<Boton variante={mostrarForm ? 'secundario' : 'principal'} onClick={mostrarForm ? cancelarForm : abrirNuevo} aria-expanded={mostrarForm} aria-controls="captacion-editor">{mostrarForm ? 'Cancelar' : '+ Nuevo candidato'}</Boton>} />
 
         {mostrarForm && (
           <div id="captacion-editor" role="region" aria-labelledby="captacion-editor-titulo"
@@ -365,7 +367,7 @@ function CaptacionSection({ perfil }) {
           bloqueada={esTecnico}
           categoriaNombre={perfil?.categorias?.nombre}
         /></div></BarraFiltros>
-        <div className="dp-resumen-gestion" aria-label="Candidatos según los filtros actuales">{grupos.map(grupo => <TarjetaIndicador key={grupo.clave} etiqueta={grupo.config.label} valor={grupo.lista.length} periodo="Según los filtros actuales" sinDato={cargando || Boolean(errorCarga)} />)}</div>
+        <FranjaNumeros etiqueta="Candidatos según los filtros actuales" items={[{ etiqueta: 'Candidatos', valor: cargando || errorCarga ? null : filtrados.length }, ...grupos.map(grupo => ({ etiqueta: grupo.config.label, valor: cargando || errorCarga ? null : grupo.lista.length }))]} />
 
         {cargando && <EstadoContenido estado="cargando" titulo="Cargando candidatos" />}
         {!cargando && errorCarga && <EstadoContenido estado={errorCarga.code === '42501' ? 'denegado' : 'error'} titulo="No se pudo consultar la información" mensaje="No equivale a una lista vacía. Podés reintentar la consulta." onReintentar={cargar} />}
@@ -388,7 +390,7 @@ function CaptacionSection({ perfil }) {
                         <div className="dp-registro-cabecera">
                           <span
                             className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-                            style={{ backgroundColor: COLORES.fondoPagina, color: COLORES.textoSecundario, fontFamily: "'Archivo Black', sans-serif" }}
+                            style={{ backgroundColor: COLORES.fondoPagina, color: COLORES.textoSecundario, fontFamily: 'var(--fuente-titulo)', fontStyle: 'italic', fontWeight: 900, textTransform: 'uppercase' }}
                           >
                             {iniciales(c.nombre, c.apellido)}
                           </span>
@@ -399,7 +401,7 @@ function CaptacionSection({ perfil }) {
                             <p className="text-xs" style={{ color: COLORES.textoSecundario }}>
                               {c.categorias?.nombre}
                               {c.posicion ? ` · ${c.posicion}` : ''}
-                              {c.fecha_prueba ? ` · ${c.fecha_prueba}` : ''}
+                              {c.fecha_prueba ? ` · ${fechaCorta(c.fecha_prueba)}` : ''}
                             </p>
                           </div>
                           <div className="dp-acciones-registro">

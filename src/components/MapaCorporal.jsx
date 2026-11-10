@@ -35,8 +35,8 @@ export default function MapaCorporal({ fichas = [], seleccion, onSeleccionar }) 
         <h3>{vista === 'frente' ? 'Frente' : 'Espalda'}</h3>
         <div className="mapa-corporal-lados"><span>{vista === 'frente' ? 'Derecha' : 'Izquierda'}</span><span>{vista === 'frente' ? 'Izquierda' : 'Derecha'}</span></div>
         <svg viewBox="0 0 200 460" aria-label={`Vista de ${vista}`}>
-          <circle cx="100" cy="27" r="22" fill="var(--ui-borde, #64748B)" />
-          <path d="M69 313 L92 313 L88 398 L68 398 Z M108 313 L132 313 L132 398 L112 398 Z M83 174 L117 174 L117 211 L83 211 Z" fill="var(--ui-borde, #64748B)" />
+          <circle cx="100" cy="27" r="22" fill="var(--ui-borde)" />
+          <path d="M69 313 L92 313 L88 398 L68 398 Z M108 313 L132 313 L132 398 L112 398 Z M83 174 L117 174 L117 211 L83 211 Z" fill="var(--ui-borde)" />
           {ZONAS_CORPORALES.filter(z => z.vista === 'ambas' || z.vista === vista).flatMap(z =>
             (CENTRALES.includes(z.id) ? ['central'] : ['derecha', 'izquierda']).map(lado => {
               const izquierdaEnPantalla = vista === 'frente' ? lado === 'derecha' : lado === 'izquierda'
@@ -44,7 +44,7 @@ export default function MapaCorporal({ fichas = [], seleccion, onSeleccionar }) 
               const cantidad = fichasZona(fichas, z.id, lado).length
               const elegir = () => onSeleccionar?.({ zona: z.id, lado })
               return <path key={`${z.id}-${lado}`} d={formas[z.id]} transform={lado !== 'central' && !izquierdaEnPantalla ? 'translate(200 0) scale(-1 1)' : undefined}
-                fill={colorZona(fichas, z.id, lado)} stroke={seleccionada ? 'var(--ui-texto, #fff)' : 'var(--ui-superficie, #fff)'} strokeWidth={seleccionada ? 3 : 1.5}
+                fill={colorZona(fichas, z.id, lado)} stroke={seleccionada ? 'var(--ui-texto)' : 'var(--ui-superficie)'} strokeWidth={seleccionada ? 3 : 1.5}
                 role="button" tabIndex={0} aria-pressed={!!seleccionada} aria-label={`${nombreZona(z.id)} · ${LADOS_CORPORALES[lado]} · ${cantidad} registros`}
                 onClick={elegir} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); elegir() } }}>
                 <title>{nombreZona(z.id)} · {LADOS_CORPORALES[lado]} · {cantidad} registros</title>

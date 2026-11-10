@@ -11,6 +11,7 @@ import BarraFiltros from './ui/BarraFiltros'
 import TarjetaIndicador from './ui/TarjetaIndicador'
 import EstadoContenido from './ui/EstadoContenido'
 import './audiovisualPremium.css'
+import { fechaCorta, fechaLarga } from '../utils/formatoFecha'
 
 function EntrenamientosSection({ onPlanificar }) {
   const [entrenamientos, setEntrenamientos] = useState([])
@@ -179,8 +180,7 @@ function EntrenamientosSection({ onPlanificar }) {
   return (
     <div className="av-premium av-entrenamientos" style={{ color: COLORES.texto }}>
       <div className="av-contenido">
-        <EncabezadoFotografico titulo="Entrenamientos" imagen="/images/fotos-comunicaciones/banner_entrenamientos.jpg" descripcionImagen="Cancha y tribunas negras y amarillas de Comunicaciones" posicion="entrenamientos-premium">
-          <p className="av-bajada">Planificá el trabajo. Construí tu biblioteca de ejercicios.</p>
+        <EncabezadoFotografico eyebrowResaltado="Biblioteca de ejercicios" titulo="Entrena" resaltado="mientos" imagen="/images/fotos-comunicaciones/banner_entrenamientos.jpg" descripcionImagen="Cancha y tribunas negras y amarillas de Comunicaciones" posicion="entrenamientos-premium">
           <div className="av-acciones-cabecera">
           {onPlanificar && <button type="button" onClick={onPlanificar} className="av-accion">▦ Planificación semanal</button>}
           <button
@@ -198,7 +198,7 @@ function EntrenamientosSection({ onPlanificar }) {
             <div className="av-form-campos">
             {entrenamientoEditando && (
               <p className="text-xs" style={{ color: COLORES.textoSecundario }}>
-                Editando entrenamiento del {entrenamientoEditando.fecha}
+                Editando entrenamiento del {fechaLarga(entrenamientoEditando.fecha)}
               </p>
             )}
             <div className="grid sm:grid-cols-2 gap-3">
@@ -371,7 +371,7 @@ function EntrenamientosSection({ onPlanificar }) {
                       {e.contenido}
                     </span>
                   )}
-                  <span className="text-[10px] font-mono" style={{ color: COLORES.textoMuted }}>{e.fecha}</span>
+                  <span className="text-[10px] font-mono" style={{ color: COLORES.textoMuted }}>{fechaCorta(e.fecha)}</span>
                 </div>
                 <h3 className="av-descripcion-ejercicio" style={{ color: COLORES.texto }}>{e.descripcion}</h3>
                 {e.cantidad_jugadores && (

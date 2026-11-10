@@ -55,7 +55,7 @@ export default function DatosPerfil({ datosPersonales, jugador, historialCategor
                   Datos para situaciones de urgencia
                 </span>
               </span>
-              <span style={{ color: "var(--plantel-peligro, #F87171)" }}>＋</span>
+              <span style={{ color: "var(--plantel-peligro)" }}>＋</span>
             </summary>
 
             <div className="px-4 pb-4">

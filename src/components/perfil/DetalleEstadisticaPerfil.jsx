@@ -40,7 +40,7 @@ function ContenidoDetalle({ filtroStat, statConfig, estadisticas, jugador, setFi
             ← Volver al perfil
           </button>
 
-          <h1 className="text-2xl md:text-3xl mb-1" style={{ fontFamily: "'Archivo Black', sans-serif", color: COLORES.texto }}>
+          <h1 className="text-2xl md:text-3xl mb-1" style={{ fontFamily: 'var(--fuente-titulo)', fontStyle: 'italic', fontWeight: 900, textTransform: 'uppercase', color: COLORES.texto }}>
             {config.titulo}
           </h1>
 

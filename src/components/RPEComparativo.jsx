@@ -5,11 +5,13 @@ import { obtenerJugadoresDeCategoria } from '../utils/jugadoresCategoria'
 import { obtenerCategoriaPrimeraDivision } from '../utils/categoriaPrimera'
 import { calcularCargaJugador } from '../utils/semaforoRiesgo'
 import { generarRPEIndividualPDF, generarRPECategoriaPDF } from '../utils/generarRPEPDF'
+import EstadoVacio from './ui/EstadoVacio'
+import { fechaCorta } from '../utils/formatoFecha'
 
 const ESTADO_COLORS = {
-  normal: '#4ADE80',
-  moderado: '#FBBF24',
-  alerta: '#F87171',
+  normal: 'var(--ui-exito)',
+  moderado: 'var(--ui-alerta)',
+  alerta: 'var(--ui-peligro)',
 }
 
 function EstadoChip({ resultado }) {
@@ -18,8 +20,8 @@ function EstadoChip({ resultado }) {
       <span
         className="text-xs font-medium px-2 py-1 rounded-full"
         style={{
-          backgroundColor: ESTADO_COLORS[resultado.nivel] || '#4ADE80',
-          color: '#0F1419',
+          backgroundColor: ESTADO_COLORS[resultado.nivel] || 'var(--ui-exito)',
+          color: 'var(--ui-texto-sobre-estado)',
         }}
       >
         {resultado.nivel === 'alerta' ? 'Alerta' : resultado.nivel === 'moderado' ? 'Moderado' : 'Normal'}
@@ -32,8 +34,9 @@ function EstadoChip({ resultado }) {
       <span
         className="text-xs font-medium px-2 py-1 rounded-full"
         style={{
-          backgroundColor: '#7DD3FC',
-          color: '#082F49',
+          backgroundColor: 'var(--ui-alerta-suave)',
+          color: 'var(--ui-alerta)',
+          border: '1px solid var(--ui-alerta)',
         }}
       >
         Respaldo: {resultado.cargaSemanal.toFixed(0)}
@@ -122,7 +125,7 @@ function RPEComparativo() {
 
   const inputStyle = {
     backgroundColor: P.superficie,
-    border: "1px solid var(--ui-compartido-borde, #2A3548)",
+    border: "1px solid var(--ui-compartido-borde)",
     color: P.texto,
   }
 
@@ -140,7 +143,7 @@ function RPEComparativo() {
     }
   }
 
-  if (cargando) return <p style={{ color: P.tenue }}>Cargando...</p>
+  if (cargando) return <EstadoVacio cargando mensaje="Cargando RPE…" />
 
   return (
     <div>
@@ -149,7 +152,7 @@ function RPEComparativo() {
           className="px-3 py-2 rounded-xl text-sm"
           style={{
             backgroundColor: P.superficie,
-            border: "1px solid var(--ui-compartido-borde, #2A3548)",
+            border: "1px solid var(--ui-compartido-borde)",
             color: P.secundario,
           }}
         >
@@ -185,7 +188,7 @@ function RPEComparativo() {
       </p>
 
       {!jugadorId && (
-        <div className="overflow-x-auto rounded-xl" style={{ border: "1px solid var(--ui-compartido-borde, #2A3548)" }}>
+        <div className="overflow-x-auto rounded-xl" style={{ border: "1px solid var(--ui-compartido-borde)" }}>
           <table className="min-w-full text-sm" style={{ borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ backgroundColor: P.superficie }}>
@@ -232,7 +235,7 @@ function RPEComparativo() {
                     </tr>
                     {expandida && (
                       <tr>
-                        <td className="p-2.5" colSpan={6} style={{ color: P.texto, backgroundColor: 'var(--riesgo-detalle, #121A28)' }}>
+                        <td className="p-2.5" colSpan={6} style={{ color: P.texto, backgroundColor: 'var(--riesgo-detalle)' }}>
                           <div className="text-sm">
                             <div className="font-semibold mb-2">Fechas sin RPE cargado (28d)</div>
                             {fechasSinRPE.length > 0 ? (
@@ -243,7 +246,7 @@ function RPEComparativo() {
                                     className="px-2 py-1 rounded-full text-xs"
                                     style={{ backgroundColor: P.superficie, color: P.texto }}
                                   >
-                                    {fecha}
+                                    {fechaCorta(fecha) || fecha}
                                   </span>
                                 ))}
                               </div>
@@ -297,8 +300,8 @@ function RPEComparativo() {
             <div
               className="rounded-xl p-3 text-sm"
               style={{
-                backgroundColor: 'var(--riesgo-respaldo, #172235)',
-                border: "1px solid var(--ui-compartido-borde, #2A3548)",
+                backgroundColor: 'var(--ui-alerta-suave)',
+                border: "1px solid var(--ui-alerta)",
                 color: P.texto,
               }}
             >
@@ -313,8 +316,8 @@ function RPEComparativo() {
             <div
               className="rounded-xl p-3 text-sm"
               style={{
-                backgroundColor: 'var(--riesgo-respaldo, #172235)',
-                border: "1px solid var(--ui-compartido-borde, #2A3548)",
+                backgroundColor: 'var(--riesgo-respaldo)',
+                border: "1px solid var(--ui-compartido-borde)",
                 color: P.texto,
               }}
             >
@@ -326,7 +329,7 @@ function RPEComparativo() {
                     className="px-2 py-1 rounded-full text-xs"
                     style={{ backgroundColor: P.superficie, color: P.texto }}
                   >
-                    {fecha}
+                    {fechaCorta(fecha) || fecha}
                   </span>
                 ))}
               </div>

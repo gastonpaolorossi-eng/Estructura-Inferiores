@@ -1,4 +1,4 @@
-.planificacion { color: var(--ui-texto); background: var(--ui-fondo-pagina); }
+.planificacion { color: var(--ui-texto); }
 .planificacion h1 { font-size: 1.7rem; font-weight: 800; }
 .planificacion h2, .planificacion h3 { font-weight: 700; }
 .planificacion p { color: var(--ui-texto-secundario); font-size: .85rem; margin: .6rem 0; }
@@ -27,9 +27,7 @@
 .planificacion-compartir > label { display: block; }
 .planificacion-ejercicio { padding: .8rem 0 .8rem .8rem; border-left: 3px solid var(--ui-acento); margin: 1rem 0; }
 .planificacion-acciones { margin: 1rem 0; }
-.planificacion { max-width: 1600px; margin-inline: auto; min-width: 0; }
-.planificacion > .dp-encabezado { padding: clamp(1rem, 3vw, 2rem); border-bottom: 3px solid var(--ui-acento); border-radius: 1rem; background: var(--ui-superficie); }
-.planificacion > .dp-encabezado .dp-titulo { font-family: 'Archivo Black', sans-serif; font-size: clamp(1.5rem, 3vw, 2rem); }
+.planificacion { max-width: 1440px; margin-inline: auto; min-width: 0; }
 .planificacion > fieldset.planificacion-tarjeta { gap: .75rem; border-radius: 1rem; }
 .planificacion > fieldset.planificacion-tarjeta button,
 .planificacion-dia > button { min-height: 44px; }

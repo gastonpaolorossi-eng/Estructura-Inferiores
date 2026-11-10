@@ -14,9 +14,9 @@ function CategoriaFiltro({ categoriaId, onCategoriaChange, busqueda, onBusquedaC
   }, [bloqueada])
 
   const inputStyle = {
-    backgroundColor: 'var(--ui-compartido-superficie, #1A2332)',
-    border: '1px solid var(--ui-compartido-borde, #2A3548)',
-    color: 'var(--ui-compartido-texto, #F0F2F5)',
+    backgroundColor: 'var(--ui-compartido-superficie)',
+    border: '1px solid var(--ui-compartido-borde)',
+    color: 'var(--ui-compartido-texto)',
   }
 
   return (
@@ -24,7 +24,7 @@ function CategoriaFiltro({ categoriaId, onCategoriaChange, busqueda, onBusquedaC
       {bloqueada ? (
         <span
           className="p-2.5 rounded-xl text-sm sm:w-48 text-center"
-          style={{ ...inputStyle, color: 'var(--ui-compartido-secundario, #8A9BB8)' }}
+          style={{ ...inputStyle, color: 'var(--ui-compartido-secundario)' }}
         >
           {categoriaNombre || 'Tu categoría'}
         </span>

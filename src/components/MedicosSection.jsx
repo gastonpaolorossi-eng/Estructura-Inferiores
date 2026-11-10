@@ -7,6 +7,11 @@ import SelectorMedicos from './SelectorMedicos'
 import MapaCorporal from './MapaCorporal'
 import CamposIncidenciaCorporal from './CamposIncidenciaCorporal'
 import { ESTADOS_CORPORALES, LADOS_CORPORALES, colorZona, fichasZona, nombreZona, puedeVerMedicos, ubicacionFicha, validarIncidencia } from '../utils/mapaCorporal'
+import { fechaCorta, fechaLarga } from '../utils/formatoFecha'
+import EncabezadoSeccion from './ui/EncabezadoSeccion'
+import FranjaNumeros from './ui/FranjaNumeros'
+import Boton from './ui/Boton'
+import EstadoVacio from './ui/EstadoVacio'
 
 const incidenciaVacia = { zona_corporal: '', lateralidad: 'derecha', tipo_incidencia: 'molestia', estado_seguimiento: 'seguimiento', fecha_resolucion: '' }
 
@@ -320,7 +325,7 @@ function MedicosContenido({ perfil, jugadorInicialId, onConsumirJugadorInicial }
 
     return (
       <div className="p-6 md:p-10">
-        <div className="max-w-3xl mx-auto">
+        <div className="club-ancho">
           {error && <p role="alert" className="p-3 mb-4 rounded-xl" style={{ color: COLORES.peligro, background: COLORES.fondoTarjeta }}>{error}</p>}
           <button
             disabled={guardando}
@@ -336,7 +341,7 @@ function MedicosContenido({ perfil, jugadorInicialId, onConsumirJugadorInicial }
             <div>
               <h1
                 className="text-2xl"
-                style={{ fontFamily: "'Archivo Black', sans-serif", color: COLORES.texto }}
+                style={{ fontFamily: 'var(--fuente-titulo)', fontStyle: 'italic', fontWeight: 900, textTransform: 'uppercase', color: COLORES.texto }}
               >
                 {jugadorSeleccionado.apellido}, {jugadorSeleccionado.nombre}
               </h1>
@@ -406,7 +411,7 @@ function MedicosContenido({ perfil, jugadorInicialId, onConsumirJugadorInicial }
               {mapaDisponible && <CamposIncidenciaCorporal valor={incidencia} onChange={setIncidencia} disabled={guardando} />}
               {fichaEditando && (
                 <p className="text-xs" style={{ color: COLORES.textoSecundario }}>
-                  Editando registro del {fichaEditando.fecha}
+                  Editando registro del {fechaLarga(fichaEditando.fecha)}
                 </p>
               )}
               <label className="block text-sm" style={{ color: COLORES.texto }}>Fecha de inicio<input
@@ -478,7 +483,7 @@ function MedicosContenido({ perfil, jugadorInicialId, onConsumirJugadorInicial }
             {(seleccionZona ? fichasZona(fichas, seleccionZona.zona, seleccionZona.lado) : fichas).map((f) => (
               <div key={f.id} className="p-3.5 rounded-xl" style={{ backgroundColor: COLORES.fondoTarjeta, borderTop: `3px solid ${COLORES.acento}`, borderLeft: `1px solid ${COLORES.borde}`, borderRight: `1px solid ${COLORES.borde}`, borderBottom: `1px solid ${COLORES.borde}` }}>
                 <div className="flex items-center justify-between mb-1">
-                  <p className="text-xs font-mono" style={{ color: COLORES.textoSecundario }}>{f.fecha}</p>
+                  <p className="text-xs font-mono" style={{ color: COLORES.textoSecundario }}>{fechaLarga(f.fecha)}</p>
                   <div className="flex items-center gap-2">
                     {f.tiempo_recuperacion && (
                       <span
@@ -498,7 +503,7 @@ function MedicosContenido({ perfil, jugadorInicialId, onConsumirJugadorInicial }
                       {f.recuperado ? (f.zona_corporal ? 'Resuelta' : 'Recuperado') : 'Activo'}
                     </span>
                     <button
-                      aria-label={`Editar registro del ${f.fecha}`}
+                      aria-label={`Editar registro del ${fechaLarga(f.fecha)}`}
                       disabled={guardando || cargandoFicha || (esPreparador && !mapaDisponible)}
                       onClick={() => abrirEditarRegistro(f)}
                       className="text-xs px-2 py-0.5 rounded-full hover:opacity-80"
@@ -520,11 +525,11 @@ function MedicosContenido({ perfil, jugadorInicialId, onConsumirJugadorInicial }
                   {ubicacionFicha(f) ? `${nombreZona(ubicacionFicha(f).zona)} · ${LADOS_CORPORALES[ubicacionFicha(f).lado]}${ubicacionFicha(f).inferida ? ' (asociación por descripción exacta; confirmar al editar)' : ''}` : 'Zona sin clasificar: editar para ubicarla, sin interpretar el diagnóstico.'}
                   {' · '}{f.tipo_incidencia === 'molestia' ? 'Molestia' : f.tipo_incidencia === 'lesion_informada' ? 'Lesión informada' : 'Registro anterior'}
                   {' · '}{ESTADOS_CORPORALES[f.estado_seguimiento] || (f.recuperado ? 'Resuelta' : 'En seguimiento')}
-                  {f.fecha_resolucion && ` · Resuelta el ${f.fecha_resolucion}`}
+                  {f.fecha_resolucion && ` · Resuelta el ${fechaCorta(f.fecha_resolucion) || f.fecha_resolucion}`}
                 </p>
                 {f.fecha_estimada_alta && !f.recuperado && (
-                  <p className="text-xs mt-1" style={{ color: textoGestion('#7DD3FC') }}>
-                    📅 Alta estimada: {f.fecha_estimada_alta}
+                  <p className="text-xs mt-1" style={{ color: 'var(--ui-alerta)' }}>
+                    📅 Alta estimada: {fechaCorta(f.fecha_estimada_alta)}
                   </p>
                 )}
                 {f.link_informe && (
@@ -551,23 +556,17 @@ function MedicosContenido({ perfil, jugadorInicialId, onConsumirJugadorInicial }
 
   return (
     <div className="p-6 md:p-10">
-      <div className="max-w-2xl mx-auto">
+      <div className="club-ancho">
         {error && <p role="alert" className="mb-4" style={{ color: COLORES.peligro }}>{error}</p>}
-        <div className="flex items-center justify-between gap-3 mb-6 flex-wrap">
-          <h1
-            className="text-3xl md:text-4xl flex items-center gap-3"
-            style={{ fontFamily: "'Archivo Black', sans-serif", color: COLORES.texto }}
-          >
-            <span>🩺</span> Médicos
-          </h1>
-          <button
-            onClick={() => setMostrarAgregar((v) => !v)}
-            className="text-sm font-medium px-4 py-2.5 rounded-xl transition-opacity hover:opacity-80 shrink-0"
-            style={BOTON_GESTION}
-          >
+        <EncabezadoSeccion eyebrow="Cuerpo médico" eyebrowResaltado="Fichas y seguimiento" titulo="Médicos"
+          acciones={<Boton variante={mostrarAgregar ? 'secundario' : 'principal'} onClick={() => setMostrarAgregar((v) => !v)} aria-expanded={mostrarAgregar}>
             {mostrarAgregar ? 'Cancelar' : '+ Agregar jugador'}
-          </button>
-        </div>
+          </Boton>} />
+        <FranjaNumeros etiqueta="Estado médico del filtro" items={[
+          { etiqueta: 'Plantel', valor: filtrados.length },
+          { etiqueta: 'Lesionados', valor: lesionados.length },
+          { etiqueta: 'Recuperados', valor: recuperados.length },
+        ]} />
 
         {mostrarAgregar && (
           <div className="p-4 rounded-xl mb-6 space-y-3" style={{ backgroundColor: COLORES.fondoTarjeta, borderTop: `3px solid ${COLORES.acento}`, borderLeft: `1px solid ${COLORES.borde}`, borderRight: `1px solid ${COLORES.borde}`, borderBottom: `1px solid ${COLORES.borde}` }}>
@@ -612,10 +611,10 @@ function MedicosContenido({ perfil, jugadorInicialId, onConsumirJugadorInicial }
             const activas = todasLasFichas.filter(f => f.jugador_id === j.id && !f.recuperado).sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''))
             return <button key={j.id} type="button" className="block text-left w-full py-3 border-b" style={{ borderColor: COLORES.borde }} onClick={() => abrirJugador(j)}>
               <strong>{j.apellido}, {j.nombre}</strong>
-              {activas.map(f => { const u = ubicacionFicha(f); return <span key={f.id} className="block text-xs mt-1" style={{ color: COLORES.textoSecundario }}><span aria-hidden="true" style={{ color: u ? colorZona([f], u.zona, u.lado) : COLORES.textoSecundario }}>● </span>{f.tipo_incidencia === 'molestia' ? 'Molestia' : f.tipo_incidencia ? 'Lesión informada' : 'Registro anterior'} · {u ? `${nombreZona(u.zona)} (${LADOS_CORPORALES[u.lado]})` : 'Sin clasificar'} · {f.fecha} · {ESTADOS_CORPORALES[f.estado_seguimiento] || 'En seguimiento'}</span> })}
+              {activas.map(f => { const u = ubicacionFicha(f); return <span key={f.id} className="block text-xs mt-1" style={{ color: COLORES.textoSecundario }}><span aria-hidden="true" style={{ color: u ? colorZona([f], u.zona, u.lado) : COLORES.textoSecundario }}>● </span>{f.tipo_incidencia === 'molestia' ? 'Molestia' : f.tipo_incidencia ? 'Lesión informada' : 'Registro anterior'} · {u ? `${nombreZona(u.zona)} (${LADOS_CORPORALES[u.lado]})` : 'Sin clasificar'} · {fechaCorta(f.fecha)} · {ESTADOS_CORPORALES[f.estado_seguimiento] || 'En seguimiento'}</span> })}
             </button>
           })}
-          {!filtrados.some(j => todasLasFichas.some(f => f.jugador_id === j.id && !f.recuperado)) && <p className="text-sm" style={{ color: COLORES.textoSecundario }}>No hay situaciones activas para este filtro.</p>}
+          {!filtrados.some(j => todasLasFichas.some(f => f.jugador_id === j.id && !f.recuperado)) && <EstadoVacio mensaje="Sin situaciones activas." />}
         </section>}
 
         <input
@@ -656,16 +655,12 @@ function MedicosContenido({ perfil, jugadorInicialId, onConsumirJugadorInicial }
                       {jugador.apellido}, {jugador.nombre}
                     </p>
                   </div>
-                  <span className="text-xs font-mono" style={{ color: COLORES.textoSecundario }}>{ficha.fecha}</span>
+                  <span className="text-xs font-mono" style={{ color: COLORES.textoSecundario }}>{fechaLarga(ficha.fecha)}</span>
                 </div>
                 <p className="text-sm" style={{ color: COLORES.textoSecundario }}>{ficha.descripcion}</p>
               </div>
             ))}
-            {resultadosLesion.length === 0 && (
-              <p className="text-sm" style={{ color: COLORES.textoMuted }}>
-                No se encontraron diagnósticos que coincidan con "{busquedaLesion}".
-              </p>
-            )}
+            {resultadosLesion.length === 0 && <EstadoVacio mensaje={`Sin diagnósticos con "${busquedaLesion}".`} />}
           </div>
         ) : (
           <>
@@ -697,7 +692,7 @@ function MedicosContenido({ perfil, jugadorInicialId, onConsumirJugadorInicial }
                       ) : (
                         <div
                           className="flex items-center justify-center w-9 h-9 rounded-full shrink-0 text-xs font-bold"
-                          style={{ backgroundColor: COLORES.fondoPagina, border: `2px solid ${grupo.color}`, color: textoGestion(grupo.color), fontFamily: "'Archivo Black', sans-serif" }}
+                          style={{ backgroundColor: COLORES.fondoPagina, border: `2px solid ${grupo.color}`, color: textoGestion(grupo.color), fontFamily: 'var(--fuente-titulo)', fontStyle: 'italic', fontWeight: 900, textTransform: 'uppercase' }}
                         >
                           {iniciales(j.nombre, j.apellido)}
                         </div>
@@ -715,11 +710,7 @@ function MedicosContenido({ perfil, jugadorInicialId, onConsumirJugadorInicial }
             )
         )}
 
-            {lesionados.length === 0 && recuperados.length === 0 && (
-              <p className="text-sm" style={{ color: COLORES.textoMuted }}>
-                No hay jugadores lesionados ni con historial médico para ese filtro.
-              </p>
-            )}
+            {lesionados.length === 0 && recuperados.length === 0 && <EstadoVacio mensaje="Sin lesionados ni historial médico." />}
           </>
         )}
       </div>

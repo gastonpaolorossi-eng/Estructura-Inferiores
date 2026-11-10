@@ -1,7 +1,8 @@
-import { BOTON_GESTION } from '../appearance/gestion'
 import { COLORES } from '../theme'
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
+import EncabezadoSeccion from './ui/EncabezadoSeccion'
+import Boton from './ui/Boton'
 
 function PaseCategoriaSection() {
   const [categorias, setCategorias] = useState([])
@@ -123,16 +124,10 @@ function PaseCategoriaSection() {
   return (
     <div className="p-6 md:p-10">
       <div className="max-w-xl mx-auto">
-        <h1
-          className="text-2xl md:text-3xl mb-2"
-          style={{ fontFamily: "'Archivo Black', sans-serif", color: COLORES.texto }}
-        >
-          Pase de categoría
-        </h1>
-        <p className="text-xs mb-6" style={{ color: COLORES.textoMuted }}>
-          Para usar a fin de temporada: elegí de qué categoría a cuál pasan los jugadores
-          seleccionados. Queda guardado en la trayectoria de cada jugador.
-        </p>
+        <div className="mb-6">
+          <EncabezadoSeccion eyebrow="Gestión" eyebrowResaltado="Fin de temporada" titulo="Pa" resaltado="ses"
+            descripcion="Queda guardado en la trayectoria de cada jugadora." />
+        </div>
 
         <div className="grid sm:grid-cols-2 gap-3 mb-3">
           <select
@@ -235,14 +230,9 @@ function PaseCategoriaSection() {
           </p>
         )}
 
-        <button
-          onClick={handleConfirmar}
-          disabled={guardando || jugadores.length === 0}
-          className="w-full p-3 rounded-xl font-medium transition-opacity hover:opacity-80 disabled:opacity-50"
-          style={BOTON_GESTION}
-        >
-          {guardando ? 'Procesando...' : 'Confirmar pase'}
-        </button>
+        <Boton onClick={handleConfirmar} disabled={guardando || jugadores.length === 0} aria-busy={guardando} className="w-full">
+          {guardando ? 'Procesando…' : 'Confirmar pase'}
+        </Boton>
       </div>
     </div>
   )

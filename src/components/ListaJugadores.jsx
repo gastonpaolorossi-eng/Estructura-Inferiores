@@ -3,6 +3,11 @@ import PestanasAccesibles from './ui/PestanasAccesibles'
 import { agruparPlantel } from './plantel/posicionesPlantel'
 import BarraFiltros from './ui/BarraFiltros'
 import EstadoContenido from './ui/EstadoContenido'
+import EncabezadoSeccion from './ui/EncabezadoSeccion'
+import FranjaNumeros from './ui/FranjaNumeros'
+import Chips from './ui/Chips'
+import Boton from './ui/Boton'
+import EstadoVacio from './ui/EstadoVacio'
 import TarjetaJugadora from './plantel/TarjetaJugadora'
 import './plantel/plantel.css'
 import { PLANTEL as P, textoPlantel } from '../appearance/plantel'
@@ -12,19 +17,7 @@ import { supabase } from '../supabaseClient'
 import { generarPlantelPDF } from '../utils/generarPlantelPDF'
 import { obtenerCategoriaPrimeraDivision } from '../utils/categoriaPrimera'
 import { obtenerEstadisticasCategoria } from '../utils/exportarEstadisticas'
-import { COLORES } from '../theme'
-
-const posiciones = [
-  'Arquero',
-  'Defensor central',
-  'Lateral derecho',
-  'Lateral izquierdo',
-  'Mediocampista central',
-  'Volante ofensivo',
-  'Extremo derecho',
-  'Extremo izquierdo',
-  'Delantero centro',
-]
+import { ultimosDorsales } from '../utils/dorsales'
 
 const filtrosPuesto = [
   { id: 'todas', label: 'Todas' },
@@ -35,9 +28,9 @@ const filtrosPuesto = [
 ]
 
 const filtrosEstado = [
-  { id: 'disponible', label: 'Disponibles', color: '#4ADE80' },
-  { id: 'lesionado', label: 'Lesionadas', color: '#F87171' },
-  { id: 'no_disponible', label: 'No disponibles', color: '#A1A1AA' },
+  { id: 'disponible', label: 'Disponibles', color: 'var(--ui-exito)' },
+  { id: 'lesionado', label: 'Lesionadas', color: 'var(--ui-peligro)' },
+  { id: 'no_disponible', label: 'No disponibles', color: 'var(--ui-neutro)' },
 ]
 
 const normalizar = (valor) =>
@@ -113,7 +106,7 @@ function FotoJugadora({ jugadora, className = '' }) {
       style={{
         backgroundColor: P.controlLista,
         color: P.textoAmarilloLista,
-        border: "1px solid var(--plantel-borde-control, #41434B)",
+        border: "1px solid var(--plantel-borde-control)",
       }}
     >
       {iniciales(jugadora.nombre, jugadora.apellido)}
@@ -127,7 +120,7 @@ function TarjetaResumen({ titulo, valor, detalle, icono, color }) {
       className="rounded-2xl p-4 md:p-5 min-w-0"
       style={{
         backgroundColor: P.tarjetaLista,
-        border: "1px solid var(--plantel-borde-lista, #2D3038)",
+        border: "1px solid var(--plantel-borde-lista)",
       }}
     >
       <div className="flex items-center justify-between gap-2">
@@ -183,7 +176,7 @@ function GraficoRanking({
       className="rounded-2xl p-4 md:p-5"
       style={{
         backgroundColor: P.tarjetaLista,
-        border: "1px solid var(--plantel-borde-lista, #2D3038)",
+        border: "1px solid var(--plantel-borde-lista)",
       }}
     >
       <div className="mb-5">
@@ -241,6 +234,7 @@ function ListaJugadores({ onSelectJugador: onElegirJugador, onNuevoJugador, onCa
   const [vistaPlantel, setVistaPlantel] = useState(estadoGaleria?.vistaPlantel ?? 'jugadoras')
   const [jugadores, setJugadores] = useState([])
   const [estadisticas, setEstadisticas] = useState({})
+  const [dorsales, setDorsales] = useState({})
   const [formacion, setFormacion] = useState('4-4-2')
   const [busqueda, setBusqueda] = useState(estadoGaleria?.busqueda ?? '')
   const [filtroPuesto, setFiltroPuesto] = useState(estadoGaleria?.filtroPuesto ?? 'todas')
@@ -291,6 +285,8 @@ function ListaJugadores({ onSelectJugador: onElegirJugador, onNuevoJugador, onCa
         }
 
         setJugadores(data || [])
+        // Último dorsal de cada jugadora según citaciones: una sola consulta, sin demorar el listado.
+        ultimosDorsales(supabase, (data || []).map(j => j.id)).then(mapa => { if (activo) setDorsales(mapa) })
 
         try {
           const filasEstadisticas = await obtenerEstadisticasCategoria(
@@ -421,51 +417,19 @@ function ListaJugadores({ onSelectJugador: onElegirJugador, onNuevoJugador, onCa
   return (
     <div
       className="min-h-full plantel-premium"
-      style={{ backgroundColor: P.fondoLista }}
     >
       <div className="plantel-premium-contenido">
-        <header className="plantel-portada">
-          <img className="plantel-portada-foto" src="/images/plantel/plantel-femenino-portada.jpg" width="1920" height="704"
-            alt="Plantel femenino de Club Comunicaciones" fetchPriority="high" />
-          <div className="plantel-portada-textos"><p>CLUB COMUNICACIONES</p><h1>PLANTEL <span aria-hidden="true">//</span></h1>
-            <span className="plantel-portada-subtitulo">PRIMERA DIVISIÓN · FÚTBOL FEMENINO</span></div>
-        </header>
-        <div className="plantel-herramientas" role="group" aria-label="Acciones del plantel">            <button
-              type="button"
-              onClick={generarPlantelPDF}
-              className="text-sm font-semibold px-3 py-2.5 rounded-xl"
-              style={{
-                backgroundColor: P.tarjetaLista,
-                color: P.textoDetalle,
-                border: "1px solid var(--plantel-separador, #34363F)",
-              }}
-            >
-              ↓ Descargar PDF
-            </button>
-
-            <button
-              type="button"
-              onClick={onCargaMasiva}
-              className="text-sm font-semibold px-3 py-2.5 rounded-xl"
-              style={{
-                backgroundColor: P.tarjetaLista,
-                color: P.textoDetalle,
-                border: "1px solid var(--plantel-separador, #34363F)",
-              }}
-            >
-              Carga masiva
-            </button>
-
-            <button
-              type="button"
-              onClick={onNuevoJugador}
-              className="text-sm font-bold px-4 py-2.5 rounded-xl"
-              style={{ backgroundColor: P.amarilloLista, color: '#171717' }}
-            >
-              + Nueva jugadora
-            </button>
-
-</div>
+        <EncabezadoSeccion eyebrow="Primera División" eyebrowResaltado="Fútbol femenino" titulo="Plan" resaltado="tel"
+          imagenFondo="/images/plantel/plantel-femenino-portada.jpg" posicionImagen="70% 35%"
+          acciones={<>
+            <Boton variante="secundario" onClick={generarPlantelPDF}>Descargar PDF</Boton>
+            <Boton variante="secundario" onClick={onCargaMasiva}>Carga masiva</Boton>
+            <Boton onClick={onNuevoJugador}>+ Nueva jugadora</Boton>
+          </>} />
+        <FranjaNumeros etiqueta="Estado del plantel" items={[
+          { etiqueta: 'Jugadoras', valor: cargando || errorCarga ? null : jugadores.length },
+          ...filtrosEstado.map(f => ({ etiqueta: f.label, valor: cargando || errorCarga ? null : jugadores.filter(j => coincideEstado(j, f.id)).length })),
+        ]} />
 
         {cargando ? (
           <EstadoContenido estado="cargando" titulo="Cargando plantel…" />
@@ -479,7 +443,7 @@ function ListaJugadores({ onSelectJugador: onElegirJugador, onNuevoJugador, onCa
                 style={{
                   backgroundColor: P.avisoFondo,
                   color: P.aviso,
-                  border: "1px solid var(--plantel-aviso-borde, #514323)",
+                  border: "1px solid var(--plantel-aviso-borde)",
                 }}
               >
                 {errorEstadisticas}
@@ -488,122 +452,30 @@ function ListaJugadores({ onSelectJugador: onElegirJugador, onNuevoJugador, onCa
 
             {/* Buscador y filtros */}
             <section className="plantel-filtros" aria-label="Listado y filtros de jugadoras">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <div>
-                  <h2 style={{ color: P.blanco }} className="text-lg font-bold ">
-                    Listado de jugadoras
-                  </h2>
-                  <p className="text-xs mt-1" style={{ color: P.secundarioLista }}>
-                    Buscá, filtrá y accedé a cada perfil.
-                  </p>
-                </div>
-                <span className="text-sm" style={{ color: P.textoAmarilloLista }}>
-                  {jugadorasFiltradas.length} resultado
-                  {jugadorasFiltradas.length === 1 ? '' : 's'}
-                </span>
-              </div>
-
               <BarraFiltros etiqueta="Filtros del plantel">
               <div className="plantel-busqueda">
-                <label htmlFor="plantel-busqueda">Buscar jugadora</label>
-                <div className="relative">
-                <span
-                  className="absolute left-3 top-1/2 -translate-y-1/2"
-                  style={{ color: P.secundarioLista }}
-                >
-                  ⌕
-                </span>
+                <label htmlFor="plantel-busqueda">Buscar jugadora · <b>{jugadorasFiltradas.length} {jugadorasFiltradas.length === 1 ? 'resultado' : 'resultados'}</b></label>
                 <input
                   id="plantel-busqueda"
                   type="search"
-                  placeholder="Buscar por nombre, apellido o posición..."
+                  placeholder="Nombre, apellido o posición"
                   value={busqueda}
                   onChange={(e) => setBusqueda(e.target.value)}
-                  className="w-full rounded-xl py-3 pl-10 pr-4 ui-control outline-none text-sm"
+                  className="w-full py-3 px-4 ui-control outline-none text-sm"
                   style={{
                     backgroundColor: P.fondoLista,
-                    border: "1px solid var(--plantel-separador, #34363F)",
+                    border: "1px solid var(--plantel-separador)",
                     color: P.textoLista,
                   }}
                 />
               </div>
-
+              <div className="plantel-grupo-filtro">
+                <Chips etiqueta="Puesto" valor={filtroPuesto} onCambiar={setFiltroPuesto}
+                  opciones={filtrosPuesto.map(f => ({ valor: f.id, etiqueta: f.label }))} />
               </div>
-              <div className="space-y-2 plantel-grupo-filtro">
-                <p
-                  className="text-[10px] font-bold tracking-[0.15em] uppercase"
-                  style={{ color: P.secundarioLista }}
-                >
-                  Filtrar por puesto
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {filtrosPuesto.map((filtro) => {
-                    const activo = filtroPuesto === filtro.id
-
-                    return (
-                      <button
-                        key={filtro.id}
-                        type="button"
-                        onClick={() => setFiltroPuesto(filtro.id)}
-                        aria-pressed={activo}
-                        className="px-3 py-2 rounded-lg text-xs md:text-sm font-semibold transition-colors"
-                        style={{
-                          backgroundColor: activo ? P.amarilloLista : P.controlLista,
-                          color: activo ? '#171717' : P.textoControl,
-                          border: `1px solid ${activo ? P.amarilloLista : P.bordeControl}`,
-                        }}
-                      >
-                        {filtro.label}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              <div className="space-y-2 plantel-grupo-filtro">
-                <p
-                  className="text-[10px] font-bold tracking-[0.15em] uppercase"
-                  style={{ color: P.secundarioLista }}
-                >
-                  Disponibilidad
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setFiltroEstado('todos')}
-                    aria-pressed={filtroEstado === 'todos'}
-                    className="px-3 py-2 rounded-lg text-xs md:text-sm font-semibold"
-                    style={{
-                      backgroundColor:
-                        filtroEstado === 'todos' ? P.separador : P.controlInactivo,
-                      color: P.textoLista,
-                      border: `1px solid ${filtroEstado === 'todos' ? P.bordeSeleccionado : P.separador}`,
-                    }}
-                  >
-                    Todos los estados
-                  </button>
-
-                  {filtrosEstado.map((filtro) => {
-                    const activo = filtroEstado === filtro.id
-
-                    return (
-                      <button
-                        key={filtro.id}
-                        type="button"
-                        onClick={() => setFiltroEstado(filtro.id)}
-                        aria-pressed={activo}
-                        className="px-3 py-2 rounded-lg text-xs md:text-sm font-semibold"
-                        style={{
-                          backgroundColor: activo ? `${filtro.color}20` : P.controlInactivo,
-                          color: textoPlantel(filtro.color),
-                          border: `1px solid ${activo ? filtro.color : P.separador}`,
-                        }}
-                      >
-                        {filtro.label}
-                      </button>
-                    )
-                  })}
-                </div>
+              <div className="plantel-grupo-filtro">
+                <Chips etiqueta="Estado" valor={filtroEstado} onCambiar={setFiltroEstado}
+                  opciones={[{ valor: 'todos', etiqueta: 'Todos' }, ...filtrosEstado.map(f => ({ valor: f.id, etiqueta: f.label }))]} />
               </div>
 
               {hayFiltrosActivos && (
@@ -625,15 +497,12 @@ function ListaJugadores({ onSelectJugador: onElegirJugador, onNuevoJugador, onCa
               pestanas={[
                 { id: 'jugadoras', etiqueta: 'Jugadoras', contenido: (<div className="plantel-galeria" id="plantel-jugadoras">
   {agruparPlantel(jugadorasFiltradas).map(grupo => <section key={grupo.id} className="plantel-grupo" aria-labelledby={'grupo-' + grupo.id}>
-    <header className="plantel-grupo-titulo"><h2 id={'grupo-' + grupo.id}>{grupo.nombre}</h2><span>({grupo.jugadoras.length})</span></header>
-    <div className="plantel-listado">{grupo.jugadoras.map(j => <TarjetaJugadora key={j.id} jugadora={j}
-      foto={<FotoJugadora jugadora={j} />} onAbrir={onSelectJugador} />)}</div>
-    {grupo.id === 'sin_equivalencia' && <p className="plantel-grupo-aviso">Estas posiciones principales no tienen una equivalencia definida. Se conservan sin asignar un puesto arbitrario.</p>}
+    <header className="plantel-grupo-titulo"><h2 id={'grupo-' + grupo.id}>{grupo.nombre}</h2><span>{grupo.jugadoras.length}</span></header>
+    <div className="plantel-listado club-grilla-foco">{grupo.jugadoras.map(j => <TarjetaJugadora key={j.id} jugadora={j} dorsal={dorsales[j.id]} onAbrir={onSelectJugador} />)}</div>
+    {grupo.id === 'sin_equivalencia' && <p className="plantel-grupo-aviso">Posiciones sin equivalencia definida.</p>}
   </section>)}
-  {jugadorasFiltradas.length === 0 && <EstadoContenido estado="vacio" titulo="No hay jugadoras para mostrar"
-    mensaje="Probá cambiar los filtros o la búsqueda.">
-    {hayFiltrosActivos && <button type="button" className="dp-boton" onClick={limpiarFiltros}>Limpiar filtros</button>}
-  </EstadoContenido>}
+  {jugadorasFiltradas.length === 0 && <EstadoVacio mensaje="Ninguna jugadora con estos filtros."
+    accion={hayFiltrosActivos ? { etiqueta: 'Limpiar filtros', onClick: limpiarFiltros } : { etiqueta: '+ Nueva jugadora', onClick: onNuevoJugador }} />}
 </div>) },
                 { id: 'rendimiento', etiqueta: 'Rendimiento', contenido: (<RendimientoPlantel activo={vistaPlantel === 'rendimiento'} jugadoras={jugadores} estadisticas={estadisticas}
                   formacion={formacion} onCambiarFormacion={setFormacion} onSelectJugador={onSelectJugador} FotoJugadora={FotoJugadora}>
@@ -644,28 +513,28 @@ function ListaJugadores({ onSelectJugador: onElegirJugador, onNuevoJugador, onCa
                 valor={resumen.total}
                 detalle="Según los filtros activos"
                 icono="◉"
-                color="#F4D21F"
+                color="var(--ui-acento)"
               />
               <TarjetaResumen
                 titulo="Disponibles"
                 valor={resumen.disponibles}
                 detalle="En condiciones de jugar"
                 icono="✓"
-                color="#4ADE80"
+                color="var(--ui-exito)"
               />
               <TarjetaResumen
                 titulo="Lesionadas"
                 valor={resumen.lesionadas}
                 detalle="Estado registrado"
                 icono="＋"
-                color="#F87171"
+                color="var(--ui-peligro)"
               />
               <TarjetaResumen
                 titulo="No disponibles"
                 valor={resumen.noDisponibles}
                 detalle="Incluye suspendidas"
                 icono="—"
-                color="#A1A1AA"
+                color="var(--ui-neutro)"
               />
             </section>
 
@@ -674,7 +543,7 @@ function ListaJugadores({ onSelectJugador: onElegirJugador, onNuevoJugador, onCa
               className="rounded-2xl p-4 md:p-5"
               style={{
                 backgroundColor: P.tarjetaLista,
-                border: "1px solid var(--plantel-borde-lista, #2D3038)",
+                border: "1px solid var(--plantel-borde-lista)",
               }}
             >
               <div className="mb-4">
@@ -693,7 +562,7 @@ function ListaJugadores({ onSelectJugador: onElegirJugador, onNuevoJugador, onCa
                     className="rounded-xl p-4"
                     style={{
                       backgroundColor: P.fondoLista,
-                      border: "1px solid var(--plantel-borde-lista, #2D3038)",
+                      border: "1px solid var(--plantel-borde-lista)",
                     }}
                   >
                     <p className="text-xs" style={{ color: P.secundarioLista }}>
@@ -738,7 +607,7 @@ function ListaJugadores({ onSelectJugador: onElegirJugador, onNuevoJugador, onCa
                   estadisticas={estadisticas}
                   campo="minutos"
                   sufijo="min"
-                  color="#F4D21F"
+                  color="var(--ui-acento)"
                 />
                 <GraficoRanking
                   titulo="Goleadoras"
@@ -747,7 +616,7 @@ function ListaJugadores({ onSelectJugador: onElegirJugador, onNuevoJugador, onCa
                   estadisticas={estadisticas}
                   campo="goles"
                   sufijo="goles"
-                  color="#4ADE80"
+                  color="var(--ui-exito)"
                 />
               </div>
 
@@ -755,7 +624,7 @@ function ListaJugadores({ onSelectJugador: onElegirJugador, onNuevoJugador, onCa
                 className="rounded-xl p-4 flex flex-wrap items-center gap-x-6 gap-y-3"
                 style={{
                   backgroundColor: P.tarjetaLista,
-                  border: "1px solid var(--plantel-borde-lista, #2D3038)",
+                  border: "1px solid var(--plantel-borde-lista)",
                 }}
               >
                 <div>

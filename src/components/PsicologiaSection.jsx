@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import CategoriaFiltro from './CategoriaFiltro'
 import { obtenerFechaHoy } from '../utils/fecha'
+import { fechaLarga } from '../utils/formatoFecha'
 
 function iniciales(nombre, apellido) {
   return `${nombre?.[0] || ''}${apellido?.[0] || ''}`.toUpperCase()
@@ -124,7 +125,7 @@ function PsicologiaSection({ jugadorInicialId, onConsumirJugadorInicial }) {
   if (jugadorSeleccionado) {
     return (
       <div className="p-6 md:p-10">
-        <div className="max-w-xl mx-auto">
+        <div className="club-ancho">
           <button
             onClick={() => setJugadorSeleccionado(null)}
             className="text-sm mb-6 flex items-center gap-1 hover:opacity-70 transition-opacity"
@@ -138,7 +139,7 @@ function PsicologiaSection({ jugadorInicialId, onConsumirJugadorInicial }) {
               <p className="text-3xl">🧠</p>
               <h1
                 className="text-2xl"
-                style={{ fontFamily: "'Archivo Black', sans-serif", color: COLORES.texto }}
+                style={{ fontFamily: 'var(--fuente-titulo)', fontStyle: 'italic', fontWeight: 900, textTransform: 'uppercase', color: COLORES.texto }}
               >
                 {jugadorSeleccionado.apellido}, {jugadorSeleccionado.nombre}
               </h1>
@@ -156,7 +157,7 @@ function PsicologiaSection({ jugadorInicialId, onConsumirJugadorInicial }) {
             <div className="space-y-3 mb-6 p-4 rounded-xl" style={{ backgroundColor: COLORES.fondoTarjeta, borderTop: `3px solid ${COLORES.acento}`, borderLeft: `1px solid ${COLORES.borde}`, borderRight: `1px solid ${COLORES.borde}`, borderBottom: `1px solid ${COLORES.borde}` }}>
               {fichaEditando && (
                 <p className="text-xs" style={{ color: COLORES.textoSecundario }}>
-                  Editando registro del {fichaEditando.fecha}
+                  Editando registro del {fechaLarga(fichaEditando.fecha)}
                 </p>
               )}
               <input
@@ -201,7 +202,7 @@ function PsicologiaSection({ jugadorInicialId, onConsumirJugadorInicial }) {
             {fichas.map((f) => (
               <div key={f.id} className="p-3.5 rounded-xl" style={{ backgroundColor: COLORES.fondoTarjeta, borderTop: `3px solid ${COLORES.acento}`, borderLeft: `1px solid ${COLORES.borde}`, borderRight: `1px solid ${COLORES.borde}`, borderBottom: `1px solid ${COLORES.borde}` }}>
                 <div className="flex items-center justify-between mb-1">
-                  <p className="text-xs font-mono" style={{ color: COLORES.textoSecundario }}>{f.fecha}</p>
+                  <p className="text-xs font-mono" style={{ color: COLORES.textoSecundario }}>{fechaLarga(f.fecha)}</p>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => abrirEditarRegistro(f)}
@@ -244,10 +245,10 @@ function PsicologiaSection({ jugadorInicialId, onConsumirJugadorInicial }) {
 
   return (
     <div className="p-6 md:p-10">
-      <div className="max-w-2xl mx-auto">
+      <div className="club-ancho">
         <h1
           className="text-3xl md:text-4xl mb-6 flex items-center gap-3"
-          style={{ fontFamily: "'Archivo Black', sans-serif", color: COLORES.texto }}
+          style={{ fontFamily: 'var(--fuente-titulo)', fontStyle: 'italic', fontWeight: 900, textTransform: 'uppercase', color: COLORES.texto }}
         >
           <span>🧠</span> Psicología
         </h1>
@@ -277,7 +278,7 @@ function PsicologiaSection({ jugadorInicialId, onConsumirJugadorInicial }) {
               ) : (
                 <div
                   className="flex items-center justify-center w-9 h-9 rounded-full shrink-0 text-xs font-bold"
-                  style={{ backgroundColor: COLORES.fondoPagina, border: `2px solid ${COLORES.borde}`, color: COLORES.textoSecundario, fontFamily: "'Archivo Black', sans-serif" }}
+                  style={{ backgroundColor: COLORES.fondoPagina, border: `2px solid ${COLORES.borde}`, color: COLORES.textoSecundario, fontFamily: 'var(--fuente-titulo)', fontStyle: 'italic', fontWeight: 900, textTransform: 'uppercase' }}
                 >
                   {iniciales(j.nombre, j.apellido)}
                 </div>

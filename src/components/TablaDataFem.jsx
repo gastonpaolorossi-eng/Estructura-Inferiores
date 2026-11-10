@@ -93,13 +93,19 @@ export function TablaPosiciones({ titulo, filas = [], destacarComunicaciones = f
   )
 }
 
-export default function TablaDataFem({ compacto = false }) {
+// onResumen (opcional) recibe { zona, posicion, puntos, partidos } de Comunicaciones para mostrarlo en otra parte; no vuelve a consultar.
+export default function TablaDataFem({ compacto = false, onResumen }) {
   const [expandido, setExpandido] = useState(false)
   const [datos, setDatos] = useState(null)
   const resumen = resumenComunicaciones(datos)
   const partidos = resumen && datos?.[resumen.zona === 'Zona A' ? 'zona_a' : 'zona_b']
     ?.find(fila => identificarComunicaciones(fila.equipo))?.partidos
   const [cargando, setCargando] = useState(true)
+  const zona = resumen?.zona, posicion = resumen?.posicion, puntos = resumen?.puntos
+
+  useEffect(() => {
+    onResumen?.(zona ? { zona, posicion, puntos, partidos } : null)
+  }, [onResumen, zona, posicion, puntos, partidos])
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -142,7 +148,7 @@ export default function TablaDataFem({ compacto = false }) {
             className="w-11 h-11 rounded-xl flex items-center justify-center text-xl"
             style={{
               background: C.amarilloSuave,
-              border: `1px solid ${C.amarillo}35`,
+              border: `1px solid color-mix(in srgb, ${C.amarillo} 21%, transparent)`,
             }}
           >
             🏆
@@ -177,7 +183,7 @@ export default function TablaDataFem({ compacto = false }) {
             Cargando tablas de posiciones…
           </p>
         ) : error ? (
-          <p className="py-6 text-center text-sm" style={{ color: textoInicio('#F07171') }}>
+          <p className="py-6 text-center text-sm" style={{ color: textoInicio(C.rojo) }}>
             {error}
           </p>
         ) : (

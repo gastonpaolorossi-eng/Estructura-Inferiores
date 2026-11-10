@@ -7,7 +7,7 @@
 .mapa-corporal-vistas[data-ampliada=true] svg { max-height: 720px; }
 .mapa-corporal-controles { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
 .mapa-corporal-controles button { min-height: 44px; padding: 6px 12px; border: 1px solid var(--ui-borde); border-radius: 10px; background: var(--ui-superficie-alternativa); color: var(--ui-texto); font-size: .8rem; }
-.mapa-corporal-controles button[aria-pressed=true] { background: #F2C230; color: #111111; border-color: #F2C230; }
+.mapa-corporal-controles button[aria-pressed=true] { background: var(--ui-acento); color: var(--ui-texto-sobre-acento); border-color:var(--ui-texto-acento); }
 .mapa-corporal-lados { display: flex; justify-content: space-between; font-size: .65rem; color: var(--ui-texto-secundario); }
 .mapa-corporal svg { width: 100%; max-height: 480px; overflow: visible; }
 .mapa-corporal path[role=button] { cursor: pointer; touch-action: manipulation; }

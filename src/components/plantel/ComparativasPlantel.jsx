@@ -4,6 +4,7 @@ import { construirRendimiento, seleccionarJugadora } from '../../utils/rendimien
 import { METRICAS, crearRadar, detalleMetrica, metricasRadar } from '../../utils/rendimiento/comparativas.js'
 import RadarComparativo from './RadarComparativo'
 import './comparativas.css'
+import { fechaCorta } from '../../utils/formatoFecha'
 
 const COLORES = ['#AD8500', '#3B82F6', '#CE5684', '#159580', '#A779E9', '#CE6C20']
 const nombre = j => [j.apellido, j.nombre].filter(Boolean).join(', ')
@@ -63,7 +64,7 @@ function VistaComparativas({ fuente, categoriaId, jugadoras = [], filtros, onFil
       {modo === 'puesto' && <label>Posición principal<select value={puesto} onChange={e => cambiarGrupo(e.target.value, false)}>{posiciones.map(p => <option key={p}>{p}</option>)}</select></label>}
       <label>Desde<input type="date" value={desde} onChange={e => cambiarFiltro('desde', e.target.value)} /></label>
       <label>Hasta<input type="date" value={hasta} onChange={e => cambiarFiltro('hasta', e.target.value)} /></label>
-      <label>Partido<select value={partido} onChange={e => cambiarFiltro('partido', e.target.value)}><option value="">Todos los partidos accesibles</option>{(datos?.partidos || []).map(p => <option key={p.id} value={p.id}>{p.fecha} · {p.rival || 'Rival no informado'}</option>)}</select></label>
+      <label>Partido<select value={partido} onChange={e => cambiarFiltro('partido', e.target.value)}><option value="">Todos los partidos accesibles</option>{(datos?.partidos || []).map(p => <option key={p.id} value={p.id}>{fechaCorta(p.fecha)} · {p.rival || 'Rival no informado'}</option>)}</select></label>
     </div>
     {rangoInvalido && <p role="alert">La fecha inicial debe ser anterior o igual a la final.</p>}
     <label className="comparativas-busqueda">Buscar jugadora<input ref={campoBusqueda} type="search" value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Nombre o apellido" /></label>

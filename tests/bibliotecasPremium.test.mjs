@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { createHash } from 'node:crypto'
 import { execFileSync } from 'node:child_process'
+import { soloLogica } from './helpers/soloLogica.mjs'
 const base = '62a21ea33cde9059931e2f91d78bf8bd841832bb'
 const leer = p => readFileSync(p, 'utf8').replaceAll('\r', '')
 const antes = p => execFileSync('git', ['show', `${base}:${p}`], { encoding: 'utf8' }).replaceAll('\r', '')
@@ -13,7 +14,7 @@ test('Bibliotecas Premium conservan escrituras, filtros, reproducción por enlac
     const inicio = n === 'EntrenamientosSection' ? '  function abrirNuevo()' : '  function cambiarTipo(t)'
     const fin = n === 'EntrenamientosSection' ? '\n  return (' : '  const videosFiltrados ='
     const bloque = s => s.slice(s.indexOf(inicio), s.lastIndexOf(fin))
-    assert.equal(bloque(b), bloque(a), 'Handlers y payloads idénticos: ' + n)
+    assert.equal(soloLogica(bloque(b)), soloLogica(bloque(a)), 'Handlers y payloads idénticos: ' + n)
     for (const re of [/\.from\('[^']+'\)/g, /\.select\('[^']*'\)/g, /\.rpc\('[^']+'/g]) assert.deepEqual(b.match(re), a.match(re), n)
   }
   // La referencia espacial de Analisis cambia en la entrega de orientacion;
@@ -24,7 +25,8 @@ test('Bibliotecas Premium conservan escrituras, filtros, reproducción por enlac
   const pizarras = s => s.match(/<PizarraEjercicio[^\n]+\/>/g)
   assert.deepEqual(pizarras(entrenamiento), pizarras(antes('src/components/EntrenamientosSection.jsx')))
   assert.match(leer('src/components/VideoSection.jsx'), /href=\{v.url\}/)
-  for (const p of ['src/components/PizarraTactica.jsx', 'src/components/EstadisticasEquipo.jsx', 'src/components/EncabezadoFotografico.jsx', 'src/components/fotografiasClub.css']) assert.equal(leer(p), antes(p), p)
+  // Los estilos de fotografiasClub.css cambian con el rediseño; los componentes conservan su lógica.
+  for (const p of ['src/components/PizarraTactica.jsx', 'src/components/EstadisticasEquipo.jsx', 'src/components/EncabezadoFotografico.jsx']) assert.equal(soloLogica(leer(p)), soloLogica(antes(p)), p)
 })
 
 test('Fotografías Etapa 2: originales completos, rutas públicas y recurso de rival reservado', () => {

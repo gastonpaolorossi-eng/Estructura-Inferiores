@@ -2,6 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
+import { soloLogica } from './helpers/soloLogica.mjs'
 
 const base = '9701a2c2c551a433d757547b61584a6c9fcec88a'
 const leer = p => readFileSync(p, 'utf8').replaceAll('\r', '')
@@ -15,7 +16,7 @@ test('Etapa 3 preserva estado, consultas, permisos, offline y handlers de ambas 
     const logica = s => s.slice(s.indexOf(inicio), s.indexOf(final))
     assert.ok(actual.indexOf(final) > actual.indexOf(inicio))
     assert.ok(logica(actual).length > 1000)
-    assert.equal(logica(actual), logica(previo))
+    assert.equal(soloLogica(logica(actual)), soloLogica(logica(previo)))
     assert.match(actual, /EncabezadoSeccion/)
   }
 })

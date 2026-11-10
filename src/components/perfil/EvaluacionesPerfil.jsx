@@ -56,7 +56,7 @@ return <div className="perfil-evaluaciones"><EncabezadoSeccion titulo="Evaluacio
                     Cargando historial de evaluaciones...
                   </p>
                 ) : evaluacionesError ? (
-                  <p className="text-sm" style={{ color: "var(--plantel-aviso, #FBBF24)" }}>
+                  <p className="text-sm" style={{ color: "var(--plantel-aviso)" }}>
                     {evaluacionesError}
                   </p>
                 ) : evaluacionesPorPeriodo.length === 0 ? (
@@ -210,7 +210,7 @@ return <div className="perfil-evaluaciones"><EncabezadoSeccion titulo="Evaluacio
                                                   className="w-7 h-7 rounded-md flex items-center justify-center text-xs font-bold"
                                                   style={{
                                                     backgroundColor: activo ? COLORES.amarillo : COLORES.tarjeta,
-                                                    color: activo ? '#111111' : COLORES.tenue,
+                                                    color: activo ? 'var(--ui-texto-sobre-acento)' : COLORES.tenue,
                                                     border: `1px solid ${activo ? COLORES.amarillo : COLORES.borde}`,
                                                   }}
                                                 >

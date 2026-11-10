@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
+import { fechaCorta } from '../utils/formatoFecha'
+import EncabezadoSeccion from './ui/EncabezadoSeccion'
+import EstadoVacio from './ui/EstadoVacio'
 
 function BuscadorGlobal({ onIrAJugador, onIrAMedicos, onIrAVideoJugador, onIrAVideoGeneral, onIrABiblioteca }) {
   const [termino, setTermino] = useState('')
@@ -50,9 +53,9 @@ function BuscadorGlobal({ onIrAJugador, onIrAMedicos, onIrAVideoJugador, onIrAVi
   }, [termino, buscar])
 
   const inputStyle = {
-    backgroundColor: 'var(--ui-compartido-superficie, #1A2332)',
-    border: '1px solid var(--ui-compartido-borde, #2A3548)',
-    color: 'var(--ui-compartido-texto, #F0F2F5)',
+    backgroundColor: 'var(--ui-compartido-superficie)',
+    border: '1px solid var(--ui-compartido-borde)',
+    color: 'var(--ui-compartido-texto)',
   }
 
   const mostrarResultados = !!resultados && termino.trim().length >= 2
@@ -66,13 +69,10 @@ function BuscadorGlobal({ onIrAJugador, onIrAMedicos, onIrAVideoJugador, onIrAVi
 
   return (
     <div className="p-6 md:p-10">
-      <div className="max-w-2xl mx-auto">
-        <h1
-          className="text-3xl md:text-4xl mb-6"
-          style={{ fontFamily: "'Archivo Black', sans-serif", color: 'var(--ui-compartido-texto, #F0F2F5)' }}
-        >
-          Buscar
-        </h1>
+      <div className="club-ancho">
+        <div className="mb-6">
+          <EncabezadoSeccion eyebrow="Comunicaciones" eyebrowResaltado="Jugadoras, lesiones, videos y ejercicios" titulo="Bus" resaltado="car" />
+        </div>
 
         <input
           type="text"
@@ -85,24 +85,20 @@ function BuscadorGlobal({ onIrAJugador, onIrAMedicos, onIrAVideoJugador, onIrAVi
         />
 
         {termino.trim().length > 0 && termino.trim().length < 2 && (
-          <p className="text-sm" style={{ color: 'var(--ui-compartido-tenue, #5B6B85)' }}>
+          <p className="text-sm" style={{ color: 'var(--ui-compartido-tenue)' }}>
             Escribí al menos 2 letras.
           </p>
         )}
 
-        {buscando && <p style={{ color: 'var(--ui-compartido-tenue, #5B6B85)' }}>Buscando...</p>}
+        {buscando && <EstadoVacio cargando mensaje="Buscando…" />}
 
-        {sinResultados && !buscando && (
-          <p className="text-sm" style={{ color: 'var(--ui-compartido-tenue, #5B6B85)' }}>
-            No encontré nada con "{termino}".
-          </p>
-        )}
+        {sinResultados && !buscando && <EstadoVacio mensaje={`Nada con "${termino}".`} detalle="Probá con el apellido o parte del nombre." />}
 
         {mostrarResultados && !buscando && (
           <div className="space-y-6">
             {resultados.jugadores.length > 0 && (
               <div>
-                <p className="text-xs uppercase tracking-wide mb-2" style={{ color: 'var(--ui-compartido-tenue, #5B6B85)' }}>
+                <p className="text-xs uppercase tracking-wide mb-2" style={{ color: 'var(--ui-compartido-tenue)' }}>
                   Jugadores
                 </p>
                 <div className="space-y-2">
@@ -111,7 +107,7 @@ function BuscadorGlobal({ onIrAJugador, onIrAMedicos, onIrAVideoJugador, onIrAVi
                       key={j.id}
                       onClick={() => onIrAJugador(j.id)}
                       className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:-translate-y-0.5 transition-all duration-200"
-                      style={{ backgroundColor: 'var(--ui-compartido-superficie, #1A2332)', border: '1px solid var(--ui-compartido-borde, #2A3548)' }}
+                      style={{ backgroundColor: 'var(--ui-compartido-superficie)', border: '1px solid var(--ui-compartido-borde)' }}
                     >
                       {j.foto_url ? (
                         <img
@@ -122,17 +118,17 @@ function BuscadorGlobal({ onIrAJugador, onIrAMedicos, onIrAVideoJugador, onIrAVi
                       ) : (
                         <span
                           className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-                          style={{ backgroundColor: 'var(--ui-compartido-fondo, #0F1419)', color: 'var(--ui-compartido-secundario, #8A9BB8)', fontFamily: "'Archivo Black', sans-serif" }}
+                          style={{ backgroundColor: 'var(--ui-compartido-fondo)', color: 'var(--ui-compartido-secundario)', fontFamily: 'var(--fuente-titulo)', fontStyle: 'italic', fontWeight: 900, textTransform: 'uppercase' }}
                         >
                           {`${j.nombre?.[0] || ''}${j.apellido?.[0] || ''}`.toUpperCase()}
                         </span>
                       )}
                       <div>
-                        <p className="text-sm font-medium" style={{ color: 'var(--ui-compartido-texto, #F0F2F5)' }}>
+                        <p className="text-sm font-medium" style={{ color: 'var(--ui-compartido-texto)' }}>
                           {j.apellido}, {j.nombre}
                         </p>
                         {j.categorias?.nombre && (
-                          <p className="text-xs" style={{ color: 'var(--ui-compartido-secundario, #8A9BB8)' }}>
+                          <p className="text-xs" style={{ color: 'var(--ui-compartido-secundario)' }}>
                             {j.categorias.nombre}
                           </p>
                         )}
@@ -145,7 +141,7 @@ function BuscadorGlobal({ onIrAJugador, onIrAMedicos, onIrAVideoJugador, onIrAVi
 
             {resultados.fichas.length > 0 && (
               <div>
-                <p className="text-xs uppercase tracking-wide mb-2" style={{ color: 'var(--ui-compartido-tenue, #5B6B85)' }}>
+                <p className="text-xs uppercase tracking-wide mb-2" style={{ color: 'var(--ui-compartido-tenue)' }}>
                   Fichas médicas
                 </p>
                 <div className="space-y-2">
@@ -154,15 +150,15 @@ function BuscadorGlobal({ onIrAJugador, onIrAMedicos, onIrAVideoJugador, onIrAVi
                       key={f.id}
                       onClick={() => onIrAMedicos(f.jugador_id)}
                       className="p-3 rounded-xl cursor-pointer hover:-translate-y-0.5 transition-all duration-200"
-                      style={{ backgroundColor: 'var(--ui-compartido-superficie, #1A2332)', border: '1px solid var(--ui-compartido-borde, #2A3548)' }}
+                      style={{ backgroundColor: 'var(--ui-compartido-superficie)', border: '1px solid var(--ui-compartido-borde)' }}
                     >
-                      <p className="text-sm font-medium" style={{ color: 'var(--ui-compartido-texto, #F0F2F5)' }}>
+                      <p className="text-sm font-medium" style={{ color: 'var(--ui-compartido-texto)' }}>
                         {f.descripcion || 'Registro médico'}
                       </p>
-                      <p className="text-xs" style={{ color: 'var(--ui-compartido-secundario, #8A9BB8)' }}>
+                      <p className="text-xs" style={{ color: 'var(--ui-compartido-secundario)' }}>
                         {f.jugadores ? `${f.jugadores.apellido}, ${f.jugadores.nombre}` : ''}
                         {f.jugadores?.categorias?.nombre && ` · ${f.jugadores.categorias.nombre}`}
-                        {f.fecha && ` · ${f.fecha}`}
+                        {f.fecha && ` · ${fechaCorta(f.fecha)}`}
                       </p>
                     </div>
                   ))}
@@ -172,7 +168,7 @@ function BuscadorGlobal({ onIrAJugador, onIrAMedicos, onIrAVideoJugador, onIrAVi
 
             {resultados.videos.length > 0 && (
               <div>
-                <p className="text-xs uppercase tracking-wide mb-2" style={{ color: 'var(--ui-compartido-tenue, #5B6B85)' }}>
+                <p className="text-xs uppercase tracking-wide mb-2" style={{ color: 'var(--ui-compartido-tenue)' }}>
                   Videos
                 </p>
                 <div className="space-y-2">
@@ -181,13 +177,13 @@ function BuscadorGlobal({ onIrAJugador, onIrAMedicos, onIrAVideoJugador, onIrAVi
                       key={v.id}
                       onClick={() => (v.jugador_id ? onIrAVideoJugador(v.jugador_id) : onIrAVideoGeneral())}
                       className="p-3 rounded-xl cursor-pointer hover:-translate-y-0.5 transition-all duration-200"
-                      style={{ backgroundColor: 'var(--ui-compartido-superficie, #1A2332)', border: '1px solid var(--ui-compartido-borde, #2A3548)' }}
+                      style={{ backgroundColor: 'var(--ui-compartido-superficie)', border: '1px solid var(--ui-compartido-borde)' }}
                     >
-                      <p className="text-sm font-medium" style={{ color: 'var(--ui-compartido-texto, #F0F2F5)' }}>
+                      <p className="text-sm font-medium" style={{ color: 'var(--ui-compartido-texto)' }}>
                         {v.contenido || v.descripcion || (v.jugadores ? `${v.jugadores.apellido}, ${v.jugadores.nombre}` : 'Video')}
                       </p>
-                      <p className="text-xs" style={{ color: 'var(--ui-compartido-secundario, #8A9BB8)' }}>
-                        {v.tipo} {v.categorias?.nombre && `· ${v.categorias.nombre}`} {v.fecha && `· ${v.fecha}`}
+                      <p className="text-xs" style={{ color: 'var(--ui-compartido-secundario)' }}>
+                        {v.tipo} {v.categorias?.nombre && `· ${v.categorias.nombre}`} {v.fecha && `· ${fechaCorta(v.fecha)}`}
                       </p>
                     </div>
                   ))}
@@ -197,7 +193,7 @@ function BuscadorGlobal({ onIrAJugador, onIrAMedicos, onIrAVideoJugador, onIrAVi
 
             {resultados.biblioteca.length > 0 && (
               <div>
-                <p className="text-xs uppercase tracking-wide mb-2" style={{ color: 'var(--ui-compartido-tenue, #5B6B85)' }}>
+                <p className="text-xs uppercase tracking-wide mb-2" style={{ color: 'var(--ui-compartido-tenue)' }}>
                   Biblioteca de entrenamientos
                 </p>
                 <div className="space-y-2">
@@ -206,12 +202,12 @@ function BuscadorGlobal({ onIrAJugador, onIrAMedicos, onIrAVideoJugador, onIrAVi
                       key={b.id}
                       onClick={() => onIrABiblioteca()}
                       className="p-3 rounded-xl cursor-pointer hover:-translate-y-0.5 transition-all duration-200"
-                      style={{ backgroundColor: 'var(--ui-compartido-superficie, #1A2332)', border: '1px solid var(--ui-compartido-borde, #2A3548)' }}
+                      style={{ backgroundColor: 'var(--ui-compartido-superficie)', border: '1px solid var(--ui-compartido-borde)' }}
                     >
-                      <p className="text-sm font-medium" style={{ color: 'var(--ui-compartido-texto, #F0F2F5)' }}>
+                      <p className="text-sm font-medium" style={{ color: 'var(--ui-compartido-texto)' }}>
                         {b.contenido || 'Ejercicio'}
                       </p>
-                      <p className="text-xs truncate" style={{ color: 'var(--ui-compartido-secundario, #8A9BB8)' }}>
+                      <p className="text-xs truncate" style={{ color: 'var(--ui-compartido-secundario)' }}>
                         {b.descripcion}
                       </p>
                     </div>

@@ -3,6 +3,7 @@ import { construirRendimiento } from '../../utils/rendimiento/metricas.js'
 import { construirRanking, METRICAS_RANKING, modalidadesMetrica, nombreRanking } from '../../utils/rendimiento/rankings.js'
 import { GRUPOS_PLANTEL } from './posicionesPlantel.js'
 import './rankings.css'
+import { fechaCorta } from '../../utils/formatoFecha'
 
 const numero = v => v == null ? '—' : v.toLocaleString('es-AR', { maximumFractionDigits: 2 })
 function FotoRanking({ jugadora }) {
@@ -45,7 +46,7 @@ export default function RankingsPlantel({ fuente, categoriaId, jugadoras = [], f
       <label>Modalidad<select value={modalidad} onChange={e => setModalidad(e.target.value)}>{modalidadesMetrica(metrica).map(m => <option key={m} value={m}>{m === 'por90' ? 'Por 90 minutos' : m === 'porcentaje' ? 'Porcentaje' : 'Absoluta'}</option>)}</select></label>
       <label>Desde<input type="date" value={filtros.desde} onChange={e => cambiarFiltro('desde', e.target.value)} /></label>
       <label>Hasta<input type="date" value={filtros.hasta} onChange={e => cambiarFiltro('hasta', e.target.value)} /></label>
-      <label>Partido<select value={filtros.partido} onChange={e => cambiarFiltro('partido', e.target.value)}><option value="">Todos los partidos accesibles</option>{(datos?.partidos || []).map(p => <option key={p.id} value={p.id}>{p.fecha} · {p.rival || 'Rival no informado'}</option>)}</select></label>
+      <label>Partido<select value={filtros.partido} onChange={e => cambiarFiltro('partido', e.target.value)}><option value="">Todos los partidos accesibles</option>{(datos?.partidos || []).map(p => <option key={p.id} value={p.id}>{fechaCorta(p.fecha)} · {p.rival || 'Rival no informado'}</option>)}</select></label>
     </div>
     {rangoInvalido && <p role="alert">La fecha inicial debe ser anterior o igual a la final.</p>}
     {!categoriaId ? <p role="status">Sin categoría accesible para consultar Rankings.</p> : !usuario ? <p role="status">Se requiere una sesión autenticada para consultar Rankings.</p> : !datos ? <p role="status">Consultando fuentes de Rendimiento…</p> : <>

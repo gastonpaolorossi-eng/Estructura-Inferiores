@@ -1,6 +1,7 @@
 import { jsPDF } from 'jspdf'
 import { supabase } from '../supabaseClient'
 import { obtenerJugadoresDeCategoria } from './jugadoresCategoria'
+import { ESCUDO_URL } from '../config/club'
 
 const NEGRO = [23, 23, 23]
 const AMARILLO = [251, 191, 36]
@@ -10,8 +11,6 @@ const TEXTO_OSCURO = [30, 30, 30]
 const AMARILLO_CLARO = [255, 251, 235]
 const ROJO_CLARO = [255, 235, 235]
 const ROJO = [200, 60, 60]
-
-const ESCUDO_CLUB_URL = 'https://qvjviyjkxyngiggoeqlj.supabase.co/storage/v1/object/public/Biblioteca/escudos/Escudo%20simplificado.png'
 
 const ESTADO_LABEL = {
   presente: 'Presente',
@@ -57,7 +56,7 @@ function formatearFechaCorta(fechaStr) {
 }
 
 export async function generarAsistenciaPDF(categoriaId, categoriaNombre, desdeISO, hastaISO) {
-  const escudoDataUrl = await cargarImagenDataURL(ESCUDO_CLUB_URL)
+  const escudoDataUrl = await cargarImagenDataURL(ESCUDO_URL)
 
   const { data: categoriasData } = await supabase.from('categorias').select('id, es_reserva')
   const { data: jugadoresData } = await obtenerJugadoresDeCategoria(supabase, categoriaId, categoriasData)

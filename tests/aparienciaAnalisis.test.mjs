@@ -12,14 +12,14 @@ const lum = (h) => h.slice(1).match(/../g).map((c) => parseInt(c, 16) / 255).map
 const contraste = (a, b) => (Math.max(lum(a), lum(b)) + .05) / (Math.min(lum(a), lum(b)) + .05)
 
 test('Analisis conserva las superficies oscuras y aplica la paleta clara institucional', () => {
-  for (const [k, v] of Object.entries({fondo: '#0F1419', panel: '#151D29', control: '#202A38', activo: '#303B4D', borde: '#2A3548', texto: '#F0F2F5'})) assert.equal(resolver(A[k], oscuro), v)
-  for (const [k, v] of Object.entries({fondo: '#F5F5F2', panel: '#FFFFFF', control: '#FFFFFF', borde: '#DEDEDE', texto: '#111111', secundario: '#666666'})) assert.equal(resolver(A[k], claro), v)
-  assert.equal(resolver(claro['--analisis-editor-primario'], claro), '#F2C230')
-  assert.equal(resolver(claro['--analisis-editor-sobre-primario'], claro), '#111111')
+  for (const [k, v] of Object.entries({fondo: '#0b0b0a', panel: '#141412', control: '#1c1c19', activo: '#1c1c19', borde: '#2a2a25', texto: '#f3f1e8'})) assert.equal(resolver(A[k], oscuro), v)
+  for (const [k, v] of Object.entries({fondo: '#f3f1e8', panel: '#ffffff', control: '#eae7dc', borde: '#d6d2c4', texto: '#141412', secundario: '#5c594e'})) assert.equal(resolver(A[k], claro), v)
+  assert.equal(resolver(claro['--analisis-editor-primario'], claro), '#f4c400')
+  assert.equal(resolver(claro['--analisis-editor-sobre-primario'], claro), '#141200')
 })
 
 test('Textos de acciones, errores, avisos y editores tienen contraste sobre superficies claras', () => {
-  for (const color of ['#F2C230', '#4ADE80', '#F87171', '#60A5FA']) for (const bg of ['#FFFFFF', '#F5F5F2']) assert.ok(contraste(resolver(textoAnalisis(color), claro), bg) >= 4.5)
+  for (const color of ['#F2C230', '#4ADE80', '#F87171', '#60A5FA']) for (const bg of ['#ffffff', '#f3f1e8']) assert.ok(contraste(resolver(textoAnalisis(color), claro), bg) >= 4.5)
   for (const token of ['--analisis-editor-texto', '--analisis-editor-secundario', '--analisis-editor-aviso', '--analisis-editor-error', '--analisis-editor-exito', '--analisis-editor-link']) assert.ok(contraste(resolver(claro[token], claro), '#FFFFFF') >= 4.5, token)
   assert.doesNotMatch(css, /!important|@media print/)
 })
