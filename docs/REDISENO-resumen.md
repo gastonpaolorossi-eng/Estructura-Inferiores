@@ -48,5 +48,5 @@ Rama `rediseno-club`, aplicada según `docs/REDISENO.md` con `docs/maqueta-redis
 - **PDF:** se verificó el código (todos usan la constante del escudo), pero no se generaron PDF reales.
 - **Tests de `tests/`:** después del Paso 2 no se corrieron ni se adaptaron (por pedido). Varios comparan textos y estructuras anteriores (títulos, tarjeta de partido, portada del perfil) y van a fallar hasta actualizarlos.
 - **Comparativa:** usa las métricas existentes. Las de la maqueta (duelos, pases precisos, wellness) no se calculan hoy.
-- **Código sin uso:** `CanchaPlantel.jsx`, `CargarEstadisticas.jsx` y `FormacionPartido.jsx` no se importan en ningún lado y conservan su paleta vieja. No se borraron.
+- **Código sin uso:** `CanchaPlantel.jsx`, `CargarEstadisticas.jsx` y `FormacionPartido.jsx` no se importaban en ningún lado; se borraron.
 - **Colores escritos a mano que quedan a propósito:** cancha y pizarra, series de gráficos, informes imprimibles y `estadoConfig` del perfil, que también usan el PDF.
