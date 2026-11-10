@@ -61,7 +61,6 @@
 
   /* Premium 3.0: portada institucional oscura en ambos temas; paneles semánticos. */
   .perfil-cabecera { position:relative; isolation:isolate; overflow:hidden; padding:28px 32px 0; background:var(--foto-velo); color:var(--foto-texto); border-color:color-mix(in srgb, var(--ui-acento) 25%, transparent); box-shadow:0 16px 40px #0002; }
-  .perfil-portada-institucional { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 42%; z-index:-2; }
   .perfil-cabecera::before { content:""; position:absolute; inset:0; z-index:-1; background:linear-gradient(90deg,rgba(8,9,8,.65),rgba(8,9,8,.92) 58%,rgba(8,9,8,.86)),linear-gradient(0deg,var(--foto-velo),transparent 90%); }
   .perfil-cabecera::after { content:""; position:absolute; inset:auto 0 0; height:3px; background:linear-gradient(90deg,var(--ui-acento),transparent); }
   .perfil-cabecera .perfil-navegacion>span { color:var(--foto-texto-secundario); }
@@ -73,9 +72,6 @@
   .perfil-identidad { grid-template-columns:minmax(190px,28%) minmax(0,1fr) 180px; gap:26px; align-items:center; min-height:330px; }
   .perfil-foto { width:100%; max-width:300px; height:330px; border:0; border-radius:20px 20px 0 0; object-position:50% 20%; align-self:end; box-shadow:0 0 0 1px color-mix(in srgb, var(--ui-acento) 33%, transparent); background:var(--foto-superficie); }
   .perfil-iniciales { color:var(--ui-texto-acento); font-size:72px; }
-  .perfil-marca { display:flex; gap:12px; align-items:center; }
-  .perfil-marca img { width:52px; height:56px; object-fit:contain; }
-  .perfil-marca p { font-size:11px; line-height:1.7; font-weight:800; letter-spacing:.13em; color:var(--ui-texto-acento); }
   .perfil-nombre { padding-bottom:26px; }
   .perfil-nombre h1 { font-size:clamp(28px,3.7vw,60px); font-style:italic; text-transform:uppercase; line-height:1.04; letter-spacing:-.035em; color:var(--foto-texto); text-wrap:balance; }
   .perfil-cabecera .perfil-insignias>span { color:var(--foto-texto); background:var(--foto-superficie); border-color:var(--foto-borde); }
@@ -124,4 +120,29 @@
   @media(max-width:1050px) { .perfil-cabecera { padding:22px 24px 0; } .perfil-identidad { grid-template-columns:210px minmax(0,1fr); } .perfil-foto { height:290px; } .perfil-acciones { grid-column:1/-1; } .perfil-dashboard { grid-template-columns:minmax(0,1fr); } .perfil-seguimiento-resumen { max-width:100%; } }
   @media(max-width:600px) { .perfil-cabecera { padding:18px 16px 0; } .perfil-identidad { grid-template-columns:minmax(0,1fr); gap:20px; } .perfil-foto { width:100%; max-width:240px; height:285px; border-radius:16px; justify-self:center; } .perfil-nombre { padding-bottom:0; } .perfil-cabecera .perfil-acciones { padding-bottom:20px; } .perfil-marca img { width:42px; height:46px; } .perfil-portada-institucional { object-position:35% 50%; } .perfil-panel { padding:16px; } .perfil-criterios-grafico { grid-template-columns:minmax(0,1fr); } .perfil-titulo-panel { flex-wrap:wrap; } .perfil-barra-temporada { grid-template-columns:42px minmax(0,1fr) 72px; gap:8px; } .perfil-barra-temporada strong { font-size:18px; } .perfil-promedio-grande strong { font-size:40px; } }
   @media(prefers-reduced-motion:reduce) { .perfil-pista-barra>span { transition:none; } }
+  /* Rediseño paso 4: portada con foto grande, dorsal gigante en amarillo y apellido enorme. */
+  .perfil-premium .perfil-cabecera { padding:20px 28px 0; margin-bottom:18px; border:0; border-radius:4px; }
+  .perfil-premium .perfil-cabecera::before { background:linear-gradient(90deg,color-mix(in srgb, var(--ui-acento) 10%, transparent),transparent 45%); }
+  .perfil-premium .perfil-identidad { grid-template-columns:minmax(220px,30%) minmax(0,1fr) 180px; align-items:end; gap:28px; min-height:0; }
+  .perfil-foto-marco { align-self:end; min-width:0; }
+  .perfil-premium .perfil-foto { display:block; width:100%; max-width:none; height:380px; object-fit:cover; object-position:50% 12%; border:0; border-radius:0; box-shadow:none; }
+  .perfil-premium .perfil-iniciales { display:grid; place-items:center; font:italic 900 5rem var(--fuente-titulo); color:var(--foto-texto-secundario); background:var(--foto-superficie); }
+  .perfil-premium .perfil-nombre { padding-bottom:26px; min-width:0; }
+  .perfil-dorsal { display:block; font:italic 900 clamp(5rem,11vw,9.5rem)/.8 var(--fuente-titulo); color:var(--ui-acento); font-variant-numeric:tabular-nums; letter-spacing:-.02em; }
+  .perfil-premium .perfil-nombre .dp-eyebrow { margin:14px 0 4px; color:var(--foto-texto-secundario); }
+  .perfil-premium .perfil-nombre h1 { margin:0 0 16px; font:italic 900 clamp(3rem,7.5vw,6.5rem)/.85 var(--fuente-titulo); text-transform:uppercase; letter-spacing:-.01em; color:var(--foto-texto); overflow-wrap:anywhere; text-wrap:balance; }
+  .perfil-premium .perfil-insignias>span { border-radius:0; font-family:var(--fuente-titulo); font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
+  .perfil-premium .perfil-insignias [data-estado=disponible] { color:var(--ui-exito); }
+  .perfil-premium .perfil-insignias [data-estado=lesionado] { color:var(--ui-peligro); }
+  .perfil-premium .perfil-insignias [data-estado=suspendido] { color:var(--ui-alerta); }
+  .perfil-premium .perfil-navegacion { margin-bottom:8px; }
+  .perfil-premium .perfil-contenido > .dp-franja { margin-bottom:18px; }
+  @media(max-width:1050px) { .perfil-premium .perfil-identidad { grid-template-columns:220px minmax(0,1fr); } .perfil-premium .perfil-foto { height:300px; } .perfil-premium .perfil-acciones { grid-column:1/-1; padding-bottom:20px; } }
+  @media(max-width:600px) {
+    .perfil-premium .perfil-cabecera { padding:14px 16px 0; }
+    .perfil-premium .perfil-identidad { grid-template-columns:minmax(0,1fr); gap:0; }
+    .perfil-premium .perfil-foto { height:min(110vw,420px); }
+    .perfil-premium .perfil-nombre { padding:16px 0 18px; }
+    .perfil-dorsal { font-size:clamp(4rem,22vw,6rem); }
+  }
 }

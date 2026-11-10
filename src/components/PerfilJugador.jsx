@@ -21,6 +21,8 @@ import './perfil/perfilPremium.css'
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import PdfPerfilModal from './PdfPerfilModal'
+import FranjaNumeros from './ui/FranjaNumeros'
+import { estadoConfig } from './perfil/presentacionPerfil'
 import { cargarDatosBienestar } from '../utils/bienestar'
 import { generarBienestarPDF } from '../utils/generarBienestarPDF'
 
@@ -499,8 +501,14 @@ function PerfilJugador({
   }
   return <div className="perfil-premium"><div className="perfil-contenido">
     <CabeceraPerfil key={jugador.id} jugador={jugador} onVolver={onVolver} onEditar={onEditar} onPDF={() => setMostrarPdf(true)} onEliminar={handleEliminarJugador} eliminando={eliminando} />
+    <FranjaNumeros etiqueta="Resumen de la jugadora" items={[
+      { etiqueta: 'PJ', valor: fuentes.estadisticas?.error ? null : totales.partidos },
+      { etiqueta: 'Minutos', valor: fuentes.estadisticas?.error ? null : totales.minutos },
+      { etiqueta: 'Goles', valor: fuentes.estadisticas?.error ? null : totales.goles },
+      { etiqueta: 'Estado', valor: estadoConfig[jugador.estado]?.label ?? null },
+    ]} />
     <PestanasAccesibles etiqueta="Secciones del perfil individual" seleccionada={pestana} onSeleccionar={setPestana} pestanas={[
-      { id: 'resumen', etiqueta: 'Resumen', contenido: <div className="perfil-resumen"><EncabezadoSeccion titulo="Resumen deportivo" descripcion="Valores acumulados de los registros disponibles. Se conservan los cálculos actuales." nivel={2} />
+      { id: 'resumen', etiqueta: 'Resumen', contenido: <div className="perfil-resumen"><EncabezadoSeccion eyebrow="Acumulado" titulo="Resumen " resaltado="deportivo" nivel={2} />
         <IndicadoresPerfil totales={totales} onDetalle={abrirDetalle} sinDato={Boolean(fuentes.estadisticas?.error)} />
         <FuentePerfil fuente={fuentes.estadisticas} titulo="Estadísticas deportivas">{estadisticas.length === 0 && <EstadoContenido estado="vacio" titulo="Sin estadísticas registradas" mensaje="El acumulado no acredita ausencia de participación deportiva." />}</FuentePerfil>
         <ResumenDeportivoPerfil estadisticasPorAnio={estadisticasPorAnio} fuentes={fuentes} evaluacionesPorPeriodo={evaluacionesPorPeriodo} criteriosEvaluacion={criteriosEvaluacion} puedeConsultarCategoria={puedeConsultarCategoria} puedeWellness={puedeWellness} resumenBienestar={resumenBienestar} resumenAsistencia={resumenAsistencia} totalAsistenciaMarcada={totalAsistenciaMarcada} onPestana={setPestana} onEvaluacion={periodo => { setPeriodoAbierto(periodo); setMostrarEvaluaciones(true); setPestana('evaluaciones') }} />
