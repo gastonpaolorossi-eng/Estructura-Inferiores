@@ -112,6 +112,10 @@
     .inicio-tres, .inicio-agenda-fila .inicio-agenda-paneles { grid-template-columns:minmax(0,1fr); gap:14px; }
     .inicio-dashboard .inicio-contenido { gap:14px; }
     .inicio-dashboard .inicio-cabecera { min-height:auto; padding:96px 16px 16px; }
+    /* A 390 px, "COMUNICACIONES" y el escudo tienen que entrar en una línea sin partir la palabra. */
+    .inicio-marca { gap:12px; }
+    .inicio-marca-escudo { width:48px; }
+    .inicio-marca .dp-titulo { font-size:clamp(32px,9.5vw,44px); }
     .inicio-proximo { max-width:none; width:100%; }
     .inicio-hoy-portada { margin-left:-14px; margin-right:-14px; }
     .inicio-accesos button { flex:1 1 145px; }
