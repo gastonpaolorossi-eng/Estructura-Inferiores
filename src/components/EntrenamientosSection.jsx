@@ -180,8 +180,7 @@ function EntrenamientosSection({ onPlanificar }) {
   return (
     <div className="av-premium av-entrenamientos" style={{ color: COLORES.texto }}>
       <div className="av-contenido">
-        <EncabezadoFotografico titulo="Entrenamientos" imagen="/images/fotos-comunicaciones/banner_entrenamientos.jpg" descripcionImagen="Cancha y tribunas negras y amarillas de Comunicaciones" posicion="entrenamientos-premium">
-          <p className="av-bajada">Planificá el trabajo. Construí tu biblioteca de ejercicios.</p>
+        <EncabezadoFotografico eyebrowResaltado="Biblioteca de ejercicios" titulo="Entrena" resaltado="mientos" imagen="/images/fotos-comunicaciones/banner_entrenamientos.jpg" descripcionImagen="Cancha y tribunas negras y amarillas de Comunicaciones" posicion="entrenamientos-premium">
           <div className="av-acciones-cabecera">
           {onPlanificar && <button type="button" onClick={onPlanificar} className="av-accion">▦ Planificación semanal</button>}
           <button

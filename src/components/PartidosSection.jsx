@@ -111,10 +111,7 @@ function PartidosSection({ perfil, onIrAFisico }) {
   return (
     <div className="pc-premium">
       <div className="pc-contenido">
-        <EncabezadoFotografico titulo="Partidos" imagen="/images/fotos-comunicaciones/camiseta-escudo-comunicaciones.jpeg" descripcionImagen="Camiseta amarilla con el escudo de Club Comunicaciones" />
-        <p className="text-xs uppercase tracking-wide mb-2" style={{ color: COLORES.textoMuted }}>
-          Elegí una categoría
-        </p>
+        <EncabezadoFotografico eyebrowResaltado="Elegí una categoría" titulo="Parti" resaltado="dos" imagen="/images/fotos-comunicaciones/camiseta-escudo-comunicaciones.jpeg" descripcionImagen="Camiseta amarilla con el escudo de Club Comunicaciones" />
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {categorias.map((c) => (
             <button

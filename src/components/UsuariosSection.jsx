@@ -1,6 +1,7 @@
 import EncabezadoSeccion from './ui/EncabezadoSeccion'
 import EstadoContenido from './ui/EstadoContenido'
-import TarjetaIndicador from './ui/TarjetaIndicador'
+import FranjaNumeros from './ui/FranjaNumeros'
+import Boton from './ui/Boton'
 import { textoGestion } from '../appearance/gestion'
 import { COLORES } from '../theme'
 import { useEffect, useState } from 'react'
@@ -189,7 +190,7 @@ function UsuariosSection() {
   return (
     <div className="dp-gestion" data-modulo="usuarios">
       <div className="dp-gestion-contenido">
-        <EncabezadoSeccion titulo="Usuarios" descripcion="Administración de los perfiles del equipo de trabajo." acciones={<><button type="button" onClick={handleExportarBackup} disabled={exportando} aria-busy={exportando} className="dp-accion">{exportando ? 'Generando...' : 'Exportar backup'}</button><button type="button" onClick={mostrarForm ? cancelarForm : abrirNuevo} className={mostrarForm ? 'dp-accion' : 'dp-accion dp-accion-primaria'} aria-expanded={mostrarForm} aria-controls="usuarios-editor">{mostrarForm ? 'Cancelar' : '+ Nuevo usuario'}</button></>}><p className="dp-contexto-cabecera">COMUNICACIONES · EQUIPO DE TRABAJO</p></EncabezadoSeccion>
+        <EncabezadoSeccion eyebrow="Gestión" eyebrowResaltado="Equipo de trabajo" titulo="Usua" resaltado="rios" acciones={<><Boton variante="secundario" onClick={handleExportarBackup} disabled={exportando} aria-busy={exportando}>{exportando ? 'Generando…' : 'Exportar backup'}</Boton><Boton variante={mostrarForm ? 'secundario' : 'principal'} onClick={mostrarForm ? cancelarForm : abrirNuevo} aria-expanded={mostrarForm} aria-controls="usuarios-editor">{mostrarForm ? 'Cancelar' : '+ Nuevo usuario'}</Boton></>} />
 
         <p className="text-xs mb-6" style={{ color: COLORES.textoMuted }}>
           Antes de darlo de alta acá, creá el login de esa persona en Supabase
@@ -333,7 +334,7 @@ function UsuariosSection() {
         {cargando && <EstadoContenido estado="cargando" titulo="Cargando usuarios" />}
         {!cargando && errorCarga && <EstadoContenido estado={errorCarga.code === '42501' ? 'denegado' : 'error'} titulo="No se pudo consultar la información" mensaje="No equivale a una lista vacía. Podés reintentar la consulta." onReintentar={cargarDatos} />}
 
-        <div className="dp-resumen-usuarios"><TarjetaIndicador etiqueta="Perfiles registrados" valor={usuarios.length} sinDato={cargando || Boolean(errorCarga)} cobertura="Perfiles devueltos por la consulta actual" /><div className="dp-panel"><p className="dp-antetitulo">Organización del equipo</p><h2>Identidad, rol y categoría</h2><p>El cargo de citación se muestra separado del rol del sistema.</p></div></div>
+        <FranjaNumeros etiqueta="Perfiles por rol" items={[{ etiqueta: 'Perfiles', valor: cargando || errorCarga ? null : usuarios.length }, ...['coordinacion', 'tecnico', 'preparador_fisico'].map(rol => ({ etiqueta: rolLabel[rol], valor: cargando || errorCarga ? null : usuarios.filter(u => u.rol === rol).length }))]} />
         <div className="dp-listado-usuarios">
           {!cargando && !errorCarga && usuarios.map((u) => (
             <div

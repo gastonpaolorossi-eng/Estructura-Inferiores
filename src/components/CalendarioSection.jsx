@@ -143,7 +143,7 @@ function CalendarioSection({ perfil, onVerPlanificacion, contextoInicial, onCons
   return (
     <div className="pc-premium">
       <div className="pc-contenido">
-        <EncabezadoFotografico titulo="Calendario" imagen="/images/fotos-comunicaciones/cancha-torre-comunicaciones.jpeg" descripcionImagen="Cancha y torre con los colores de Club Comunicaciones" posicion="torre" />
+        <EncabezadoFotografico eyebrowResaltado="Planificación" titulo="Calen" resaltado="dario" imagen="/images/fotos-comunicaciones/cancha-torre-comunicaciones.jpeg" descripcionImagen="Cancha y torre con los colores de Club Comunicaciones" posicion="torre" />
 
         <div className="calendario-distribucion">
         <section className="calendario-mes" aria-label="Calendario mensual">

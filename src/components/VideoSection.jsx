@@ -277,7 +277,7 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
   return (
     <div className="av-premium av-video" style={{ color: COLORES.texto }}>
       <div className="av-contenido">
-        <EncabezadoFotografico titulo="Videoanálisis" imagen="/images/fotos-comunicaciones/banner_videoanalisis.jpg" descripcionImagen="Cámara registrando un partido de Comunicaciones desde la tribuna" posicion="video-premium"><p className="av-bajada">Biblioteca audiovisual para observar, compartir y seguir al equipo.</p><span className="av-marca-biblioteca">BIBLIOTECA · SEGUIMIENTO AUDIOVISUAL</span></EncabezadoFotografico>
+        <EncabezadoFotografico eyebrowResaltado="Biblioteca audiovisual" titulo="Video" resaltado="análisis" imagen="/images/fotos-comunicaciones/banner_videoanalisis.jpg" descripcionImagen="Cámara registrando un partido de Comunicaciones desde la tribuna" posicion="video-premium" />
 
         <div className="av-tipos" role="group" aria-label="Tipo de biblioteca">
           <button

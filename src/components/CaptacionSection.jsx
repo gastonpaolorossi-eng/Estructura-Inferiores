@@ -1,7 +1,8 @@
 import EncabezadoSeccion from './ui/EncabezadoSeccion'
 import EstadoContenido from './ui/EstadoContenido'
-import TarjetaIndicador from './ui/TarjetaIndicador'
 import BarraFiltros from './ui/BarraFiltros'
+import FranjaNumeros from './ui/FranjaNumeros'
+import Boton from './ui/Boton'
 import { textoGestion } from '../appearance/gestion'
 import { COLORES } from '../theme'
 import { useEffect, useState } from 'react'
@@ -219,7 +220,7 @@ function CaptacionSection({ perfil }) {
   return (
     <div className="dp-gestion" data-modulo="captacion">
       <div className="dp-gestion-contenido">
-        <EncabezadoSeccion titulo="Captación" descripcion="Seguimiento deportivo de candidatos, pruebas y altas al plantel." acciones={<button type="button" onClick={mostrarForm ? cancelarForm : abrirNuevo} className={mostrarForm ? 'dp-accion' : 'dp-accion dp-accion-primaria'} aria-expanded={mostrarForm} aria-controls="captacion-editor">{mostrarForm ? 'Cancelar' : '+ Nuevo candidato'}</button>}><p className="dp-contexto-cabecera">COMUNICACIONES · DESARROLLO DE TALENTO</p></EncabezadoSeccion>
+        <EncabezadoSeccion eyebrow="Gestión" eyebrowResaltado="Desarrollo de talento" titulo="Capta" resaltado="ción" acciones={<Boton variante={mostrarForm ? 'secundario' : 'principal'} onClick={mostrarForm ? cancelarForm : abrirNuevo} aria-expanded={mostrarForm} aria-controls="captacion-editor">{mostrarForm ? 'Cancelar' : '+ Nuevo candidato'}</Boton>} />
 
         {mostrarForm && (
           <div id="captacion-editor" role="region" aria-labelledby="captacion-editor-titulo"
@@ -366,7 +367,7 @@ function CaptacionSection({ perfil }) {
           bloqueada={esTecnico}
           categoriaNombre={perfil?.categorias?.nombre}
         /></div></BarraFiltros>
-        <div className="dp-resumen-gestion" aria-label="Candidatos según los filtros actuales">{grupos.map(grupo => <TarjetaIndicador key={grupo.clave} etiqueta={grupo.config.label} valor={grupo.lista.length} periodo="Según los filtros actuales" sinDato={cargando || Boolean(errorCarga)} />)}</div>
+        <FranjaNumeros etiqueta="Candidatos según los filtros actuales" items={[{ etiqueta: 'Candidatos', valor: cargando || errorCarga ? null : filtrados.length }, ...grupos.map(grupo => ({ etiqueta: grupo.config.label, valor: cargando || errorCarga ? null : grupo.lista.length }))]} />
 
         {cargando && <EstadoContenido estado="cargando" titulo="Cargando candidatos" />}
         {!cargando && errorCarga && <EstadoContenido estado={errorCarga.code === '42501' ? 'denegado' : 'error'} titulo="No se pudo consultar la información" mensaje="No equivale a una lista vacía. Podés reintentar la consulta." onReintentar={cargar} />}

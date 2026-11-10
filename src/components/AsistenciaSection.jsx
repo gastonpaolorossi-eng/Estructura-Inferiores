@@ -178,7 +178,7 @@ function AsistenciaSection({ perfil, fechaInicial, categoriaInicial, onVerPlanif
   return (
     <div className="dp-gestion asistencia-premium" style={{ color: COLORES.texto }}>
       <div className="dp-gestion-contenido">
-        <EncabezadoSeccion titulo="Asistencia" descripcion="Registro diario del plantel. Marcá los estados y guardá los cambios." />
+        <EncabezadoSeccion eyebrow="Equipo" eyebrowResaltado="Registro diario" titulo="Asisten" resaltado="cia" />
 
         <div className="mb-6">
           <button

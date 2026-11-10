@@ -6,6 +6,7 @@ import { generarImagenCitacion } from '../utils/generarImagenCitacion'
 import { exportarEstadisticasPDF, exportarEstadisticasCSV } from '../utils/exportarEstadisticas'
 import { COLORES } from '../theme'
 import EncabezadoFotografico from './EncabezadoFotografico'
+import Boton from './ui/Boton'
 import TarjetaPartidoPremium from './TarjetaPartidoPremium'
 import './partidosCalendarioPremium.css'
 
@@ -100,24 +101,10 @@ function ListaPartidos({ categoriaId, categoriaNombre, onVolver, onElegirPartido
           </button>
         )}
 
-        <EncabezadoFotografico titulo="Partidos" imagen="/images/fotos-comunicaciones/camiseta-escudo-comunicaciones.jpeg" descripcionImagen="Camiseta amarilla con el escudo de Club Comunicaciones">
+        <EncabezadoFotografico eyebrowResaltado="Liga y amistosos" titulo="Partidos " resaltado="jugados" imagen="/images/fotos-comunicaciones/camiseta-escudo-comunicaciones.jpeg" descripcionImagen="Camiseta amarilla con el escudo de Club Comunicaciones">
           <div className="flex items-center gap-2 flex-wrap">
-            {onGestionarEquipos && (
-              <button
-                onClick={onGestionarEquipos}
-                className="text-sm font-medium px-4 py-2.5 rounded-xl transition-opacity hover:opacity-80"
-                style={{ backgroundColor: COLORES.fondoTarjeta, color: COLORES.textoSecundario, border: `1px solid ${COLORES.borde}` }}
-              >
-                🛡️ Equipos
-              </button>
-            )}
-            <button
-              onClick={onNuevoPartido}
-              className="text-sm font-medium px-4 py-2.5 rounded-xl transition-opacity hover:opacity-80"
-              style={{ backgroundColor: COLORES.acento, color: 'var(--ui-texto-sobre-acento)' }}
-            >
-              + Nuevo partido
-            </button>
+            {onGestionarEquipos && <Boton variante="secundario" onClick={onGestionarEquipos}>Equipos</Boton>}
+            <Boton onClick={onNuevoPartido}>+ Nuevo partido</Boton>
           </div>
         </EncabezadoFotografico>
 
