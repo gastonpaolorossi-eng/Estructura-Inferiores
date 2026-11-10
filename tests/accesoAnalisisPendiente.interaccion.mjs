@@ -27,7 +27,7 @@ test('Análisis: Kevin/Gastón ven acceso y editor sin RPC; cero escrituras, otr
  for(const cuenta of ['f7562d52-a16a-48b5-95a0-efbcc70080d3','b2c65c50-8772-45a4-b2e0-c0e53c66253b']){
  id=cuenta;rpcError={code:'PGRST202'};await montar()
  assert.equal(acceso.puedeAbrir,true);assert.equal(acceso.puedeEscribir,false);assert.equal(acceso.estado,'pendiente_migracion')
- assert.ok([...document.querySelectorAll('button')].some(b=>b.textContent==='Análisis'))
+ assert.ok(document.querySelector('nav button[aria-label="Análisis"]'))
  assert.match(document.body.textContent,/falta activar la función de autorización/);assert.match(document.body.textContent,/Rival sintético/)
  const nuevo=[...document.querySelectorAll('button')].find(b=>b.textContent.includes('Nuevo análisis'));assert.ok(nuevo)
  await act(()=>nuevo.click())

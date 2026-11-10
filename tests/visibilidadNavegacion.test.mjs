@@ -53,7 +53,7 @@ test('Navegación real: menú por rol, Inicio, perfil, buscador y recuperación 
       if(rol !== 'medico') assert.ok(menu.indexOf('aria-label="Partidos"') < menu.indexOf('aria-label="Calendario"') && menu.indexOf('aria-label="Calendario"') < menu.indexOf('aria-label="Entrenamientos"'), `${rol}: orden del menú`)
       if(rol==='coordinacion')for(const nombre of ['Análisis','Médicos','Plantel','Entrenamientos','Planificación semanal','Usuarios'])assert.ok(menu.includes(nombre),nombre)
       if(rol!=='coordinacion')assert.ok(!menu.includes('aria-label="Análisis"'))
-      assert.match(html,/Abrir menú|Abrir men/)
+      assert.match(html,/aria-label="Abrir secciones"/)
     }
     assert.doesNotMatch(render(Layout,{perfil:{rol:'coordinacion'},seccionActiva:'inicio',puedeAdministrarAnalisis:false}),/aria-label="Análisis"/)
     const {default:Inicio}=await server.ssrLoadModule('/src/components/InicioSection.jsx')
