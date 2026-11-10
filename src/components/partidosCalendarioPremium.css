@@ -2,27 +2,55 @@
   .pc-premium { padding:24px; color:var(--ui-texto); }
   .pc-contenido { max-width:1440px; min-width:0; margin:0 auto; }
   .pc-premium .club-foto-encabezado,.pc-premium .club-foto-contenido { min-height:270px; }
-  .partidos-indicadores { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin:24px 0 10px; }
-  .partidos-indicadores article { min-width:0; padding:20px; border:1px solid var(--ui-borde); border-radius:16px; background:var(--ui-superficie); }
-  .partidos-indicadores span { display:block; color:var(--ui-texto-secundario); font-size:13px; }
-  .partidos-indicadores strong { display:block; font-size:36px; line-height:1.3; font-weight:850; }
-  .partidos-contexto { margin-bottom:22px; color:var(--ui-texto-secundario); font-size:13px; }
-  .partidos-rejilla { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
-  .partido-premium { min-width:0; padding:20px; border:1px solid var(--ui-borde); border-radius:18px; background:var(--ui-superficie); transition:border-color .2s,box-shadow .2s; cursor:pointer; }
-  .partido-premium:hover,.partido-premium:focus-within { border-color:var(--ui-texto-acento); box-shadow:0 4px 20px rgba(0,0,0,.08); }
-  .partido-contexto { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; color:var(--ui-texto-secundario); font-size:12px; }
-  .partido-resultado { border:1px solid; border-radius:20px; padding:6px 10px; background:var(--ui-superficie-alternativa); }
-  .partido-marcador { display:grid; width:100%; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); gap:14px; align-items:center; margin:24px 0 12px; padding:4px; border:0; background:transparent; color:var(--ui-texto); cursor:pointer; }
-  .partido-equipo { display:flex; flex-direction:column; align-items:center; gap:8px; min-width:0; }
-  .partido-equipo img,.partido-escudo-vacio { width:72px; height:72px; object-fit:contain; }
-  .partido-escudo-vacio { display:grid; place-items:center; border:1px solid var(--ui-borde); border-radius:50%; font-size:28px; }
-  .partido-equipo strong { font-size:14px; overflow-wrap:anywhere; }
-  .partido-equipo small { font-size:12px; color:var(--ui-texto-secundario); }
-  .partido-goles { display:flex; align-items:center; gap:8px; font-size:clamp(28px,3.3vw,48px); font-weight:900; font-variant-numeric:tabular-nums; }
-  .partido-lugar { text-align:center; color:var(--ui-texto-secundario); font-size:13px; overflow-wrap:anywhere; }
-  .partido-acciones { display:flex; flex-wrap:wrap; gap:8px; padding-top:18px; margin-top:18px; border-top:1px solid var(--ui-borde); }
-  .partido-acciones :is(button,a) { display:inline-flex; align-items:center; min-height:44px; padding:9px 12px; border:1px solid var(--ui-borde); border-radius:9px; background:var(--ui-superficie-alternativa); color:var(--ui-texto); font-size:12px; cursor:pointer; }
-  .partido-acciones .partido-eliminar { color:var(--ui-peligro); }
+  .partidos-exportar { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:20px 0 16px; }
+  .partidos-exportar .dp-eyebrow { margin:0 8px 0 0; }
+  .partidos-filtros { display:flex; flex-wrap:wrap; gap:12px 24px; margin-bottom:16px; }
+  .partidos-resumen { display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; gap:20px 40px; margin:20px 0 24px; }
+  .partidos-condicion { border-collapse:collapse; font-size:13px; font-variant-numeric:tabular-nums; }
+  .partidos-condicion caption { text-align:left; margin-bottom:8px; }
+  .partidos-condicion :is(th,td) { padding:6px 12px 6px 0; text-align:right; border-bottom:1px solid var(--ui-borde); }
+  .partidos-condicion :is(th[scope=row],thead th:first-child) { text-align:left; font-family:var(--fuente-titulo); font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
+  .partidos-condicion thead th { color:var(--ui-texto-secundario); font-weight:600; }
+  .partidos-racha ol { display:flex; flex-wrap:wrap; gap:6px; }
+  .partidos-racha li { display:grid; place-items:center; width:34px; height:34px; font:italic 900 18px/1 var(--fuente-titulo); color:var(--ui-texto-sobre-acento); background:var(--ui-alerta); }
+  .partidos-racha [data-resultado=victoria] { background:var(--ui-exito); }
+  .partidos-racha [data-resultado=derrota] { background:var(--ui-peligro); }
+
+  /* Tarjetas compactas: franja vertical con el color del resultado y acciones al pasar el mouse. */
+  .partidos-rejilla { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:12px; margin-top:12px; }
+  .partido-premium { position:relative; display:grid; gap:10px; min-width:0; padding:14px 14px 12px 18px; border:1px solid var(--ui-borde); border-left:0; border-radius:2px; background:var(--ui-superficie); cursor:pointer; }
+  .partido-premium::before { content:''; position:absolute; inset:0 auto 0 0; width:4px; background:var(--ui-borde); }
+  .partido-premium[data-resultado=victoria]::before { background:var(--ui-exito); }
+  .partido-premium[data-resultado=empate]::before { background:var(--ui-alerta); }
+  .partido-premium[data-resultado=derrota]::before { background:var(--ui-peligro); }
+  .partido-contexto { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:6px; font-family:var(--fuente-titulo); font-weight:600; font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--ui-texto-secundario); }
+  .partido-condicion { color:var(--ui-texto-acento); }
+  .partido-marcador { display:grid; grid-template-columns:40px minmax(0,1fr) auto; align-items:center; gap:10px; width:100%; padding:0; border:0; background:transparent; color:var(--ui-texto); text-align:left; cursor:pointer; }
+  .partido-marcador img,.partido-escudo-vacio { width:40px; height:40px; object-fit:contain; }
+  .partido-escudo-vacio { display:grid; place-items:center; border:1px solid var(--ui-borde); border-radius:50%; font-size:18px; }
+  .partido-rival { min-width:0; }
+  .partido-rival strong { display:block; font:italic 900 19px/1.05 var(--fuente-titulo); text-transform:uppercase; overflow-wrap:anywhere; }
+  .partido-rival small { display:block; margin-top:3px; font-size:12px; color:var(--ui-texto-secundario); overflow-wrap:anywhere; }
+  .partido-goles { font:italic 900 clamp(30px,3vw,40px)/1 var(--fuente-titulo); font-variant-numeric:tabular-nums; color:var(--ui-texto-secundario); }
+  [data-resultado=victoria] .partido-goles { color:var(--ui-exito); }
+  [data-resultado=empate] .partido-goles { color:var(--ui-texto-acento); }
+  [data-resultado=derrota] .partido-goles { color:var(--ui-peligro); }
+  .partido-penales { font-size:12px; color:var(--ui-texto-secundario); }
+  .partido-acciones { display:flex; flex-wrap:wrap; gap:6px; padding-top:10px; border-top:1px solid var(--ui-borde); }
+  .partido-acciones :is(button,a) { display:inline-flex; align-items:center; min-height:44px; padding:6px 10px; border:1px solid var(--ui-borde); background:var(--ui-superficie-alternativa); color:var(--ui-texto); font-family:var(--fuente-titulo); font-weight:600; font-size:12px; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; }
+  .partido-menu { position:relative; margin-left:auto; }
+  .partido-acciones .partido-menu-boton { min-width:44px; justify-content:center; letter-spacing:.1em; }
+  .partido-menu-panel { position:absolute; right:0; bottom:calc(100% + 6px); z-index:20; width:max-content; max-width:min(260px, 80vw); padding:10px; border:1px solid var(--ui-borde); background:var(--ui-superficie); box-shadow:0 10px 30px #0004; cursor:default; }
+  .partido-acciones .partido-eliminar { color:var(--ui-peligro); border-color:transparent; background:transparent; }
+  .partido-confirmar p { font-size:13px; line-height:1.4; margin-bottom:10px; text-transform:none; }
+  .partido-confirmar p strong { display:block; }
+  .partido-confirmar div { display:flex; gap:6px; justify-content:flex-end; }
+  .partido-acciones .partido-eliminar-confirmar { background:var(--ui-peligro); border-color:var(--ui-peligro); color:var(--ui-texto-sobre-acento); }
+  /* Con mouse, las acciones aparecen al pasar por la tarjeta; en pantallas táctiles quedan siempre visibles. */
+  @media (hover:hover) and (pointer:fine) {
+    .partido-acciones { opacity:0; transform:translateY(4px); transition:opacity .3s var(--curva-salida), transform .3s var(--curva-salida); }
+    .partido-premium:is(:hover,:focus-within) .partido-acciones { opacity:1; transform:none; }
+  }
   .pc-premium :is(button,a,select,[role=button]):focus-visible { outline:3px solid var(--ui-foco); outline-offset:3px; }
   .calendario-distribucion { display:grid; grid-template-columns:minmax(0,1fr) 320px; gap:20px; align-items:start; }
   .calendario-mes,.calendario-detalle { min-width:0; padding:18px; border:1px solid var(--ui-borde); border-radius:18px; background:var(--ui-superficie); }
@@ -38,19 +66,13 @@
   .calendario-leyenda { display:flex; flex-wrap:wrap; gap:14px; margin:16px 0; font-size:12px; color:var(--ui-texto-secundario); }
   .calendario-ayuda-movil { display:none; }
   @media(max-width:1250px) { .calendario-distribucion { grid-template-columns:minmax(0,1fr); } .calendario-detalle .club-foto-secundaria { max-width:520px; } }
-  @media(max-width:950px) { .partidos-rejilla { grid-template-columns:minmax(0,1fr); } }
+
   @media(max-width:600px) {
     .pc-premium { padding:12px; }
     .pc-premium .club-foto-encabezado,.pc-premium .club-foto-contenido { min-height:210px; }
-    .partidos-indicadores { gap:8px; }
-    .partidos-indicadores article { padding:12px; }
-    .partidos-indicadores strong { font-size:28px; }
-    .partido-premium { padding:14px; }
-    .partido-equipo img,.partido-escudo-vacio { width:54px; height:54px; }
-    .partido-marcador { gap:8px; }
     .calendario-mes,.calendario-detalle { padding:12px; }
     .calendario-grilla { min-width:630px; }
     .calendario-ayuda-movil { display:block; color:var(--ui-texto-secundario); font-size:12px; margin-bottom:10px; }
   }
-  @media(prefers-reduced-motion:reduce) { .partido-premium { transition:none; } }
+  @media(prefers-reduced-motion:reduce) { .partido-acciones { transition:none; transform:none; } }
 }
