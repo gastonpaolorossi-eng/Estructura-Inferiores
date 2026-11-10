@@ -3,9 +3,14 @@ import PestanasAccesibles from './ui/PestanasAccesibles'
 import { agruparPlantel } from './plantel/posicionesPlantel'
 import BarraFiltros from './ui/BarraFiltros'
 import EstadoContenido from './ui/EstadoContenido'
+import EncabezadoSeccion from './ui/EncabezadoSeccion'
+import FranjaNumeros from './ui/FranjaNumeros'
+import Chips from './ui/Chips'
+import Boton from './ui/Boton'
+import EstadoVacio from './ui/EstadoVacio'
 import TarjetaJugadora from './plantel/TarjetaJugadora'
 import './plantel/plantel.css'
-import { PLANTEL as P, textoPlantel, tintePlantel } from '../appearance/plantel'
+import { PLANTEL as P, textoPlantel } from '../appearance/plantel'
 
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../supabaseClient'
@@ -410,48 +415,17 @@ function ListaJugadores({ onSelectJugador: onElegirJugador, onNuevoJugador, onCa
       className="min-h-full plantel-premium"
     >
       <div className="plantel-premium-contenido">
-        <header className="plantel-portada">
-          <img className="plantel-portada-foto" src="/images/plantel/plantel-femenino-portada.jpg" width="1920" height="704"
-            alt="Plantel femenino de Club Comunicaciones" fetchPriority="high" />
-          <div className="plantel-portada-textos"><p>CLUB COMUNICACIONES</p><h1>PLANTEL <span aria-hidden="true">//</span></h1>
-            <span className="plantel-portada-subtitulo">PRIMERA DIVISIÓN · FÚTBOL FEMENINO</span></div>
-        </header>
-        <div className="plantel-herramientas" role="group" aria-label="Acciones del plantel">            <button
-              type="button"
-              onClick={generarPlantelPDF}
-              className="text-sm font-semibold px-3 py-2.5 rounded-xl"
-              style={{
-                backgroundColor: P.tarjetaLista,
-                color: P.textoDetalle,
-                border: "1px solid var(--plantel-separador)",
-              }}
-            >
-              ↓ Descargar PDF
-            </button>
-
-            <button
-              type="button"
-              onClick={onCargaMasiva}
-              className="text-sm font-semibold px-3 py-2.5 rounded-xl"
-              style={{
-                backgroundColor: P.tarjetaLista,
-                color: P.textoDetalle,
-                border: "1px solid var(--plantel-separador)",
-              }}
-            >
-              Carga masiva
-            </button>
-
-            <button
-              type="button"
-              onClick={onNuevoJugador}
-              className="text-sm font-bold px-4 py-2.5 rounded-xl"
-              style={{ backgroundColor: P.amarilloLista, color: 'var(--ui-texto-sobre-acento)' }}
-            >
-              + Nueva jugadora
-            </button>
-
-</div>
+        <EncabezadoSeccion eyebrow="Primera División" eyebrowResaltado="Fútbol femenino" titulo="Plan" resaltado="tel"
+          imagenFondo="/images/plantel/plantel-femenino-portada.jpg" posicionImagen="70% 35%"
+          acciones={<>
+            <Boton variante="secundario" onClick={generarPlantelPDF}>Descargar PDF</Boton>
+            <Boton variante="secundario" onClick={onCargaMasiva}>Carga masiva</Boton>
+            <Boton onClick={onNuevoJugador}>+ Nueva jugadora</Boton>
+          </>} />
+        <FranjaNumeros etiqueta="Estado del plantel" items={[
+          { etiqueta: 'Jugadoras', valor: cargando || errorCarga ? null : jugadores.length },
+          ...filtrosEstado.map(f => ({ etiqueta: f.label, valor: cargando || errorCarga ? null : jugadores.filter(j => coincideEstado(j, f.id)).length })),
+        ]} />
 
         {cargando ? (
           <EstadoContenido estado="cargando" titulo="Cargando plantel…" />
@@ -474,38 +448,16 @@ function ListaJugadores({ onSelectJugador: onElegirJugador, onNuevoJugador, onCa
 
             {/* Buscador y filtros */}
             <section className="plantel-filtros" aria-label="Listado y filtros de jugadoras">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <div>
-                  <h2 style={{ color: P.blanco }} className="text-lg font-bold ">
-                    Listado de jugadoras
-                  </h2>
-                  <p className="text-xs mt-1" style={{ color: P.secundarioLista }}>
-                    Buscá, filtrá y accedé a cada perfil.
-                  </p>
-                </div>
-                <span className="text-sm" style={{ color: P.textoAmarilloLista }}>
-                  {jugadorasFiltradas.length} resultado
-                  {jugadorasFiltradas.length === 1 ? '' : 's'}
-                </span>
-              </div>
-
               <BarraFiltros etiqueta="Filtros del plantel">
               <div className="plantel-busqueda">
-                <label htmlFor="plantel-busqueda">Buscar jugadora</label>
-                <div className="relative">
-                <span
-                  className="absolute left-3 top-1/2 -translate-y-1/2"
-                  style={{ color: P.secundarioLista }}
-                >
-                  ⌕
-                </span>
+                <label htmlFor="plantel-busqueda">Buscar jugadora · <b>{jugadorasFiltradas.length} {jugadorasFiltradas.length === 1 ? 'resultado' : 'resultados'}</b></label>
                 <input
                   id="plantel-busqueda"
                   type="search"
-                  placeholder="Buscar por nombre, apellido o posición..."
+                  placeholder="Nombre, apellido o posición"
                   value={busqueda}
                   onChange={(e) => setBusqueda(e.target.value)}
-                  className="w-full rounded-xl py-3 pl-10 pr-4 ui-control outline-none text-sm"
+                  className="w-full py-3 px-4 ui-control outline-none text-sm"
                   style={{
                     backgroundColor: P.fondoLista,
                     border: "1px solid var(--plantel-separador)",
@@ -513,83 +465,13 @@ function ListaJugadores({ onSelectJugador: onElegirJugador, onNuevoJugador, onCa
                   }}
                 />
               </div>
-
+              <div className="plantel-grupo-filtro">
+                <Chips etiqueta="Puesto" valor={filtroPuesto} onCambiar={setFiltroPuesto}
+                  opciones={filtrosPuesto.map(f => ({ valor: f.id, etiqueta: f.label }))} />
               </div>
-              <div className="space-y-2 plantel-grupo-filtro">
-                <p
-                  className="text-[10px] font-bold tracking-[0.15em] uppercase"
-                  style={{ color: P.secundarioLista }}
-                >
-                  Filtrar por puesto
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {filtrosPuesto.map((filtro) => {
-                    const activo = filtroPuesto === filtro.id
-
-                    return (
-                      <button
-                        key={filtro.id}
-                        type="button"
-                        onClick={() => setFiltroPuesto(filtro.id)}
-                        aria-pressed={activo}
-                        className="px-3 py-2 rounded-lg text-xs md:text-sm font-semibold transition-colors"
-                        style={{
-                          backgroundColor: activo ? P.amarilloLista : P.controlLista,
-                          color: activo ? 'var(--ui-texto-sobre-acento)' : P.textoControl,
-                          border: `1px solid ${activo ? P.amarilloLista : P.bordeControl}`,
-                        }}
-                      >
-                        {filtro.label}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              <div className="space-y-2 plantel-grupo-filtro">
-                <p
-                  className="text-[10px] font-bold tracking-[0.15em] uppercase"
-                  style={{ color: P.secundarioLista }}
-                >
-                  Disponibilidad
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setFiltroEstado('todos')}
-                    aria-pressed={filtroEstado === 'todos'}
-                    className="px-3 py-2 rounded-lg text-xs md:text-sm font-semibold"
-                    style={{
-                      backgroundColor:
-                        filtroEstado === 'todos' ? P.separador : P.controlInactivo,
-                      color: P.textoLista,
-                      border: `1px solid ${filtroEstado === 'todos' ? P.bordeSeleccionado : P.separador}`,
-                    }}
-                  >
-                    Todos los estados
-                  </button>
-
-                  {filtrosEstado.map((filtro) => {
-                    const activo = filtroEstado === filtro.id
-
-                    return (
-                      <button
-                        key={filtro.id}
-                        type="button"
-                        onClick={() => setFiltroEstado(filtro.id)}
-                        aria-pressed={activo}
-                        className="px-3 py-2 rounded-lg text-xs md:text-sm font-semibold"
-                        style={{
-                          backgroundColor: activo ? tintePlantel(filtro.color, '20') : P.controlInactivo,
-                          color: textoPlantel(filtro.color),
-                          border: `1px solid ${activo ? filtro.color : P.separador}`,
-                        }}
-                      >
-                        {filtro.label}
-                      </button>
-                    )
-                  })}
-                </div>
+              <div className="plantel-grupo-filtro">
+                <Chips etiqueta="Estado" valor={filtroEstado} onCambiar={setFiltroEstado}
+                  opciones={[{ valor: 'todos', etiqueta: 'Todos' }, ...filtrosEstado.map(f => ({ valor: f.id, etiqueta: f.label }))]} />
               </div>
 
               {hayFiltrosActivos && (
@@ -611,15 +493,12 @@ function ListaJugadores({ onSelectJugador: onElegirJugador, onNuevoJugador, onCa
               pestanas={[
                 { id: 'jugadoras', etiqueta: 'Jugadoras', contenido: (<div className="plantel-galeria" id="plantel-jugadoras">
   {agruparPlantel(jugadorasFiltradas).map(grupo => <section key={grupo.id} className="plantel-grupo" aria-labelledby={'grupo-' + grupo.id}>
-    <header className="plantel-grupo-titulo"><h2 id={'grupo-' + grupo.id}>{grupo.nombre}</h2><span>({grupo.jugadoras.length})</span></header>
-    <div className="plantel-listado">{grupo.jugadoras.map(j => <TarjetaJugadora key={j.id} jugadora={j}
-      foto={<FotoJugadora jugadora={j} />} onAbrir={onSelectJugador} />)}</div>
-    {grupo.id === 'sin_equivalencia' && <p className="plantel-grupo-aviso">Estas posiciones principales no tienen una equivalencia definida. Se conservan sin asignar un puesto arbitrario.</p>}
+    <header className="plantel-grupo-titulo"><h2 id={'grupo-' + grupo.id}>{grupo.nombre}</h2><span>{grupo.jugadoras.length}</span></header>
+    <div className="plantel-listado club-grilla-foco">{grupo.jugadoras.map(j => <TarjetaJugadora key={j.id} jugadora={j} onAbrir={onSelectJugador} />)}</div>
+    {grupo.id === 'sin_equivalencia' && <p className="plantel-grupo-aviso">Posiciones sin equivalencia definida.</p>}
   </section>)}
-  {jugadorasFiltradas.length === 0 && <EstadoContenido estado="vacio" titulo="No hay jugadoras para mostrar"
-    mensaje="Probá cambiar los filtros o la búsqueda.">
-    {hayFiltrosActivos && <button type="button" className="dp-boton" onClick={limpiarFiltros}>Limpiar filtros</button>}
-  </EstadoContenido>}
+  {jugadorasFiltradas.length === 0 && <EstadoVacio mensaje="Ninguna jugadora con estos filtros."
+    accion={hayFiltrosActivos ? { etiqueta: 'Limpiar filtros', onClick: limpiarFiltros } : { etiqueta: '+ Nueva jugadora', onClick: onNuevoJugador }} />}
 </div>) },
                 { id: 'rendimiento', etiqueta: 'Rendimiento', contenido: (<RendimientoPlantel activo={vistaPlantel === 'rendimiento'} jugadoras={jugadores} estadisticas={estadisticas}
                   formacion={formacion} onCambiarFormacion={setFormacion} onSelectJugador={onSelectJugador} FotoJugadora={FotoJugadora}>
