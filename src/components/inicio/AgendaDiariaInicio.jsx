@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../supabaseClient'
 import { cargarSesionesAgenda, normalizarEventos } from '../../utils/calendario'
 import { fechaArgentina, sumarDias, puedePlanificar } from '../../utils/planificacion'
-import { fechaCorta } from '../../utils/formatoFecha'
+import { fechaCorta, fechaLarga } from '../../utils/formatoFecha'
 
 const TIPOS = { partido: 'Partido', video: 'Video de entrenamiento', planificacion: 'Planificación' }
 function Evento({ evento, abrirCalendario, onVerPlanificacion }) {
@@ -53,7 +53,7 @@ export default function AgendaDiariaInicio({ perfil, partidos, proximoPartido, c
   return <div className="inicio-agenda-paneles">
     <section className="inicio-bloque inicio-hoy" aria-labelledby="inicio-hoy-titulo">
       <div className="inicio-hoy-portada"><img src="/images/fotos-comunicaciones/pelotas-entrenamiento-comunicaciones.jpeg" alt="Pelotas de entrenamiento de Comunicaciones" loading="lazy" />
-        <div><p className="inicio-antetitulo">AGENDA DEL CUERPO TÉCNICO</p><h2 id="inicio-hoy-titulo">Actividad de hoy</h2><p>{hoy}</p></div></div>
+        <div><p className="inicio-antetitulo">AGENDA DEL CUERPO TÉCNICO</p><h2 id="inicio-hoy-titulo">Actividad de hoy</h2><p>{fechaLarga(hoy)}</p></div></div>
       {cargando && <p role="status">Consultando actividades…</p>}
       {errores.map((e, i) => <p role="alert" key={i}>{e}</p>)}
       {vigente && lectura.errores.length > 0 && <button type="button" disabled={cargando} onClick={() => setIntento(n => n + 1)}>Reintentar videos y planificación</button>}
@@ -67,7 +67,6 @@ export default function AgendaDiariaInicio({ perfil, partidos, proximoPartido, c
       <div className="inicio-agenda">{proximos.map(e => <Evento key={e.id} evento={e} abrirCalendario={abrirCalendario} onVerPlanificacion={puedePlanificar(perfil, e.categoriaId) ? onVerPlanificacion : undefined} />)}
         {partidoPosterior && <Evento evento={{ ...normalizarEventos({ partidos: [partidoPosterior] })[0], hora: partidoPosterior.hora?.slice(0, 5) || '', categoria: partidoPosterior.categoriasNombres?.join(', ') || partidoPosterior.categorias?.nombre }} abrirCalendario={abrirCalendario} />}</div>
       {!cargando && !errores.length && !proximos.length && !partidoPosterior && <p className="inicio-vacio">Sin próximas actividades registradas.</p>}
-      <p className="inicio-secundario">Planificaciones y videos de mañana, y próximo partido posterior disponible. No se repiten las actividades de hoy.</p>
     </section>
   </div>
 }

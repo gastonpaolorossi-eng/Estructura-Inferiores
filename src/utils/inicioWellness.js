@@ -17,12 +17,15 @@ export function resumirWellnessInicio(jugadoras, respuestas) {
   }
   const alertas = [], pendientes = []
   let respondieron = 0, incompletas = 0, estresAlto = 0
+  // Solo para mostrar: promedio de cada métrica entre las respuestas disponibles (escala 1-5).
+  const sumas = Object.fromEntries(Object.keys(CAMPOS_WELLNESS_INICIO).map(c => [c, { suma: 0, n: 0 }]))
   for (const jugadora of jugadoras) {
     const fila = porId.get(jugadora.id)
     const valores = Object.entries(CAMPOS_WELLNESS_INICIO).map(([campo, label]) => ({ campo, label, valor: fila?.[campo] }))
       .filter(v => v.valor !== null && v.valor !== undefined && v.valor !== '' && Number.isFinite(Number(v.valor)))
       .map(v => ({ ...v, valor: Number(v.valor) }))
     if (!valores.length) { pendientes.push(jugadora); continue }
+    for (const v of valores) { sumas[v.campo].suma += v.valor; sumas[v.campo].n++ }
     respondieron++
     if (valores.length < 5) incompletas++
     if (Number(fila.estres) > 3) estresAlto++
@@ -33,7 +36,9 @@ export function resumirWellnessInicio(jugadoras, respuestas) {
     alertas.push({ jugadora, nivel: alta ? 'alta' : 'seguimiento', promedio,
       motivo: `Wellness del día: ${promedio.toFixed(1)}${factores.length ? ' · ' + factores.map(v => `${v.label} ${v.valor}`).join(', ') : ''}` })
   }
-  return { total: jugadoras.length, respondieron, pendientes, incompletas, alertas, estresAlto }
+  const promedios = Object.entries(CAMPOS_WELLNESS_INICIO).map(([campo, label]) =>
+    ({ campo, label, promedio: sumas[campo].n ? sumas[campo].suma / sumas[campo].n : null }))
+  return { total: jugadoras.length, respondieron, pendientes, incompletas, alertas, estresAlto, promedios }
 }
 
 export function mensajeErrorWellness(error) {

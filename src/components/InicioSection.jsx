@@ -5,14 +5,16 @@ import { fechaArgentina, puedePlanificar } from '../utils/planificacion'
 import AgendaDiariaInicio from './inicio/AgendaDiariaInicio'
 import WellnessInicio from './inicio/WellnessInicio'
 import { filtrarSeccionesVisibles } from '../config/visibilidadSecciones'
-import { tintePlantel } from '../appearance/plantel'
 
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import TablaDataFem from './TablaDataFem'
-import { PALETA_INICIO as C, textoInicio } from '../appearance/paletaInicio'
+import { PALETA_INICIO as C } from '../appearance/paletaInicio'
+import FranjaNumeros from './ui/FranjaNumeros'
+import EstadoVacio from './ui/EstadoVacio'
+import './ui/panelDeportivo.css'
 import { ESCUDO_URL } from '../config/club'
-import { fechaCorta } from '../utils/formatoFecha'
+import { fechaCorta, fechaHora, fechaLarga } from '../utils/formatoFecha'
 
 function fechaISO(date) {
   const anio = date.getFullYear()
@@ -98,37 +100,51 @@ function iniciales(nombre, apellido) {
   return `${nombre?.[0] || ''}${apellido?.[0] || ''}`.toUpperCase()
 }
 
-function fechaLegible(fecha) {
-  if (!fecha) return ''
-  const date = new Date(`${fecha}T12:00:00`)
-  if (Number.isNaN(date.getTime())) return fecha
+const LETRA_RESULTADO = { Victoria: 'V', Empate: 'E', Derrota: 'D' }
+const NIVEL_RESULTADO = { Victoria: 'victoria', Empate: 'empate', Derrota: 'derrota' }
 
-  return new Intl.DateTimeFormat('es-AR', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  }).format(date)
-}
+// Cuenta regresiva solo de presentación: usa la fecha y hora ya leídas del partido (hora de Argentina).
+function ProximoPartido({ partido, cargando, onAbrir }) {
+  const [ahora, setAhora] = useState(() => Date.now())
+  useEffect(() => {
+    const intervalo = setInterval(() => setAhora(Date.now()), 60000)
+    return () => clearInterval(intervalo)
+  }, [])
 
-function EtiquetaEstado({ children, color = C.amarillo }) {
-  return (
-    <span
-      className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold"
-      style={{
-        background: tintePlantel(color, '16'),
-        color: textoInicio(color),
-        border: "1px solid " + tintePlantel(color, '45'),
-      }}
-    >
-      {children}
+  if (cargando) return <div className="inicio-proximo"><p className="dp-eyebrow">Próximo partido</p><p className="inicio-secundario">Consultando…</p></div>
+  if (!partido) return <div className="inicio-proximo"><p className="dp-eyebrow">Próximo partido</p><p className="inicio-secundario">Sin partidos programados.</p></div>
+
+  const hora = partido.hora?.slice(0, 5)
+  const inicio = new Date(`${partido.fecha}T${hora || '00:00'}:00-03:00`).getTime()
+  const falta = Math.max(0, inicio - ahora)
+  const dias = Math.floor(falta / 864e5)
+  const horas = Math.floor((falta % 864e5) / 36e5)
+  const minutos = Math.floor((falta % 36e5) / 6e4)
+  const partes = !Number.isFinite(falta) ? []
+    : hora ? [[dias, 'd'], [horas, 'h'], [minutos, 'm']].filter(([v], i) => v > 0 || i > 0 || dias > 0)
+      : [[dias, dias === 1 ? 'día' : 'días']]
+
+  return <button type="button" className="inicio-proximo" onClick={onAbrir}>
+    <p className="dp-eyebrow">Próximo partido · <b>{fechaHora(partido.fecha, partido.hora)}</b></p>
+    <span className="inicio-proximo-rival">
+      {partido.escudo_url && <img src={partido.escudo_url} alt="" />}
+      <strong>vs {partido.rival}</strong>
     </span>
-  )
+    {falta > 0 && partes.length > 0
+      ? <span className="inicio-cuenta" aria-label={'Faltan ' + partes.map(([v, u]) => v + ' ' + u).join(' ')}>
+        {partes.map(([v, u]) => <span key={u}><b>{String(v).padStart(hora && u !== 'd' ? 2 : 1, '0')}</b>{u}</span>)}
+      </span>
+      : <span className="inicio-cuenta"><span><b>Hoy</b></span></span>}
+    <small>{[partido.local_visitante, partido.lugar, partido.categoriasNombres?.join(', ')].filter(Boolean).join(' · ')}</small>
+  </button>
 }
 
 function InicioSection({ perfil, onCambiarSeccion, onAbrirCalendario, onVerBienestar, onVerPlanificacion }) {
   const [lesionados, setLesionados] = useState([])
   const [proximoPartido, setProximoPartido] = useState(null)
   const [ultimoPartidoPrincipal, setUltimoPartidoPrincipal] = useState(null)
+  const [ultimos, setUltimos] = useState([])
+  const [resumenTabla, setResumenTabla] = useState(null)
   const [estadisticasRapidas, setEstadisticasRapidas] = useState(null)
   const [, setAlertasNutricion] = useState([])
   const [cumpleanieros, setCumpleanieros] = useState([])
@@ -206,6 +222,7 @@ function InicioSection({ perfil, onCambiarSeccion, onAbrirCalendario, onVerBiene
           if (errorPasados) setErrorDeportivo('No se pudieron consultar los resultados. Revisá tu acceso o conexión.')
           const pasados = partidosPasadosData || []
           setUltimoPartidoPrincipal(pasados[0] || null)
+          setUltimos(pasados.slice(0, 5))
 
           let pj = 0
           let pg = 0
@@ -373,99 +390,105 @@ function InicioSection({ perfil, onCambiarSeccion, onAbrirCalendario, onVerBiene
     ? calcularResultado(ultimoPartidoPrincipal)
     : null
 
-  const colorUltimo = resultadoUltimo
-    ? resultadoUltimo.etiqueta === 'Victoria'
-      ? C.verde
-      : resultadoUltimo.etiqueta === 'Derrota'
-        ? C.rojo
-        : C.amarillo
-    : C.tenue
-
-  const fechaActual = new Intl.DateTimeFormat('es-AR', {
-    timeZone: 'America/Argentina/Buenos_Aires',
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  }).format(new Date())
+  const hoy = fechaArgentina()
+  const esMedico = perfil.rol === 'medico'
 
   const abrirCalendario = (fecha, categoriaId) => onAbrirCalendario
     ? onAbrirCalendario(fecha, categoriaId) : onCambiarSeccion('calendario')
 
+  // Requieren atención: lesionadas y avisos que Inicio ya leyó, en rojo o amarillo según la urgencia.
+  const atencion = [
+    ...lesionados.map(j => ({ id: 'lesionada-' + j.id, nivel: 'rojo', titulo: `${j.apellido}, ${j.nombre}`,
+      motivo: 'Lesionada' + (j.categorias?.nombre ? ' · ' + j.categorias.nombre : ''), seccion: esMedico ? 'medicos' : 'plantel' })),
+    ...alertas.map(a => ({ id: a.id, nivel: a.seccion === 'medicos' ? 'rojo' : 'amarillo', titulo: a.texto, motivo: null, seccion: a.seccion })),
+  ].sort((a, b) => (a.nivel === b.nivel ? 0 : a.nivel === 'rojo' ? -1 : 1))
+
+  const ultimosResultados = [...ultimos].reverse().map(p => ({ id: p.id, resultado: calcularResultado(p) })).filter(p => p.resultado)
+  const datosNoDisponibles = cargando || errorDeportivo
+
   return (
-    <div className="inicio-dashboard" style={{ color: C.blanco }}>
+    <div className="inicio-dashboard">
       <div className="inicio-contenido">
         <header className="inicio-cabecera">
           <img className="inicio-portada-foto" src="/images/fotos-comunicaciones/inicio-equipo-cuerpo-tecnico-original.jpeg" alt="Plantel femenino y cuerpo técnico de Comunicaciones reunidos en círculo" width="1280" height="959" decoding="async" />
-          <img src={ESCUDO_URL} alt="Escudo Club Comunicaciones" />
-          <div><p className="inicio-marca-texto">Club Comunicaciones · Fútbol femenino</p>
-            <h1>Inicio</h1><p className="inicio-subtitulo">Centro de operaciones del cuerpo técnico</p><p className="inicio-secundario capitalize">{fechaActual}</p></div>
-          <span className="inicio-insignia">COMUNICACIONES · GESTIÓN DEPORTIVA</span>
+          <div className="inicio-marca">
+            <img className="inicio-marca-escudo" src={ESCUDO_URL} alt="Escudo Club Comunicaciones" />
+            <div>
+              <p className="dp-eyebrow">Fútbol femenino · <b>{fechaLarga(hoy)}</b></p>
+              <h1 className="dp-titulo">Club<br /><em>Comunicaciones</em></h1>
+            </div>
+          </div>
+          {!esMedico && <ProximoPartido partido={proximoPartido} cargando={cargando} onAbrir={() => onCambiarSeccion('partidos')} />}
         </header>
 
-        <div className="inicio-operaciones">
-          <WellnessInicio key={'wellness-' + [perfil.id, perfil.rol, perfil.categoria_id].join(':')} perfil={perfil} onCambiarSeccion={onCambiarSeccion} onVerBienestar={onVerBienestar} />
-          {perfil.rol !== 'medico' && <AgendaDiariaInicio key={'agenda-' + [perfil.id, perfil.rol, perfil.categoria_id].join(':')}
-            perfil={perfil} partidos={partidosAgenda} proximoPartido={proximoPartido} cargandoPartidos={cargando}
-            errorPartidos={errorPartidosAgenda} abrirCalendario={abrirCalendario} onVerPlanificacion={onVerPlanificacion} />}
-        </div>
-        {cargando && <p role="status">Cargando información del club…</p>}
+        <FranjaNumeros etiqueta="Resumen del club" items={[
+          { etiqueta: resumenTabla?.zona ? 'Posición · ' + resumenTabla.zona : 'Posición', valor: resumenTabla ? Number(resumenTabla.posicion) : null, unidad: resumenTabla ? '°' : undefined },
+          { etiqueta: 'Puntos', valor: resumenTabla ? Number(resumenTabla.puntos) : null },
+          { etiqueta: 'Partidos jugados', valor: resumenTabla?.partidos != null ? Number(resumenTabla.partidos) : datosNoDisponibles ? null : estadisticasRapidas?.pj ?? 0 },
+          { etiqueta: 'Lesionadas', valor: cargando || errorPlantel ? null : lesionados.length },
+        ]} />
         {errorDeportivo && <p role="alert">{errorDeportivo}</p>}
-        <div className="inicio-resumen-inferior">
-        {perfil.rol !== 'medico' && <section className="inicio-bloque" aria-labelledby="inicio-deportivo">
-          <div className="inicio-titulo"><h2 id="inicio-deportivo">Último resultado registrado</h2>
-            <button type="button" onClick={() => onCambiarSeccion('partidos')}><span>Consultar partidos</span> →</button></div>
-          {cargando ? <p role="status">Consultando resultados…</p> : errorDeportivo ? <p role="alert">{errorDeportivo}</p> : <>
-          <div className="inicio-resultado">
-            <img className="inicio-rival" src={ESCUDO_URL} alt="Escudo de Comunicaciones" /><span>Comunicaciones</span>{ultimoPartidoPrincipal?.escudo_url && <img className="inicio-rival" src={ultimoPartidoPrincipal.escudo_url} alt={'Escudo de ' + ultimoPartidoPrincipal.rival} />}<strong style={{color: textoInicio(colorUltimo)}}>{resultadoUltimo?.texto || 'Sin resultado'}</strong>
-            <span>{ultimoPartidoPrincipal ? (ultimoPartidoPrincipal.rival || 'Rival') + ' · ' + fechaLegible(ultimoPartidoPrincipal.fecha) : 'Todavía no hay resultados cargados'}</span>
-            {resultadoUltimo && <EtiquetaEstado color={colorUltimo}>{resultadoUltimo.etiqueta}</EtiquetaEstado>}
-            {ultimoPartidoPrincipal?.categorias?.nombre && <span>{ultimoPartidoPrincipal.categorias.nombre}</span>}
-            {ultimoPartidoPrincipal?.penales_favor != null && ultimoPartidoPrincipal?.penales_contra != null && <span>Penales {ultimoPartidoPrincipal.penales_favor}-{ultimoPartidoPrincipal.penales_contra}</span>}
-          </div>
-          <details className="inicio-resumen-historico"><summary>Resumen deportivo acumulado</summary><div className="inicio-estadisticas">
-            {[
-              ['Jugados', estadisticasRapidas?.pj ?? '—', C.blanco], ['Victorias', estadisticasRapidas?.pg ?? '—', C.verde],
-              ['Empates', estadisticasRapidas?.pe ?? '—', C.amarillo], ['Derrotas', estadisticasRapidas?.pp ?? '—', C.rojo],
-              ['Goles a favor', estadisticasRapidas?.gf ?? '—', C.verde], ['Goles en contra', estadisticasRapidas?.gc ?? '—', C.rojo],
-              ['Diferencia de gol', !estadisticasRapidas ? '—' : estadisticasRapidas.gf - estadisticasRapidas.gc > 0 ? '+' + (estadisticasRapidas.gf - estadisticasRapidas.gc) : estadisticasRapidas.gf - estadisticasRapidas.gc,
-                !estadisticasRapidas || estadisticasRapidas.gf - estadisticasRapidas.gc >= 0 ? C.verde : C.rojo],
-            ].map(([label, valor, color]) => <div className="inicio-indicador" key={label}><span>{label}</span>
-              <strong style={{color: textoInicio(color)}}>{valor}</strong></div>)}
-          </div>
-          </details>
-          {!estadisticasRapidas && <p className="inicio-vacio">Todavía no hay estadísticas disponibles. Se mostrarán cuando existan partidos con resultados cargados.</p>}
-          </>}
-        </section>}
 
-        <TablaDataFem compacto />
+        <div className="inicio-tres">
+          <WellnessInicio key={'wellness-' + [perfil.id, perfil.rol, perfil.categoria_id].join(':')} perfil={perfil} onCambiarSeccion={onCambiarSeccion} onVerBienestar={onVerBienestar} />
+
+          <section className="inicio-bloque inicio-atencion" aria-labelledby="inicio-atencion-titulo">
+            <div className="inicio-titulo"><div><p className="dp-eyebrow">Semáforo · <b>{atencion.length}</b></p><h2 id="inicio-atencion-titulo">Requieren atención</h2></div></div>
+            {errorPlantel && <p role="alert">{errorPlantel}</p>}
+            {cargando ? <EstadoVacio cargando mensaje="Consultando el plantel…" />
+              : atencion.length === 0 ? <EstadoVacio mensaje="Nada pendiente." detalle="Sin lesionadas ni avisos abiertos." />
+                : <ul className="inicio-atencion-lista">{atencion.map(item => <li key={item.id}>
+                  <button type="button" data-nivel={item.nivel} onClick={() => onCambiarSeccion(item.seccion)}>
+                    <span className="inicio-semaforo" aria-hidden="true" />
+                    <span><strong>{item.titulo}</strong>{item.motivo && <small>{item.motivo}</small>}</span>
+                    <span className="sr-only">{item.nivel === 'rojo' ? 'Prioridad alta' : 'Revisar'}</span>
+                    <span aria-hidden="true">→</span>
+                  </button>
+                </li>)}</ul>}
+          </section>
+
+          <section className="inicio-bloque inicio-ultimos" aria-labelledby="inicio-ultimos-titulo">
+            {!esMedico && <>
+              <div className="inicio-titulo"><div><p className="dp-eyebrow">Racha · <b>Todas las categorías</b></p><h2 id="inicio-ultimos-titulo">Últimos 5</h2></div>
+                <button type="button" onClick={() => onCambiarSeccion('partidos')}>Partidos →</button></div>
+              {cargando ? <EstadoVacio cargando mensaje="Consultando resultados…" />
+                : !errorDeportivo && (ultimosResultados.length === 0
+                  ? <EstadoVacio mensaje="Sin resultados cargados." />
+                  : <>
+                    <ol className="inicio-racha" aria-label="Últimos resultados, del más viejo al más reciente">
+                      {ultimosResultados.map(({ id, resultado }) => <li key={id} data-resultado={NIVEL_RESULTADO[resultado.etiqueta]} title={resultado.texto}>
+                        <span aria-hidden="true">{LETRA_RESULTADO[resultado.etiqueta]}</span><span className="sr-only">{resultado.texto}</span>
+                      </li>)}
+                    </ol>
+                    {ultimoPartidoPrincipal && resultadoUltimo && <div className="inicio-ultimo" data-resultado={NIVEL_RESULTADO[resultadoUltimo.etiqueta]}>
+                      {ultimoPartidoPrincipal.escudo_url && <img src={ultimoPartidoPrincipal.escudo_url} alt={'Escudo de ' + ultimoPartidoPrincipal.rival} />}
+                      <span><small>Último · {fechaCorta(ultimoPartidoPrincipal.fecha)}{ultimoPartidoPrincipal.categorias?.nombre ? ' · ' + ultimoPartidoPrincipal.categorias.nombre : ''}</small>
+                        <strong>{ultimoPartidoPrincipal.rival || 'Rival'}</strong></span>
+                      <b>{resultadoUltimo.texto.replace(/^\S+ \((.*)\)$/, '$1')}</b>
+                      {ultimoPartidoPrincipal.penales_favor != null && ultimoPartidoPrincipal.penales_contra != null && <small>Penales {ultimoPartidoPrincipal.penales_favor}-{ultimoPartidoPrincipal.penales_contra}</small>}
+                    </div>}
+                  </>)}
+            </>}
+            <div className="inicio-cumples">
+              {esMedico ? <h2 id="inicio-ultimos-titulo">Cumpleaños</h2> : <p className="dp-eyebrow">Cumpleaños · <b>Esta semana</b></p>}
+              {cumpleanieros.length === 0 ? <p className="inicio-vacio">Ninguno esta semana.</p>
+                : <ul>{cumpleanieros.map(j => <li key={j.id}><span className="inicio-avatar" aria-hidden="true">{iniciales(j.nombre, j.apellido)}</span>
+                  <span>{j.apellido}, {j.nombre}<small>{j.categorias?.nombre || 'Sin categoría'}</small></span>
+                  <b>{j.diasFaltan === 0 ? '¡Hoy!' : j.diasFaltan === 1 ? 'Mañana' : 'En ' + j.diasFaltan + ' días'}</b></li>)}</ul>}
+            </div>
+          </section>
         </div>
-        <section className="inicio-bloque inicio-estado-compacto" aria-labelledby="inicio-plantel">
-          <div className="inicio-titulo"><h2 id="inicio-plantel">Estado del plantel</h2><EtiquetaEstado color={lesionados.length ? C.rojo : C.verde}>{errorPlantel || cargando ? 'Estado pendiente de confirmar' : lesionados.length + ' lesionados activos'}</EtiquetaEstado></div>
-          {errorPlantel ? <p role="alert">{errorPlantel}</p> : cargando ? <p role="status">Consultando disponibilidad…</p> : lesionados.length === 0 ? <p className="inicio-vacio">No hay jugadores marcados como lesionados.</p> :
-            <div className="inicio-plantel-lista">{lesionados.slice(0, 3).map(j => <div key={j.id} className="inicio-fila">
-              <span className="inicio-avatar">{iniciales(j.nombre, j.apellido)}</span><span>{j.apellido}, {j.nombre}<small>{j.categorias?.nombre || 'Categoría no indicada'}</small></span>
-              <EtiquetaEstado color={C.rojo}>Lesionado</EtiquetaEstado></div>)}</div>}
-          {lesionados.length > 3 && <p className="inicio-secundario">Y {lesionados.length - 3} más en el listado completo.</p>}
-          <button type="button" className="inicio-enlace" onClick={() => onCambiarSeccion(perfil.rol === 'medico' ? 'medicos' : 'plantel')}>
-            {perfil.rol === 'medico' ? 'Consultar Médicos' : 'Consultar plantel'} →</button>
-        </section>
-        <div className="inicio-avisos">
-          {alertas.length > 0 && <AvisoCompacto titulo="Alertas y tareas pendientes" cantidad={alertas.length} icono="medicos">
-            {alertas.map(a => <button type="button" key={a.id} className="inicio-fila" onClick={() => onCambiarSeccion(a.seccion)}>
-              <span style={{ color: textoInicio(a.color) }}>{a.icono}</span><span>{a.texto}</span><span aria-hidden="true">→</span>
-            </button>)}
-          </AvisoCompacto>}
-          {cumpleanieros.length > 0 && <AvisoCompacto titulo="Cumpleaños de la semana" cantidad={cumpleanieros.length} icono="usuarios">
-            {cumpleanieros.map(j => <div key={j.id} className="inicio-fila"><span className="inicio-avatar">{iniciales(j.nombre, j.apellido)}</span>
-              <span>{j.apellido}, {j.nombre}<small>{j.categorias?.nombre || 'Categoría no indicada'}</small></span>
-              <EtiquetaEstado>{j.diasFaltan === 0 ? '¡Hoy!' : j.diasFaltan === 1 ? 'Mañana' : 'En ' + j.diasFaltan + ' días'}</EtiquetaEstado>
-            </div>)}
-          </AvisoCompacto>}
-        </div>
+
+        {!esMedico && <div className="inicio-agenda-fila">
+          <AgendaDiariaInicio key={'agenda-' + [perfil.id, perfil.rol, perfil.categoria_id].join(':')}
+            perfil={perfil} partidos={partidosAgenda} proximoPartido={proximoPartido} cargandoPartidos={cargando}
+            errorPartidos={errorPartidosAgenda} abrirCalendario={abrirCalendario} onVerPlanificacion={onVerPlanificacion} />
+        </div>}
+
+        <TablaDataFem compacto onResumen={setResumenTabla} />
 
         <nav className="inicio-accesos" aria-label="Accesos rápidos">
-          {filtrarSeccionesVisibles((perfil.rol === 'medico'
+          {filtrarSeccionesVisibles((esMedico
             ? [{ id: 'medicos', label: 'Médicos' }, { id: 'bienestar', label: 'Bienestar' }]
             : ['coordinacion', 'tecnico', 'preparador_fisico'].includes(perfil.rol)
               ? [{ id: 'plantel', label: 'Plantel y Rendimiento' }, { id: 'partidos', label: 'Partidos' }, { id: 'calendario', label: 'Calendario' },
@@ -473,17 +496,9 @@ function InicioSection({ perfil, onCambiarSeccion, onAbrirCalendario, onVerBiene
                 ...(puedePlanificar(perfil) ? [{ id: 'planificacion', label: 'Planificación' }] : [])] : []), 'id')
             .map(a => <button type="button" key={a.id} onClick={() => onCambiarSeccion(a.id)}><IconoNavegacion nombre={a.id} />{a.label}</button>)}
         </nav>
-        <footer className="inicio-pie">Club Comunicaciones · Panel de gestión deportiva</footer>
       </div>
     </div>
   )
-}
-
-function AvisoCompacto({ titulo, cantidad, icono, children }) {
-  const [abierto, setAbierto] = useState(false)
-  return <section className="inicio-aviso"><button type="button" aria-expanded={abierto} onClick={() => setAbierto(v => !v)}>
-    <IconoNavegacion nombre={icono} /><span>{titulo}</span><strong>{cantidad}</strong><span aria-hidden="true">{abierto ? '−' : '+'}</span>
-  </button>{abierto && <div className="inicio-aviso-detalle">{children}</div>}</section>
 }
 
 export default InicioSection
