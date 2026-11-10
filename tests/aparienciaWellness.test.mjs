@@ -11,15 +11,15 @@ function resolver(v, p) { const m = /^var\((--[\w-]+)(?:,\s*(.*))?\)$/.exec(v); 
 const lum = (h) => h.slice(1).match(/../g).map((c) => parseInt(c, 16) / 255).map((c) => c <= .04045 ? c / 12.92 : ((c + .055) / 1.055) ** 2.4).reduce((s, c, i) => s + c * [.2126, .7152, .0722][i], 0)
 const contraste = (a, b) => (Math.max(lum(a), lum(b)) + .05) / (Math.min(lum(a), lum(b)) + .05)
 
-test('Wellness conserva la paleta oscura y adapta superficies, controles y cabeceras claras', () => {
-  for (const [k, expected] of Object.entries({ fondo: '#191917', tarjeta: '#242422', borde: '#393934', texto: '#F4F2EA', exito: '#97C459', peligro: '#E77970' })) assert.equal(resolver(W[k], oscuro), expected)
-  for (const [k, expected] of Object.entries({ fondo: '#F5F5F2', tarjeta: '#FFFFFF', borde: '#DEDEDE', texto: '#111111', secundario: '#666666', acento: '#F2C230', controlOscuro: '#FFFFFF', panel: '#FFFFFF', tab: '#FFFFFF', primario: '#F2C230' })) assert.equal(resolver(W[k], claro), expected)
+test('Wellness usa la paleta de la guía en superficies, controles y cabeceras de ambos temas', () => {
+  for (const [k, expected] of Object.entries({ fondo: '#0b0b0a', tarjeta: '#141412', borde: '#2a2a25', texto: '#f3f1e8', exito: '#3ecf6e', peligro: '#ef4a4a' })) assert.equal(resolver(W[k], oscuro), expected)
+  for (const [k, expected] of Object.entries({ fondo: '#f3f1e8', tarjeta: '#ffffff', borde: '#d6d2c4', texto: '#141412', secundario: '#5c594e', acento: '#f4c400', controlOscuro: '#eae7dc', panel: '#ffffff', tab: '#eae7dc', primario: '#f4c400' })) assert.equal(resolver(W[k], claro), expected)
 })
 
 test('Ejes, textos, lineas y niveles de riesgo mantienen contraste legible en claro', () => {
   for (const color of [W.texto, W.secundario, W.muted, W.exito, W.peligro, W.advertencia, textoWellness(W.acento)]) for (const bg of [W.fondo, W.tarjeta, W.filaAlternativa]) assert.ok(contraste(resolver(color, claro), resolver(bg, claro)) >= 4.5, color)
-  assert.equal(resolver(textoWellness(W.acento), oscuro), '#F2C230')
-  assert.ok(contraste(resolver(W.primario, claro), '#171715') >= 4.5)
+  assert.equal(resolver(textoWellness(W.acento), oscuro), '#f4c400')
+  assert.ok(contraste(resolver(W.primario, claro), resolver('var(--ui-texto-sobre-acento)', claro)) >= 4.5)
 })
 
 test('Acceso publico comparte el proveedor existente y no fija un tema independiente', () => {

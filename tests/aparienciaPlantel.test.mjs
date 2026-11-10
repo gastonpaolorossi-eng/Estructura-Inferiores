@@ -14,17 +14,28 @@ function resolver(valor, paleta) {
 const lum = (hex) => hex.slice(1).match(/../g).map((v) => parseInt(v, 16) / 255).map((v) => v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4).reduce((s, v, i) => s + v * [.2126, .7152, .0722][i], 0)
 const contraste = (a, b) => (Math.max(lum(a), lum(b)) + .05) / (Math.min(lum(a), lum(b)) + .05)
 
-test('Plantel y Perfil conservan sus superficies oscuras y comparten paleta clara institucional', () => {
-  for (const [key, expected] of Object.entries({ fondoLista: '#101115', tarjetaLista: '#191B21', fondoPerfil: '#101010', tarjetaPerfil: '#202020', bordePerfil: '#383838', amarilloPerfil: '#F6C900', primario: '#4ADE80' })) assert.equal(resolver(P[key], oscuro), expected)
-  for (const [key, expected] of Object.entries({ fondoLista: '#F5F5F2', fondoPerfil: '#F5F5F2', tarjetaLista: '#FFFFFF', tarjetaPerfil: '#FFFFFF', textoLista: '#111111', textoPerfil: '#111111', secundarioPerfil: '#666666', bordePerfil: '#DEDEDE', amarilloLista: '#F2C230', amarilloPerfil: '#F2C230', primario: '#F2C230' })) assert.equal(resolver(P[key], claro), expected)
+// Las insignias de estado usan color-mix(in srgb, var(--color) N%, transparent):
+// para medir contraste se componen sobre la tarjeta del tema.
+function fondoCompuesto(valor, paleta, base) {
+  const mezcla = /^color-mix\(in srgb, (var\(--[\w-]+\)) (\d+)%, transparent\)$/.exec(valor)
+  if (!mezcla) return valor
+  const color = resolver(mezcla[1], paleta), p = Number(mezcla[2]) / 100
+  const canal = (hex, i) => parseInt(hex.slice(1 + i * 2, 3 + i * 2), 16)
+  return '#' + [0, 1, 2].map(i => Math.round(canal(color, i) * p + canal(base, i) * (1 - p)).toString(16).padStart(2, '0')).join('')
+}
+
+test('Plantel y Perfil usan la paleta de la guía y el botón principal amarillo', () => {
+  for (const [key, expected] of Object.entries({ fondoLista: '#0b0b0a', tarjetaLista: '#141412', fondoPerfil: '#0b0b0a', tarjetaPerfil: '#141412', bordePerfil: '#2a2a25', amarilloPerfil: '#f4c400', primario: '#f4c400' })) assert.equal(resolver(P[key], oscuro), expected)
+  for (const [key, expected] of Object.entries({ fondoLista: '#f3f1e8', fondoPerfil: '#f3f1e8', tarjetaLista: '#ffffff', tarjetaPerfil: '#ffffff', textoLista: '#141412', textoPerfil: '#141412', secundarioPerfil: '#5c594e', bordePerfil: '#d6d2c4', amarilloLista: '#f4c400', amarilloPerfil: '#f4c400', primario: '#f4c400' })) assert.equal(resolver(P[key], claro), expected)
 })
 
 test('Textos de estados y acentos son legibles sobre tarjetas claras y sus insignias', () => {
   for (const value of ['#4ADE80', '#F87171', '#FBBF24', '#7DD3FC', '#FB923C', '#A1A1AA', '#F4D21F', P.amarilloPerfil]) {
     const text = resolver(textoPlantel(value), claro)
-    for (const bg of ['#FFFFFF', '#F5F5F2']) assert.ok(contraste(text, bg) >= 4.5, value)
+    for (const bg of ['#ffffff', '#f3f1e8']) assert.ok(contraste(text, bg) >= 4.5, value)
   }
-  for (const [text, bg] of [['#4ADE80', '#163627'], ['#F87171', '#402326'], ['#FBBF24', '#40351B'], ['#A1A1AA', '#292B32']]) assert.ok(contraste(resolver(textoPlantel(text), claro), resolver(fondoEstadoPlantel(bg), claro)) >= 4.5)
+  const tarjeta = resolver(P.tarjetaLista, claro)
+  for (const [text, bg] of [['#4ADE80', '#163627'], ['#F87171', '#402326'], ['#FBBF24', '#40351B'], ['#A1A1AA', '#292B32']]) assert.ok(contraste(resolver(textoPlantel(text), claro), fondoCompuesto(resolver(fondoEstadoPlantel(bg), claro), claro, tarjeta)) >= 4.5, text)
   assert.ok(contraste(resolver(P.primario, claro), resolver(P.sobrePrimario, claro)) >= 4.5)
   assert.equal(tintePlantel('#4ADE80', '18'), '#4ADE8018')
   assert.match(tintePlantel(P.secundarioPerfil, '18'), /^color-mix\(/)
@@ -66,7 +77,7 @@ test('Pantallas y formularios con datos simulados; informes independientes del t
       if (nombre === 'ListaJugadores') { assert.match(html, /Ana/); assert.match(html, /No disponible/); assert.match(html, /#194D38/); assert.match(html, /text-white/); }
       // La portada cinematográfica es oscura en ambos temas: la insignia neutra
       // debe conservar texto claro, sin heredar el texto oscuro del tema claro.
-      if (nombre === 'PerfilJugador') { assert.match(html, /Prueba, Ana/); assert.match(html, /color:#ddd;background:#171917/); assert.match(html, /Descargar PDF del perfil/); }
+      if (nombre === 'PerfilJugador') { assert.match(html, /Prueba, Ana/); assert.match(html, /color:var\(--foto-texto-secundario\);background:var\(--foto-superficie\)/); assert.match(html, /Descargar PDF del perfil/); }
       if (nombre === 'AgregarJugador') assert.match(html, /ui-control/)
       if (nombre === 'PdfPerfilModal') assert.match(html, /type="checkbox"/)
     }

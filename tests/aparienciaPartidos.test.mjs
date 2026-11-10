@@ -11,9 +11,9 @@ function resolver(v, palette) { const m = /^var\((--[\w-]+)(?:,\s*(.*))?\)$/.exe
 const lum = (h) => h.slice(1).match(/../g).map((c) => parseInt(c, 16) / 255).map((c) => c <= .04045 ? c / 12.92 : ((c + .055) / 1.055) ** 2.4).reduce((s, c, i) => s + c * [.2126, .7152, .0722][i], 0)
 const contraste = (a, b) => (Math.max(lum(a), lum(b)) + .05) / (Math.min(lum(a), lum(b)) + .05)
 
-test('Partidos conserva la paleta oscura y adopta superficies claras y botones institucionales', () => {
-  for (const [key, expected] of Object.entries({ fondo: '#0F1419', superficie: '#1A2332', fila: '#151D2A', primario: '#4ADE80', sobrePrimario: '#0F1419' })) assert.equal(resolver(P[key], oscuro), expected)
-  for (const [key, expected] of Object.entries({ fondo: '#F5F5F2', superficie: '#FFFFFF', texto: '#111111', secundario: '#666666', borde: '#DEDEDE', primario: '#F2C230', sobrePrimario: '#111111' })) assert.equal(resolver(P[key], claro), expected)
+test('Partidos usa la paleta de la guía y el botón principal amarillo en ambos temas', () => {
+  for (const [key, expected] of Object.entries({ fondo: '#0b0b0a', superficie: '#141412', fila: '#1c1c19', primario: '#f4c400', sobrePrimario: '#141200' })) assert.equal(resolver(P[key], oscuro), expected)
+  for (const [key, expected] of Object.entries({ fondo: '#f3f1e8', superficie: '#ffffff', texto: '#141412', secundario: '#5c594e', borde: '#d6d2c4', primario: '#f4c400', sobrePrimario: '#141200' })) assert.equal(resolver(P[key], claro), expected)
 })
 
 test('Resultados, advertencias, titulares y filas alternas mantienen contraste en claro', () => {

@@ -19,41 +19,45 @@ function contraste(a, b) {
   return (valores[0] + 0.05) / (valores[1] + 0.05)
 }
 
-test('Inicio mantiene paleta oscura y transparencias de los colores originales', () => {
-  const original = { fondo:'#101010', tarjeta:'#1B1B1B', tarjetaHover:'#232323', borde:'#303030',
-    amarillo:'#F6C900', amarilloSuave:'#332B00', blanco:'#FAFAFA', gris:'#B5B5B5', tenue:'#858585', verde:'#72C58B', rojo:'#F07171' }
-  for (const [key, color] of Object.entries(original)) {
-    const token = /^var\((--[\w-]+), (#[\da-fA-F]+)\)$/.exec(PALETA_INICIO[key])
-    if (token) { assert.equal(oscuro[token[1]], color); assert.equal(token[2], color) }
-    else assert.equal(PALETA_INICIO[key], color)
+// Los tokens de Inicio son alias de --ui-*: se resuelven dentro del tema indicado.
+function resolver(valor, paleta) {
+  const alias = /^var\((--[\w-]+)\)$/.exec(valor ?? '')
+  return alias ? resolver(paleta[alias[1]], paleta) : valor
+}
+
+test('Inicio lee la paleta oscura de la guía desde los tokens, sin hex de respaldo', () => {
+  const esperados = { fondo: '#0b0b0a', tarjeta: '#141412', tarjetaHover: '#1c1c19', borde: '#2a2a25',
+    amarillo: '#f4c400', blanco: '#f3f1e8', gris: '#9a978a', tenue: '#5f5d54', verde: '#3ecf6e', rojo: '#ef4a4a' }
+  for (const [key, color] of Object.entries(esperados)) {
+    assert.match(PALETA_INICIO[key], /^var\(--[\w-]+\)$/, key)
+    assert.equal(resolver(PALETA_INICIO[key], oscuro), color, key)
   }
-  assert.equal(`${PALETA_INICIO.amarillo}35`, '#F6C90035')
-  assert.equal(oscuro['--inicio-escudo-opacidad'], '0.025')
-  assert.equal(oscuro['--inicio-escudo-filtro'], 'none')
+  assert.match(PALETA_INICIO.amarilloSuave, /^var\(--[\w-]+\)$/)
+  assert.equal(textoInicio(PALETA_INICIO.amarillo), 'var(--inicio-texto-acento)')
   assert.equal(textoInicio('#123456'), '#123456')
 })
 
 test('modo claro conserva amarillo institucional y contraste de textos principales y activos', () => {
-  assert.equal(claro['--ui-acento'], '#F2C230')
+  assert.equal(claro['--ui-acento'], '#f4c400')
   for (const [texto, fondo] of [
-    ['--ui-nav-activo-texto', '--ui-nav-activo-fondo'],
+    ['--ui-nav-activo-texto', '--ui-superficie'],
     ['--ui-texto', '--ui-fondo-sidebar'], ['--ui-texto-acento', '--ui-fondo-sidebar'],
     ['--inicio-texto', '--inicio-tarjeta'], ['--inicio-secundario', '--inicio-tarjeta'],
     ['--inicio-tenue', '--inicio-tarjeta'], ['--inicio-texto-acento', '--inicio-tarjeta'],
     ['--inicio-texto-exito', '--inicio-tarjeta'], ['--inicio-texto-peligro', '--inicio-tarjeta'],
-  ]) assert.ok(contraste(claro[texto], claro[fondo]) >= 4.5, `${texto} / ${fondo}`)
-  assert.ok(Number(claro['--inicio-escudo-opacidad']) > Number(oscuro['--inicio-escudo-opacidad']))
+  ]) assert.ok(contraste(resolver(claro[texto], claro), resolver(claro[fondo], claro)) >= 4.5, `${texto} / ${fondo}`)
+  assert.ok(Number(claro['--escudo-fondo-opacidad']) > Number(oscuro['--escudo-fondo-opacidad']))
 })
 
-test('Inicio reutiliza el escudo decorativo y no introduce una clave de remontaje por tema', () => {
+test('El escudo decorativo vive en Layout para todas las secciones y no remonta por tema', () => {
+  const layout = readFileSync(new URL('../src/components/Layout.jsx', import.meta.url), 'utf8')
+  assert.match(layout, /src=\{ESCUDO_URL\} alt="" aria-hidden="true" className="club-escudo-fondo"/)
+  const estilosLayout = readFileSync(new URL('../src/components/layout.css', import.meta.url), 'utf8')
+  assert.match(estilosLayout, /\.club-escudo-fondo \{[^}]*pointer-events: none/)
+  assert.match(estilosLayout, /--escudo-fondo-opacidad/)
   const inicio = readFileSync(new URL('../src/components/InicioSection.jsx', import.meta.url), 'utf8')
-  assert.match(inicio, /src=\{ESCUDO_CLUB_URL\}\s+alt=""\s+aria-hidden="true"/)
-  const estilosInicio = readFileSync(new URL('../src/components/inicio.css', import.meta.url), 'utf8')
-  assert.match(inicio, /className="inicio-marca"/)
-  assert.match(estilosInicio, /pointer-events: none/)
-  assert.match(estilosInicio, /--inicio-escudo-opacidad/)
+  assert.doesNotMatch(inicio, /className="inicio-marca"/)
   assert.doesNotMatch(inicio, /key=\{(?:tema|preferencia|apariencia)/)
-  assert.ok(css.indexOf('--inicio-escudo-filtro: grayscale') > css.indexOf('@media screen'))
   assert.ok(!css.includes('@media print'))
 })
 

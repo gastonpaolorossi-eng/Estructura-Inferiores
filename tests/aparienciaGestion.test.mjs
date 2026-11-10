@@ -9,21 +9,26 @@ const oscuro = variables(css.slice(0, css.indexOf('@media screen')))
 const claro = { ...oscuro, ...variables(css.slice(css.indexOf('@media screen'))) }
 const luminancia = (hex) => hex.slice(1).match(/../g).map((c) => parseInt(c, 16) / 255).map((c) => c <= .04045 ? c / 12.92 : ((c + .055) / 1.055) ** 2.4).reduce((s, c, i) => s + c * [.2126, .7152, .0722][i], 0)
 const contraste = (a, b) => (Math.max(luminancia(a), luminancia(b)) + .05) / (Math.min(luminancia(a), luminancia(b)) + .05)
+// Los tokens de gestión son alias de --ui-*: se resuelven dentro del tema indicado.
+const resolver = (token, paleta) => {
+  const alias = /^var\((--[\w-]+)\)$/.exec(paleta[token] ?? '')
+  return alias ? resolver(alias[1], paleta) : paleta[token]
+}
 
-test('Gestion conserva botones oscuros y utiliza amarillo con texto negro en claro', () => {
-  assert.equal(oscuro['--gestion-primario-fondo'], '#97C459')
-  assert.equal(oscuro['--gestion-primario-texto'], '#1A1A18')
-  assert.equal(claro['--gestion-primario-fondo'], '#F2C230')
-  assert.equal(claro['--gestion-primario-texto'], '#111111')
-  for (const paleta of [claro, oscuro]) assert.ok(contraste(paleta['--gestion-primario-fondo'], paleta['--gestion-primario-texto']) >= 4.5)
+test('Gestion usa el amarillo del club como botón principal en ambos temas', () => {
+  for (const paleta of [oscuro, claro]) {
+    assert.equal(resolver('--gestion-primario-fondo', paleta), '#f4c400')
+    assert.equal(resolver('--gestion-primario-texto', paleta), '#141200')
+    assert.ok(contraste(resolver('--gestion-primario-fondo', paleta), resolver('--gestion-primario-texto', paleta)) >= 4.5)
+  }
 })
 
 test('Avisos, informacion, alertas y estados seleccionados tienen contraste legible en claro', () => {
   for (const token of ['--ui-texto-acento', '--gestion-info', '--gestion-aviso', '--ui-exito', '--ui-peligro']) {
-    for (const fondo of ['#FFFFFF', '#F5F5F2']) assert.ok(contraste(claro[token], fondo) >= 4.5, token)
+    for (const fondo of ['#ffffff', '#f3f1e8']) assert.ok(contraste(resolver(token, claro), fondo) >= 4.5, token)
   }
-  for (const token of ['--ui-exito', '--ui-peligro']) assert.ok(contraste(claro[token], claro['--gestion-estado-texto']) >= 4.5)
-  for (const fondo of ['#F2C230', '#7DD3FC', '#FB923C']) assert.ok(contraste(fondo, claro['--gestion-estado-claro-texto']) >= 4.5)
+  for (const token of ['--ui-exito', '--ui-peligro', '--ui-alerta']) assert.ok(contraste(resolver(token, claro), resolver('--gestion-estado-texto', claro)) >= 4.5, token)
+  assert.ok(contraste(resolver('--ui-acento', claro), resolver('--gestion-estado-claro-texto', claro)) >= 4.5)
 })
 
 test('Los 13 modulos usan controles semanticos sin bordes literales invalidos', () => {

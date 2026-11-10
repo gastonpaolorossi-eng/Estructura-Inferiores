@@ -13,23 +13,27 @@ function resolver(v, p) { const m = /^var\((--[\w-]+)(?:,\s*(.*))?\)$/.exec(v); 
 const lum = (h) => h.slice(1).match(/../g).map((c) => parseInt(c, 16) / 255).map((c) => c <= .04045 ? c / 12.92 : ((c + .055) / 1.055) ** 2.4).reduce((s, c, i) => s + c * [.2126, .7152, .0722][i], 0)
 const contraste = (a, b) => (Math.max(lum(a), lum(b)) + .05) / (Math.min(lum(a), lum(b)) + .05)
 
-test('Carga, RPE y riesgo reutilizan superficies claras y preservan las oscuras', () => {
-  assert.equal(resolver(W.filaAlternativa, oscuro), '#20201E')
-  assert.equal(resolver(P.superficie, oscuro), '#1A2332')
-  assert.equal(resolver(W.tarjeta, claro), '#FFFFFF')
-  assert.equal(resolver(P.superficie, claro), '#FFFFFF')
-  assert.equal(resolver('var(--cmj-fila, #1F1F1D)', claro), '#F5F5F2')
-  assert.equal(resolver('var(--riesgo-detalle, #121A28)', claro), '#F5F5F2')
-  assert.equal(resolver(W.primarioWellness, claro), '#F2C230')
+test('Carga, RPE y riesgo reutilizan las superficies de la paleta en ambos temas', () => {
+  assert.equal(resolver(W.filaAlternativa, oscuro), '#1c1c19')
+  assert.equal(resolver(P.superficie, oscuro), '#141412')
+  assert.equal(resolver(W.tarjeta, claro), '#ffffff')
+  assert.equal(resolver(P.superficie, claro), '#ffffff')
+  assert.equal(resolver('var(--cmj-fila)', claro), '#eae7dc')
+  assert.equal(resolver('var(--riesgo-detalle)', claro), '#eae7dc')
+  assert.equal(resolver(W.primarioWellness, claro), '#f4c400')
 })
 
 test('Chips CMJ, RPE y textos del semaforo mantienen contraste en ambos temas', () => {
   for (const color of ['#4ADE80', '#FBBF24', '#F87171']) {
-    assert.ok(contraste(color, '#0F1419') >= 4.5)
-    assert.ok(contraste(resolver(textoPlantel(color), claro), '#FFFFFF') >= 4.5)
+    assert.ok(contraste(resolver(textoPlantel(color), oscuro), resolver('var(--ui-superficie)', oscuro)) >= 4.5, color)
+    assert.ok(contraste(resolver(textoPlantel(color), claro), '#ffffff') >= 4.5, color)
   }
-  assert.ok(contraste('#7DD3FC', '#082F49') >= 4.5)
-  for (const [bg, text] of [['#E24B4A', '#111111'], ['#97C459', '#1A1A1A'], ['#F2C230', '#1A1A1A'], [claro['--ui-peligro'], claro['--riesgo-chip-texto']], [claro['--ui-exito'], claro['--riesgo-chip-texto']]]) assert.ok(contraste(bg, text) >= 4.5)
+  for (const paleta of [oscuro, claro]) {
+    for (const estado of ['--ui-exito', '--ui-alerta', '--ui-peligro']) {
+      assert.ok(contraste(resolver(`var(${estado})`, paleta), resolver('var(--riesgo-chip-texto)', paleta)) >= 4.5, estado)
+    }
+    assert.ok(contraste(resolver('var(--ui-acento)', paleta), resolver('var(--riesgo-boton-texto)', paleta)) >= 4.5)
+  }
 })
 
 test('Render de los seis componentes, alertas, chips y grafico con datos simulados', async () => {
@@ -78,7 +82,7 @@ test('Render de los seis componentes, alertas, chips y grafico con datos simulad
       }
       if (name === 'CMJComparativo') {
         for (const label of ['Normal', 'Moderado', 'Alerta']) assert.match(html, new RegExp(label))
-        assert.match(html, /--riesgo-chip-texto, #111111/)
+        assert.match(html, /var\(--riesgo-chip-texto\)/)
         const graph = render(module.GraficoCMJ, {historial})
         assert.match(graph, /stroke="var\(--ui-peligro/)
         assert.match(graph, /--ui-texto-muted/)

@@ -96,24 +96,24 @@ test('valor almacenado invalido cae en oscuro; cambios invalidos son rechazados'
   assert.throws(() => gestor.cambiarPreferencia('inventado'))
 })
 
-test('paleta oscura conserva exactamente los once colores exportados anteriormente', () => {
+test('paleta oscura de la guía y theme.js solo lee los tokens de apariencia.css', () => {
   const css = readFileSync(new URL('../src/appearance/apariencia.css', import.meta.url), 'utf8')
   const base = css.slice(0, css.indexOf('@media screen'))
   const variables = Object.fromEntries([...base.matchAll(/(--[\w-]+):\s*(#[\da-fA-F]+);/g)].map((m) => [m[1], m[2]]))
   const esperados = {
-    fondoPagina: '#1A1A18', fondoSidebar: '#0A0A0A', fondoTarjeta: '#242422', borde: '#2C2C2A',
-    texto: '#FFFFFF', textoSecundario: '#B4B2A9', textoMuted: '#8A8A82', acento: '#F2C230',
-    exito: '#97C459', peligro: '#E24B4A', neutro: '#B4B2A9',
+    fondoPagina: '#0b0b0a', fondoSidebar: '#0b0b0a', fondoTarjeta: '#141412', fondoSecundario: '#1c1c19',
+    borde: '#2a2a25', texto: '#f3f1e8', textoSecundario: '#9a978a', textoMuted: '#5f5d54',
+    acento: '#f4c400', textoSobreAcento: '#141200', exito: '#3ecf6e', alerta: '#e8b84a',
+    peligro: '#ef4a4a', neutro: '#9a978a',
   }
   assert.deepEqual(Object.keys(COLORES), Object.keys(esperados))
   for (const [nombre, color] of Object.entries(esperados)) {
-    const referencia = /^var\((--[\w-]+), (#[\da-fA-F]+)\)$/.exec(COLORES[nombre])
+    const referencia = /^var\((--[\w-]+)\)$/.exec(COLORES[nombre])
     assert.ok(referencia, nombre)
     assert.equal(variables[referencia[1]], color, nombre)
-    assert.equal(referencia[2], color, `fallback ${nombre}`)
   }
-  assert.equal(variables['--marca-amarillo'], '#F2C230')
-  assert.equal(variables['--marca-negro'], '#0A0A0A')
+  assert.equal(variables['--marca-amarillo'], '#f4c400')
+  assert.equal(variables['--marca-negro'], '#0b0b0a')
   assert.ok(css.includes("@media screen {\n  :root[data-apariencia='claro']"))
   assert.ok(!css.includes('@media print'))
 })

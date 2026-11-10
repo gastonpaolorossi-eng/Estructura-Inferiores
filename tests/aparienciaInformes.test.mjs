@@ -8,9 +8,9 @@ test('Informes y resumen de Fisico usan superficies claras sin cambiar valores o
   assert.match(css, /--informes-superficie: var\(--ui-superficie\)/)
   assert.match(css, /--wellness-resumen-fondo: var\(--ui-fondo-pagina\)/)
   const fisico = readFileSync(new URL('../src/components/FisicoSection.jsx', import.meta.url), 'utf8')
-  assert.match(fisico, /backgroundColor: 'var\(--wellness-resumen-fondo, #1A1A18\)'/)
+  assert.match(fisico, /backgroundColor: 'var\(--wellness-resumen-fondo\)'/)
   const informes = readFileSync(new URL('../src/components/InformesAutomaticosSection.jsx', import.meta.url), 'utf8')
-  assert.match(informes, /var\(--informes-superficie, #0A0A0A\)/)
+  assert.match(informes, /var\(--informes-superficie\)/)
   assert.doesNotMatch(css, /!important|@media print/)
 })
 
