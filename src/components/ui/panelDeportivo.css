@@ -103,6 +103,9 @@
   .dp-franja-item:first-child { border-left: 0; padding-left: 0; }
   .dp-franja-valor { margin: 0; font-family: var(--fuente-titulo); font-weight: 700; font-size: clamp(2.1rem, 4.5vw, 3.25rem); line-height: 1; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
   .dp-franja-valor small { margin-left: 3px; font-size: .45em; color: var(--ui-texto-secundario); }
+  .dp-franja-item[data-nivel='verde'] .dp-franja-valor { color: var(--ui-exito); }
+  .dp-franja-item[data-nivel='amarillo'] .dp-franja-valor { color: var(--ui-alerta); }
+  .dp-franja-item[data-nivel='rojo'] .dp-franja-valor { color: var(--ui-peligro); }
   .dp-franja-etiqueta { margin-top: 6px; font-size: .6875rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ui-texto-secundario); }
 
   /* Chips de filtro: el seleccionado, claro sobre oscuro. */

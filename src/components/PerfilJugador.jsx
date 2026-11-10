@@ -23,6 +23,7 @@ import { supabase } from '../supabaseClient'
 import PdfPerfilModal from './PdfPerfilModal'
 import FranjaNumeros from './ui/FranjaNumeros'
 import { estadoConfig } from './perfil/presentacionPerfil'
+import { calcularSemaforoJugador, SEMAFORO_INFO } from '../utils/semaforoRiesgo'
 import { cargarDatosBienestar } from '../utils/bienestar'
 import { generarBienestarPDF } from '../utils/generarBienestarPDF'
 
@@ -65,6 +66,7 @@ function PerfilJugador({
   const [lectura, setLectura] = useState({ id: null, estado: 'cargando', fuentes: {} })
   const [generandoWellness, setGenerandoWellness] = useState(false)
   const [errorWellnessPDF, setErrorWellnessPDF] = useState('')
+  const [lecturaSemaforo, setLecturaSemaforo] = useState({ id: null, resultado: null })
 
   useEffect(() => {
     let cancelado = false
@@ -278,6 +280,21 @@ function PerfilJugador({
       cancelado = true
     }
   }, [jugadorId])
+
+  // Semáforo de riesgo de esta jugadora (Wellness + sRPE/ACWR + CMJ), con los mismos roles que lo ven en Inicio.
+  const idSemaforo = jugador?.id, categoriaJugadora = jugador?.categoria_id
+  const rolPerfil = perfil?.rol, categoriaPerfil = perfil?.categoria_id
+  const puedeSemaforo = Boolean(idSemaforo) && (['coordinacion', 'preparador_fisico'].includes(rolPerfil) ||
+    rolPerfil === 'tecnico' && Boolean(categoriaPerfil) && categoriaPerfil === categoriaJugadora)
+  useEffect(() => {
+    if (!puedeSemaforo) return
+    let activo = true
+    calcularSemaforoJugador(idSemaforo, categoriaJugadora)
+      .then(resultado => { if (activo) setLecturaSemaforo({ id: idSemaforo, resultado }) })
+      .catch(() => { if (activo) setLecturaSemaforo({ id: idSemaforo, resultado: null }) })
+    return () => { activo = false }
+  }, [puedeSemaforo, idSemaforo, categoriaJugadora])
+  const semaforo = puedeSemaforo && lecturaSemaforo.id === idSemaforo ? lecturaSemaforo.resultado : null
 
   async function handleEliminarJugador() {
     const confirmar = window.confirm(
@@ -505,7 +522,9 @@ function PerfilJugador({
       { etiqueta: 'PJ', valor: fuentes.estadisticas?.error ? null : totales.partidos },
       { etiqueta: 'Minutos', valor: fuentes.estadisticas?.error ? null : totales.minutos },
       { etiqueta: 'Goles', valor: fuentes.estadisticas?.error ? null : totales.goles },
-      { etiqueta: 'Estado', valor: estadoConfig[jugador.estado]?.label ?? null },
+      semaforo
+        ? { etiqueta: 'Estado físico', valor: SEMAFORO_INFO[semaforo.semaforo]?.label ?? null, unidad: `${semaforo.puntos}/6`, nivel: semaforo.semaforo }
+        : { etiqueta: puedeSemaforo ? 'Estado físico' : 'Estado', valor: puedeSemaforo ? null : estadoConfig[jugador.estado]?.label ?? null },
     ]} />
     <PestanasAccesibles etiqueta="Secciones del perfil individual" seleccionada={pestana} onSeleccionar={setPestana} pestanas={[
       { id: 'resumen', etiqueta: 'Resumen', contenido: <div className="perfil-resumen"><EncabezadoSeccion eyebrow="Acumulado" titulo="Resumen " resaltado="deportivo" nivel={2} />

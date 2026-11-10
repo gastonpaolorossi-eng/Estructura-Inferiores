@@ -41,13 +41,14 @@ function NumeroAnimado({ valor }) {
 
 /**
  * Franja de 3 o 4 números grandes con su etiqueta. Recibe valores ya calculados.
- * items: [{ etiqueta, valor, unidad? }]. Un valor ausente (null/undefined) se muestra como "—".
+ * items: [{ etiqueta, valor, unidad?, nivel? }]. Un valor ausente (null/undefined) se muestra como "—".
+ * nivel ('verde' | 'amarillo' | 'rojo') colorea el valor, por ejemplo para el semáforo.
  */
 export default function FranjaNumeros({ items = [], etiqueta = 'Resumen en números' }) {
   return <dl className="dp-franja" aria-label={etiqueta} data-columnas={Math.min(Math.max(items.length, 1), 4)}>
     {items.map(item => {
       const ausente = item.valor == null || (typeof item.valor === 'number' && !Number.isFinite(item.valor))
-      return <div key={item.etiqueta} className="dp-franja-item">
+      return <div key={item.etiqueta} className="dp-franja-item" data-nivel={item.nivel}>
         <dt className="dp-franja-etiqueta">{item.etiqueta}</dt>
         <dd className="dp-franja-valor">
           {ausente ? '—' : <><NumeroAnimado valor={item.valor} />{item.unidad && <small>{item.unidad}</small>}</>}
