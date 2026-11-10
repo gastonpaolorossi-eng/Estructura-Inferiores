@@ -6,6 +6,7 @@ import { obtenerCategoriaPrimeraDivision } from '../utils/categoriaPrimera'
 import { calcularCargaJugador } from '../utils/semaforoRiesgo'
 import { generarRPEIndividualPDF, generarRPECategoriaPDF } from '../utils/generarRPEPDF'
 import EstadoVacio from './ui/EstadoVacio'
+import { fechaCorta } from '../utils/formatoFecha'
 
 const ESTADO_COLORS = {
   normal: 'var(--ui-exito)',
@@ -245,7 +246,7 @@ function RPEComparativo() {
                                     className="px-2 py-1 rounded-full text-xs"
                                     style={{ backgroundColor: P.superficie, color: P.texto }}
                                   >
-                                    {fecha}
+                                    {fechaCorta(fecha) || fecha}
                                   </span>
                                 ))}
                               </div>
@@ -328,7 +329,7 @@ function RPEComparativo() {
                     className="px-2 py-1 rounded-full text-xs"
                     style={{ backgroundColor: P.superficie, color: P.texto }}
                   >
-                    {fecha}
+                    {fechaCorta(fecha) || fecha}
                   </span>
                 ))}
               </div>

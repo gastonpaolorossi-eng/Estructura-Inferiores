@@ -525,7 +525,7 @@ function MedicosContenido({ perfil, jugadorInicialId, onConsumirJugadorInicial }
                   {ubicacionFicha(f) ? `${nombreZona(ubicacionFicha(f).zona)} · ${LADOS_CORPORALES[ubicacionFicha(f).lado]}${ubicacionFicha(f).inferida ? ' (asociación por descripción exacta; confirmar al editar)' : ''}` : 'Zona sin clasificar: editar para ubicarla, sin interpretar el diagnóstico.'}
                   {' · '}{f.tipo_incidencia === 'molestia' ? 'Molestia' : f.tipo_incidencia === 'lesion_informada' ? 'Lesión informada' : 'Registro anterior'}
                   {' · '}{ESTADOS_CORPORALES[f.estado_seguimiento] || (f.recuperado ? 'Resuelta' : 'En seguimiento')}
-                  {f.fecha_resolucion && ` · Resuelta el ${f.fecha_resolucion}`}
+                  {f.fecha_resolucion && ` · Resuelta el ${fechaCorta(f.fecha_resolucion) || f.fecha_resolucion}`}
                 </p>
                 {f.fecha_estimada_alta && !f.recuperado && (
                   <p className="text-xs mt-1" style={{ color: 'var(--ui-alerta)' }}>
