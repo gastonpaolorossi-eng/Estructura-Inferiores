@@ -8,6 +8,9 @@ import { filtrarSeccionesVisibles } from '../config/visibilidadSecciones'
 
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
+import { obtenerJugadoresDeCategoria } from '../utils/jugadoresCategoria'
+import { obtenerCategoriaPrimeraDivision } from '../utils/categoriaPrimera'
+import { calcularSemaforoJugador, SEMAFORO_INFO } from '../utils/semaforoRiesgo'
 import TablaDataFem from './TablaDataFem'
 import { PALETA_INICIO as C } from '../appearance/paletaInicio'
 import FranjaNumeros from './ui/FranjaNumeros'
@@ -369,6 +372,60 @@ function InicioSection({ perfil, onCambiarSeccion, onAbrirCalendario, onVerBiene
             })
         }
 
+        // Alerta de semáforo de riesgo (Wellness + sRPE/ACWR + CMJ) — solo Primera División.
+        // Restaurada como estaba antes del commit 2a21a2d: cálculo en paralelo y resumen si son más de 3.
+        const categoriaPrimera = await obtenerCategoriaPrimeraDivision()
+        if (!activo) return
+        const debeCalcularSemaforo =
+          categoriaPrimera &&
+          (perfil.rol === 'coordinacion' ||
+            perfil.rol === 'preparador_fisico' ||
+            (perfil.rol === 'tecnico' && perfil.categoria_id === categoriaPrimera.id))
+
+        if (debeCalcularSemaforo) {
+          const { data: categoriasData } = await supabase.from('categorias').select('id, es_reserva')
+          const { data: jugadoresPrimera } = await obtenerJugadoresDeCategoria(
+            supabase,
+            categoriaPrimera.id,
+            categoriasData
+          )
+
+          const resultadosSemaforo = await Promise.all(
+            (jugadoresPrimera || []).map((j) => calcularSemaforoJugador(j.id, categoriaPrimera.id))
+          )
+          if (!activo) return
+          const alertasSemaforo = []
+          ;(jugadoresPrimera || []).forEach((j, i) => {
+            const resultado = resultadosSemaforo[i]
+            if (resultado.semaforo === 'rojo' || resultado.semaforo === 'amarillo') {
+              const info = SEMAFORO_INFO[resultado.semaforo]
+              alertasSemaforo.push({
+                id: `semaforo-${j.id}`,
+                icono: resultado.semaforo === 'rojo' ? '🔴' : '🟡',
+                color: resultado.semaforo === 'rojo' ? C.rojo : C.amarillo,
+                nivel: resultado.semaforo,
+                titulo: `${j.apellido}, ${j.nombre}`,
+                motivo: `Semáforo ${info.label} · ${resultado.puntos}/6`,
+                texto: `${j.apellido}, ${j.nombre} — Semáforo ${info.label} (${resultado.puntos}/6)`,
+                seccion: 'fisico',
+              })
+            }
+          })
+
+          if (alertasSemaforo.length > 3) {
+            alertasNuevas.push({
+              id: 'semaforo-resumen',
+              icono: '⚠️',
+              color: C.amarillo,
+              nivel: alertasSemaforo.some(a => a.nivel === 'rojo') ? 'rojo' : 'amarillo',
+              texto: `${alertasSemaforo.length} jugadoras requieren atención (semáforo) — ver en Físico`,
+              seccion: 'fisico',
+            })
+          } else {
+            alertasNuevas.push(...alertasSemaforo)
+          }
+        }
+
         if (!activo) return
         setAlertas(alertasNuevas)
       } catch (error) {
@@ -400,7 +457,7 @@ function InicioSection({ perfil, onCambiarSeccion, onAbrirCalendario, onVerBiene
   const atencion = [
     ...lesionados.map(j => ({ id: 'lesionada-' + j.id, nivel: 'rojo', titulo: `${j.apellido}, ${j.nombre}`,
       motivo: 'Lesionada' + (j.categorias?.nombre ? ' · ' + j.categorias.nombre : ''), seccion: esMedico ? 'medicos' : 'plantel' })),
-    ...alertas.map(a => ({ id: a.id, nivel: a.seccion === 'medicos' ? 'rojo' : 'amarillo', titulo: a.texto, motivo: null, seccion: a.seccion })),
+    ...alertas.map(a => ({ id: a.id, nivel: a.nivel || (a.seccion === 'medicos' ? 'rojo' : 'amarillo'), titulo: a.titulo || a.texto, motivo: a.motivo || null, seccion: a.seccion })),
   ].sort((a, b) => (a.nivel === b.nivel ? 0 : a.nivel === 'rojo' ? -1 : 1))
 
   const ultimosResultados = [...ultimos].reverse().map(p => ({ id: p.id, resultado: calcularResultado(p) })).filter(p => p.resultado)
