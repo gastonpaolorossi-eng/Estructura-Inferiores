@@ -109,9 +109,9 @@ function CargaMasiva({ onVolver, onGuardado }) {
   }
 
   const inputStyle = {
-    backgroundColor: "var(--ui-compartido-superficie, #1A2332)",
-    border: "1px solid var(--ui-compartido-borde, #2A3548)",
-    color: "var(--ui-compartido-texto, #F0F2F5)",
+    backgroundColor: "var(--ui-compartido-superficie)",
+    border: "1px solid var(--ui-compartido-borde)",
+    color: "var(--ui-compartido-texto)",
   }
 
   const validas = filas.filter((f) => f.errores.length === 0)
@@ -123,18 +123,18 @@ function CargaMasiva({ onVolver, onGuardado }) {
         <button
           onClick={onVolver}
           className="text-sm mb-6 flex items-center gap-1 hover:opacity-70 transition-opacity"
-          style={{ color: "var(--ui-compartido-secundario, #8A9BB8)" }}
+          style={{ color: "var(--ui-compartido-secundario)" }}
         >
           ← Volver al plantel
         </button>
 
         <h1
           className="text-2xl md:text-3xl mb-2"
-          style={{ fontFamily: "'Archivo Black', sans-serif", color: "var(--ui-compartido-texto, #F0F2F5)" }}
+          style={{ fontFamily: 'var(--fuente-titulo)', fontStyle: 'italic', fontWeight: 900, textTransform: 'uppercase', color: "var(--ui-compartido-texto)" }}
         >
           Carga masiva de jugadores
         </h1>
-        <p className="text-sm mb-6" style={{ color: "var(--ui-compartido-tenue, #5B6B85)" }}>
+        <p className="text-sm mb-6" style={{ color: "var(--ui-compartido-tenue)" }}>
           Pegá los datos copiados desde Excel/Sheets, una fila por jugador. Columnas en este orden: Apellido, Nombre, Categoría, Fecha de nacimiento (DD/MM/AAAA), Posición, Pie hábil.
         </p>
 
@@ -151,7 +151,7 @@ function CargaMasiva({ onVolver, onGuardado }) {
           onClick={handlePrevisualizar}
           disabled={!texto.trim()}
           className="text-sm font-medium px-4 py-2.5 rounded-xl transition-opacity hover:opacity-80 disabled:opacity-50 mb-6"
-          style={{ backgroundColor: "var(--ui-compartido-superficie, #1A2332)", color: "var(--ui-compartido-texto, #F0F2F5)", border: "1px solid var(--ui-compartido-borde, #2A3548)" }}
+          style={{ backgroundColor: "var(--ui-compartido-superficie)", color: "var(--ui-compartido-texto)", border: "1px solid var(--ui-compartido-borde)" }}
         >
           Previsualizar
         </button>
@@ -159,11 +159,11 @@ function CargaMasiva({ onVolver, onGuardado }) {
         {filas.length > 0 && (
           <>
             <div className="flex items-center gap-3 mb-3">
-              <span className="text-sm" style={{ color: "var(--plantel-exito, #4ADE80)" }}>
+              <span className="text-sm" style={{ color: "var(--plantel-exito)" }}>
                 {validas.length} listos para cargar
               </span>
               {invalidas.length > 0 && (
-                <span className="text-sm" style={{ color: "var(--plantel-peligro, #F87171)" }}>
+                <span className="text-sm" style={{ color: "var(--plantel-peligro)" }}>
                   {invalidas.length} con errores
                 </span>
               )}
@@ -175,20 +175,20 @@ function CargaMasiva({ onVolver, onGuardado }) {
                   key={f.fila}
                   className="p-3 rounded-xl text-sm"
                   style={{
-                    backgroundColor: "var(--ui-compartido-superficie, #1A2332)",
-                    border: `1px solid ${f.errores.length > 0 ? "var(--plantel-peligro, #F87171)" : "var(--ui-compartido-borde, #2A3548)"}`,
+                    backgroundColor: "var(--ui-compartido-superficie)",
+                    border: `1px solid ${f.errores.length > 0 ? "var(--plantel-peligro)" : "var(--ui-compartido-borde)"}`,
                   }}
                 >
                   <div className="flex items-center justify-between">
-                    <p style={{ color: "var(--ui-compartido-texto, #F0F2F5)" }}>
+                    <p style={{ color: "var(--ui-compartido-texto)" }}>
                       {f.apellido}, {f.nombre}
                     </p>
-                    <span className="text-xs" style={{ color: "var(--ui-compartido-secundario, #8A9BB8)" }}>
+                    <span className="text-xs" style={{ color: "var(--ui-compartido-secundario)" }}>
                       {f.categoriaTexto}
                     </span>
                   </div>
                   {f.errores.length > 0 && (
-                    <p className="text-xs mt-1" style={{ color: "var(--plantel-peligro, #F87171)" }}>
+                    <p className="text-xs mt-1" style={{ color: "var(--plantel-peligro)" }}>
                       Fila {f.fila}: {f.errores.join(', ')}
                     </p>
                   )}
@@ -211,7 +211,7 @@ function CargaMasiva({ onVolver, onGuardado }) {
           <>
             <p
               className="text-sm mt-4"
-              style={{ color: resultado.ok ? "var(--plantel-exito, #4ADE80)" : "var(--plantel-peligro, #F87171)" }}
+              style={{ color: resultado.ok ? "var(--plantel-exito)" : "var(--plantel-peligro)" }}
             >
               {resultado.ok
                 ? `✅ Se cargaron ${resultado.cantidad} jugadores correctamente.`

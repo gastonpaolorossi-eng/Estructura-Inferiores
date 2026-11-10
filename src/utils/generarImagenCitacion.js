@@ -1,6 +1,6 @@
 import { supabase } from '../supabaseClient'
+import { ESCUDO_URL } from '../config/club'
 
-const ESCUDO_CLUB_URL = 'https://qvjviyjkxyngiggoeqlj.supabase.co/storage/v1/object/public/Biblioteca/escudos/Escudo%20simplificado.png'
 const WIDTH = 1080
 const PADDING = 42
 const COLUMNS = 3
@@ -160,7 +160,7 @@ export async function generarImagenCitacion(partidoId) {
   }
 
   const escudoRivalImg = partido.escudo_url ? await cargarImagenElemento(partido.escudo_url) : null
-  const escudoClubImg = await cargarImagenElemento(ESCUDO_CLUB_URL)
+  const escudoClubImg = await cargarImagenElemento(ESCUDO_URL)
 
   const fotosPorJugador = {}
   await Promise.all(

@@ -6,6 +6,7 @@ import SelectorApariencia from '../appearance/SelectorApariencia'
 import { filtrarSeccionesVisibles, resolverSeccionVisible } from '../config/visibilidadSecciones'
 import { puedePlanificar } from '../utils/planificacion'
 import IconoNavegacion from './IconoNavegacion'
+import { ESCUDO_URL } from '../config/club'
 import './layout.css'
 
 const rolLabel = {
@@ -307,7 +308,8 @@ function Layout({ seccionActiva, onCambiarSeccion, perfil, children, puedeAdmini
         </footer>
       </aside>
       {ayuda && menuCompacto && !esMovil && <div id={ayudaId} role="tooltip" className="club-tooltip" style={{ left: ayuda.left, top: ayuda.top }}>{ayuda.texto}</div>}
-      <div className="club-contenido" inert={bloqueado}>{children}</div>
+      <img src={ESCUDO_URL} alt="" aria-hidden="true" className="club-escudo-fondo" />
+      <div className="club-contenido" inert={bloqueado}><div key={seccionActiva} className="club-seccion">{children}</div></div>
     </div>
   )
 }

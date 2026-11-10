@@ -48,7 +48,7 @@ function AlertasDatosFisicos({ incluirCargaYCmj }) {
   const total = totalWellness + totalCarga + totalCmj
   if (cargando || total === 0) return null
   return (
-    <div className="mb-6 rounded-xl overflow-hidden" style={{ border: "1px solid var(--plantel-aviso, #FBBF24)" }}>
+    <div className="mb-6 rounded-xl overflow-hidden" style={{ border: "1px solid var(--plantel-aviso)" }}>
       <button
         onClick={() => setAbierto((v) => !v)}
         className="w-full flex items-center justify-between p-3 text-sm font-medium"

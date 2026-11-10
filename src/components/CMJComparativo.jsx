@@ -5,6 +5,7 @@ import { obtenerCategoriaPrimeraDivision } from '../utils/categoriaPrimera'
 import { calcularCMJDrop } from '../utils/semaforoRiesgo'
 import { generarCMJIndividualPDF, generarCMJCategoriaPDF } from '../utils/generarCMJPDF'
 import { COLORES } from '../theme'
+import { fechaLarga } from '../utils/formatoFecha'
 
 function promedio(valores) {
   const limpios = valores.filter((v) => v !== null && v !== undefined && !Number.isNaN(v))
@@ -197,7 +198,7 @@ function CMJComparativo() {
           onClick={descargarPDF}
           disabled={generando}
           className="px-4 py-2.5 rounded-xl text-sm font-medium transition-opacity hover:opacity-80 disabled:opacity-50"
-          style={{ backgroundColor: COLORES.exito, color: COLORES.fondoPagina }}
+          style={{ backgroundColor: COLORES.acento, color: COLORES.textoSobreAcento }}
         >
           {generando ? 'Generando...' : 'Descargar PDF'}
         </button>
@@ -220,7 +221,7 @@ function CMJComparativo() {
                   key={jugador.id}
                   onClick={() => setJugadorId(jugador.id)}
                   className="cursor-pointer hover:opacity-80 transition-opacity"
-                  style={{ backgroundColor: i % 2 === 0 ? 'transparent' : 'var(--cmj-fila, #1F1F1D)' }}
+                  style={{ backgroundColor: i % 2 === 0 ? 'transparent' : 'var(--cmj-fila)' }}
                 >
                   <td className="p-2.5" style={{ color: COLORES.texto }}>
                     {jugador.apellido}, {jugador.nombre}
@@ -241,10 +242,10 @@ function CMJComparativo() {
                               ? COLORES.acento
                               : COLORES.exito,
                           color: resultado.nivel === 'moderado'
-                            ? 'var(--ui-texto-sobre-acento, #1A1A1A)'
+                            ? 'var(--ui-texto-sobre-acento)'
                             : resultado.nivel === 'alerta'
-                            ? 'var(--riesgo-chip-texto, #111111)'
-                            : 'var(--riesgo-chip-texto, #1A1A1A)',
+                            ? 'var(--riesgo-chip-texto)'
+                            : 'var(--riesgo-chip-texto)',
                         }}
                       >
                         {resultado.nivel === 'alerta' ? 'Alerta' : resultado.nivel === 'moderado' ? 'Moderado' : 'Normal'}
@@ -330,9 +331,9 @@ function CMJComparativo() {
                   </tr>
                 )}
                 {historial.map((h, i) => (
-                  <tr key={h.fecha} style={{ backgroundColor: i % 2 === 0 ? 'transparent' : 'var(--cmj-fila, #1F1F1D)' }}>
+                  <tr key={h.fecha} style={{ backgroundColor: i % 2 === 0 ? 'transparent' : 'var(--cmj-fila)' }}>
                     <td className="p-2.5" style={{ color: COLORES.texto }}>
-                      {h.fecha}
+                      {fechaLarga(h.fecha)}
                     </td>
                     <td className="p-2.5" style={{ color: COLORES.texto }}>
                       {h.valor_cm}

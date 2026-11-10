@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { obtenerFechaHoy } from '../utils/fecha'
 import { obtenerCategoriaPrimeraDivision } from '../utils/categoriaPrimera'
+import { fechaCorta } from '../utils/formatoFecha'
 
 // Alias visual: conserva la superficie alternativa original de estos formularios.
 const UI = { ...WELLNESS, tarjetaAlternativa: WELLNESS.filaAlternativa }
@@ -305,7 +306,7 @@ function CargaEntrenamiento() {
                 activo
                   ? {
                       background: UI.primarioWellness,
-                      color: '#1A1914',
+                      color: 'var(--ui-texto-sobre-acento)',
                       boxShadow: '0 4px 12px rgba(242,194,48,0.10)',
                     }
                   : {
@@ -564,7 +565,7 @@ function CargaEntrenamiento() {
                     className="flex-1 p-3 rounded-xl font-bold text-sm transition-opacity hover:opacity-85 disabled:opacity-50"
                     style={{
                       background: UI.primarioWellness,
-                      color: '#1A1914',
+                      color: 'var(--ui-texto-sobre-acento)',
                     }}
                   >
                     {guardando
@@ -871,7 +872,7 @@ function CargaEntrenamiento() {
                         }}
                       >
                         <td className="p-3 sm:p-4 whitespace-nowrap font-medium">
-                          {h.fecha}
+                          {fechaCorta(h.fecha)}
                         </td>
 
                         <td className="p-3 sm:p-4">

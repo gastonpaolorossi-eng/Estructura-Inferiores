@@ -1,4 +1,4 @@
-.club-layout { min-height: 100vh; display: flex; background: var(--ui-fondo-pagina); color: var(--ui-texto); }
+.club-layout { min-height: 100vh; display: flex; isolation: isolate; background: var(--ui-fondo-pagina); color: var(--ui-texto); }
 .club-sidebar { height: 100vh; height: 100dvh; min-height: 0; background: var(--ui-fondo-sidebar); border-right: 1px solid var(--ui-borde); transition: width 200ms ease, transform 200ms ease; }
 .club-sidebar button, .club-sidebar summary, .club-mobile-header button { -webkit-tap-highlight-color: transparent; }
 .club-sidebar :is(button,summary,select):focus-visible, .club-mobile-header button:focus-visible { outline: 2px solid var(--ui-foco); outline-offset: 2px; }
@@ -31,6 +31,17 @@
 .club-section-name { font-size: 12px; font-weight: 600; color: var(--ui-texto-acento); }
 .club-overlay { background: #0009; }
 .club-contenido { flex: 1; min-width: 0; padding-top: 56px; }
+/* Escudo de fondo en todas las secciones: fijo, detrás del contenido y sin afectar el scroll. */
+.club-escudo-fondo { position: fixed; z-index: -1; top: 50%; right: -6vw; width: 60vw; max-width: none; transform: translateY(-50%); opacity: var(--escudo-fondo-opacidad); pointer-events: none; user-select: none; }
+/* El fondo de página lo pinta el Layout; la raíz de cada sección queda transparente para dejar ver el escudo. */
+.club-seccion > * { background-color: transparent !important; }
+/* Entrada de cada sección: sus bloques suben 20 px y aparecen, con 70 ms entre bloques. */
+.club-seccion > * > * { animation: club-subir .6s var(--curva-salida) both; }
+.club-seccion > * > :nth-child(2) { animation-delay: 70ms; }
+.club-seccion > * > :nth-child(3) { animation-delay: 140ms; }
+.club-seccion > * > :nth-child(4) { animation-delay: 210ms; }
+.club-seccion > * > :nth-child(5) { animation-delay: 280ms; }
+.club-seccion > * > :nth-child(n+6) { animation-delay: 350ms; }
 @media (min-width: 768px) {
   .club-sidebar [data-solo-escritorio] { display: inline-flex; }
   .club-sidebar .club-mobile-close { display: none; }

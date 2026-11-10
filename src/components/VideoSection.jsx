@@ -9,6 +9,7 @@ import BarraFiltros from './ui/BarraFiltros'
 import EstadoContenido from './ui/EstadoContenido'
 import TarjetaIndicador from './ui/TarjetaIndicador'
 import './audiovisualPremium.css'
+import { fechaCorta } from '../utils/formatoFecha'
 
 // Solo una vista previa de YouTube; el enlace original, incluidos sus tiempos,
 // sigue siendo el destino de reproducción. Otros proveedores conservan su enlace.
@@ -503,7 +504,7 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
                   <option value="">Partido (opcional)</option>
                   {partidos.map((p) => (
                     <option key={p.id} value={p.id}>
-                      vs {p.rival} — {p.fecha}
+                      vs {p.rival} — {fechaCorta(p.fecha)}
                     </option>
                   ))}
                 </select></label>
@@ -542,7 +543,7 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
                   <option value="">Partido (opcional)</option>
                   {partidos.map((p) => (
                     <option key={p.id} value={p.id}>
-                      vs {p.rival} — {p.fecha}
+                      vs {p.rival} — {fechaCorta(p.fecha)}
                     </option>
                   ))}
                 </select></label>
@@ -736,7 +737,7 @@ function VideoSection({ jugadorInicialId, onConsumirJugadorInicial, onIrABibliot
                     </div>
                     <div className="flex items-center gap-2 mt-1">
                       <p className="text-xs" style={{ color: COLORES.textoMuted }}>
-                        {v.fecha}
+                        {fechaCorta(v.fecha)}
                       </p>
                       {vsPartido && (
                         <span className="text-xs flex items-center gap-1" style={{ color: COLORES.textoSecundario }}>

@@ -76,7 +76,7 @@ function ContratosSection({ onVolver }) {
 
   return (
     <div className="p-6 md:p-10">
-      <div className="max-w-2xl mx-auto">
+      <div className="club-ancho">
         <button
           onClick={onVolver}
           className="text-sm mb-6 flex items-center gap-1 hover:opacity-70 transition-opacity"
@@ -87,7 +87,7 @@ function ContratosSection({ onVolver }) {
 
         <h1
           className="text-2xl md:text-3xl mb-6"
-          style={{ fontFamily: "'Archivo Black', sans-serif", color: COLORES.texto }}
+          style={{ fontFamily: 'var(--fuente-titulo)', fontStyle: 'italic', fontWeight: 900, textTransform: 'uppercase', color: COLORES.texto }}
         >
           Jugadores con contrato
         </h1>

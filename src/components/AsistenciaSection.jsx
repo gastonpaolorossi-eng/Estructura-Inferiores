@@ -13,8 +13,8 @@ const ESTADOS = [
   { valor: 'presente', label: 'Presente', color: COLORES.exito },
   { valor: 'tarde', label: 'Tarde', color: COLORES.acento },
   { valor: 'ausente', label: 'Ausente', color: COLORES.peligro },
-  { valor: 'lesionado', label: 'Lesionado', color: '#FB923C' },
-  { valor: 'enfermo', label: 'Enfermo', color: '#7DD3FC' },
+  { valor: 'lesionado', label: 'Lesionado', color: 'var(--ui-peligro)' },
+  { valor: 'enfermo', label: 'Enfermo', color: 'var(--ui-neutro)' },
 ]
 
 function AsistenciaSection({ perfil, fechaInicial, categoriaInicial, onVerPlanificacion }) {

@@ -1,6 +1,6 @@
 @media screen {
   .evolucion-premium { display:grid; gap:18px; min-width:0; color:var(--ui-texto); }
-  .evolucion-cabecera { padding:24px; border-left:4px solid #F2C230; border-radius:18px; background:var(--ui-superficie); }
+  .evolucion-cabecera { padding:24px; border-left:4px solid var(--ui-acento); border-radius:18px; background:var(--ui-superficie); }
   .evolucion-cabecera>p { color:var(--ui-texto-acento); font-size:12px; font-weight:800; letter-spacing:.12em; }
   .evolucion-cabecera h3 { font-size:clamp(30px,4vw,46px); font-weight:900; margin:4px 0 12px; letter-spacing:-.04em; }
   .evolucion-premium h4 { font-size:22px; font-weight:800; }
@@ -11,7 +11,7 @@
   .evolucion-premium input:not([type=checkbox]),.evolucion-premium select { width:100%; min-width:0; box-sizing:border-box; min-height:44px; padding:10px; border:1px solid var(--ui-control-borde); border-radius:9px; background:var(--ui-control-fondo); color:var(--ui-control-texto); }
   .evolucion-premium button,.evolucion-premium summary { min-height:44px; padding:10px; cursor:pointer; }
   .evolucion-premium button { border:1px solid var(--ui-borde); border-radius:10px; background:var(--ui-superficie); color:var(--ui-texto); transition:border-color .2s; }
-  .evolucion-premium button:hover,.evolucion-premium button[aria-pressed=true] { border-color:#F2C230; }
+  .evolucion-premium button:hover,.evolucion-premium button[aria-pressed=true] { border-color:var(--ui-texto-acento); }
   .evolucion-premium :focus-visible { outline:3px solid var(--ui-foco); outline-offset:3px; }
   .evolucion-premium img,.evolucion-iniciales { width:50px; height:60px; flex-shrink:0; object-fit:cover; border-radius:8px; }
   .evolucion-iniciales { display:grid; place-items:center; background:var(--ui-superficie-alternativa); }
@@ -22,7 +22,7 @@
   .evolucion-leyenda>div { min-width:0; border-left:4px solid var(--serie); padding:8px; background:var(--ui-superficie); border-radius:10px; }
   .evolucion-leyenda button { width:100%; text-align:left; }
   .evolucion-leyenda img { float:left; margin-right:8px; }
-  .evolucion-aviso { padding:14px; border-left:3px solid #F2C230; background:var(--ui-superficie); }
+  .evolucion-aviso { padding:14px; border-left:3px solid var(--ui-acento); background:var(--ui-superficie); }
   .evolucion-grafico { min-width:0; padding:20px; border:1px solid var(--ui-borde); border-radius:18px; background:var(--ui-superficie); }
   .evolucion-grafico svg { display:block; width:100%; height:auto; }
   .evolucion-grafico text { fill:var(--ui-texto); font-size:16px; }

@@ -115,7 +115,7 @@ function FormacionPartido({ partidoId, onVolver, onGuardado }) {
 
         <h1
           className="text-2xl md:text-3xl mb-1 flex items-center gap-2.5"
-          style={{ fontFamily: "'Archivo Black', sans-serif", color: '#F0F2F5' }}
+          style={{ fontFamily: 'var(--fuente-titulo)', fontStyle: 'italic', fontWeight: 900, textTransform: 'uppercase', color: '#F0F2F5' }}
         >
           {partido.escudo_url ? (
             <img
@@ -217,7 +217,7 @@ function FormacionPartido({ partidoId, onVolver, onGuardado }) {
                       backgroundColor: citacion ? '#4ADE80' : '#0F1419',
                       color: citacion ? '#0F1419' : '#5B6B85',
                       border: `2px solid ${citacion ? '#4ADE80' : '#2A3548'}`,
-                      fontFamily: "'Archivo Black', sans-serif",
+                      fontFamily: 'var(--fuente-titulo)', fontStyle: 'italic', fontWeight: 900, textTransform: 'uppercase',
                     }}
                   >
                     {citacion?.dorsal ?? '·'}

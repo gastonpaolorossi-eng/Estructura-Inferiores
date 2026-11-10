@@ -125,7 +125,7 @@ function PaseCategoriaSection() {
       <div className="max-w-xl mx-auto">
         <h1
           className="text-2xl md:text-3xl mb-2"
-          style={{ fontFamily: "'Archivo Black', sans-serif", color: COLORES.texto }}
+          style={{ fontFamily: 'var(--fuente-titulo)', fontStyle: 'italic', fontWeight: 900, textTransform: 'uppercase', color: COLORES.texto }}
         >
           Pase de categoría
         </h1>

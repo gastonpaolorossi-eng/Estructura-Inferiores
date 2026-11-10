@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import CategoriaFiltro from './CategoriaFiltro'
 import { obtenerFechaHoy } from '../utils/fecha'
+import { fechaCorta } from '../utils/formatoFecha'
 
 const ESTADO_CONFIG = {
   en_prueba: { label: 'En prueba', color: COLORES.acento, icono: '🕓' },
@@ -388,7 +389,7 @@ function CaptacionSection({ perfil }) {
                         <div className="dp-registro-cabecera">
                           <span
                             className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-                            style={{ backgroundColor: COLORES.fondoPagina, color: COLORES.textoSecundario, fontFamily: "'Archivo Black', sans-serif" }}
+                            style={{ backgroundColor: COLORES.fondoPagina, color: COLORES.textoSecundario, fontFamily: 'var(--fuente-titulo)', fontStyle: 'italic', fontWeight: 900, textTransform: 'uppercase' }}
                           >
                             {iniciales(c.nombre, c.apellido)}
                           </span>
@@ -399,7 +400,7 @@ function CaptacionSection({ perfil }) {
                             <p className="text-xs" style={{ color: COLORES.textoSecundario }}>
                               {c.categorias?.nombre}
                               {c.posicion ? ` · ${c.posicion}` : ''}
-                              {c.fecha_prueba ? ` · ${c.fecha_prueba}` : ''}
+                              {c.fecha_prueba ? ` · ${fechaCorta(c.fecha_prueba)}` : ''}
                             </p>
                           </div>
                           <div className="dp-acciones-registro">

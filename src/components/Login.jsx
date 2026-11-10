@@ -1,12 +1,7 @@
 import { COLORES } from '../theme'
 import { useState } from 'react'
 import { supabase } from '../supabaseClient'
-
-// Ajustá el path si el archivo del escudo tiene otro nombre en el bucket
-const { data: escudoData } = supabase.storage
-  .from('Biblioteca')
-  .getPublicUrl('escudos/Escudo simplificado.png')
-const ESCUDO_URL = escudoData.publicUrl
+import { ESCUDO_URL } from '../config/club'
 
 function Login() {
   const [email, setEmail] = useState('')
@@ -15,9 +10,9 @@ function Login() {
   const [cargando, setCargando] = useState(false)
 
   const inputStyle = {
-    backgroundColor: 'var(--login-control-fondo, #FFFFFF)',
+    backgroundColor: 'var(--login-control-fondo)',
     border: `1px solid ${COLORES.borde}`,
-    color: 'var(--login-control-texto, #1A1A18)',
+    color: 'var(--login-control-texto)',
   }
 
   async function handleLogin(e) {
@@ -41,13 +36,13 @@ function Login() {
         />
         <h1
           className="text-xl mb-1 text-center"
-          style={{ fontFamily: "'Archivo Black', sans-serif", color: COLORES.texto }}
+          style={{ fontFamily: 'var(--fuente-titulo)', fontStyle: 'italic', fontWeight: 900, textTransform: 'uppercase', color: COLORES.texto }}
         >
           Club Comunicaciones
         </h1>
         <p
           className="text-xs tracking-widest uppercase mb-8 text-center"
-          style={{ color: 'var(--ui-texto-acento, #F2C230)' }}
+          style={{ color: 'var(--ui-texto-acento)' }}
         >
           Primera División
         </p>
@@ -96,7 +91,7 @@ function Login() {
               type="submit"
               disabled={cargando}
               className="w-full p-3 rounded-xl font-medium transition-opacity hover:opacity-80 disabled:opacity-50"
-              style={{ backgroundColor: COLORES.acento, color: 'var(--login-boton-texto, #1A1A18)' }}
+              style={{ backgroundColor: COLORES.acento, color: 'var(--login-boton-texto)' }}
             >
               {cargando ? 'Ingresando...' : 'Ingresar'}
             </button>

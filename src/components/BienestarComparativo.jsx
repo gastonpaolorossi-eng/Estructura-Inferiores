@@ -447,7 +447,7 @@ function BienestarComparativo({ perfil, jugadorInicialId, onConsumirJugadorInici
                           activo
                             ? {
                                 background: UI.primarioWellness,
-                                color: '#1A1914',
+                                color: 'var(--ui-texto-sobre-acento)',
                                 border: `1px solid ${UI.acento}`,
                               }
                             : botonSecundario

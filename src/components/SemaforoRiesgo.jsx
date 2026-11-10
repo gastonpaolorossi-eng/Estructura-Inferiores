@@ -70,7 +70,7 @@ function SemaforoRiesgo() {
             onClick={handlePdfCategoria}
             disabled={generandoPdf}
             className="text-sm font-medium px-4 py-2.5 rounded-xl transition-opacity hover:opacity-80 disabled:opacity-50 shrink-0"
-            style={{ backgroundColor: P.superficie, color: P.texto, border: "1px solid var(--ui-compartido-borde, #2A3548)" }}
+            style={{ backgroundColor: P.superficie, color: P.texto, border: "1px solid var(--ui-compartido-borde)" }}
           >
             {generandoPdf ? '...' : '📄 Descargar reporte completo'}
           </button>
@@ -94,7 +94,7 @@ function SemaforoRiesgo() {
               <div
                 key={j.id}
                 className="p-3 rounded-xl flex items-center justify-between gap-3"
-                style={{ backgroundColor: P.superficie, border: "1px solid var(--ui-compartido-borde, #2A3548)" }}
+                style={{ backgroundColor: P.superficie, border: "1px solid var(--ui-compartido-borde)" }}
               >
                 <div className="flex items-center gap-2.5 min-w-0">
                   {j.foto_url ? (

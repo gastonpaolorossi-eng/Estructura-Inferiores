@@ -63,7 +63,7 @@ function CanchaPlantel({ onSelectJugador }) {
           <div>
             <h1
               className="text-3xl md:text-4xl"
-              style={{ fontFamily: "'Archivo Black', sans-serif", color: '#F0F2F5' }}
+              style={{ fontFamily: 'var(--fuente-titulo)', fontStyle: 'italic', fontWeight: 900, textTransform: 'uppercase', color: '#F0F2F5' }}
             >
               Plantel
             </h1>

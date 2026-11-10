@@ -11,9 +11,8 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import TablaDataFem from './TablaDataFem'
 import { PALETA_INICIO as C, textoInicio } from '../appearance/paletaInicio'
-
-const ESCUDO_CLUB_URL =
-  'https://qvjviyjkxyngiggoeqlj.supabase.co/storage/v1/object/public/Biblioteca/escudos/Escudo%20simplificado.png'
+import { ESCUDO_URL } from '../config/club'
+import { fechaCorta } from '../utils/formatoFecha'
 
 function fechaISO(date) {
   const anio = date.getFullYear()
@@ -301,7 +300,7 @@ function InicioSection({ perfil, onCambiarSeccion, onAbrirCalendario, onVerBiene
                   alertasNuevas.push({
                     id: `minutos-${p.id}`,
                     icono: '⏱️',
-                    color: '#EF9F27',
+                    color: 'var(--ui-alerta)',
                     texto: `Falta cargar los minutos/GPS del partido vs ${p.rival} de ayer`,
                     seccion: 'fisico',
                   })
@@ -347,7 +346,7 @@ function InicioSection({ perfil, onCambiarSeccion, onAbrirCalendario, onVerBiene
                 id: `lesion-${f.id}`,
                 icono: '🩺',
                 color: C.rojo,
-                texto: `${f.jugadores?.apellido}, ${f.jugadores?.nombre} — el alta estimada (${f.fecha_estimada_alta}) ya venció, revisar estado`,
+                texto: `${f.jugadores?.apellido}, ${f.jugadores?.nombre} — el alta estimada (${fechaCorta(f.fecha_estimada_alta)}) ya venció, revisar estado`,
                 seccion: 'medicos',
               })
             })
@@ -395,11 +394,10 @@ function InicioSection({ perfil, onCambiarSeccion, onAbrirCalendario, onVerBiene
 
   return (
     <div className="inicio-dashboard" style={{ color: C.blanco }}>
-      <img src={ESCUDO_CLUB_URL} alt="" aria-hidden="true" className="inicio-marca" />
       <div className="inicio-contenido">
         <header className="inicio-cabecera">
           <img className="inicio-portada-foto" src="/images/fotos-comunicaciones/inicio-equipo-cuerpo-tecnico-original.jpeg" alt="Plantel femenino y cuerpo técnico de Comunicaciones reunidos en círculo" width="1280" height="959" decoding="async" />
-          <img src={ESCUDO_CLUB_URL} alt="Escudo Club Comunicaciones" />
+          <img src={ESCUDO_URL} alt="Escudo Club Comunicaciones" />
           <div><p className="inicio-marca-texto">Club Comunicaciones · Fútbol femenino</p>
             <h1>Inicio</h1><p className="inicio-subtitulo">Centro de operaciones del cuerpo técnico</p><p className="inicio-secundario capitalize">{fechaActual}</p></div>
           <span className="inicio-insignia">COMUNICACIONES · GESTIÓN DEPORTIVA</span>
@@ -419,7 +417,7 @@ function InicioSection({ perfil, onCambiarSeccion, onAbrirCalendario, onVerBiene
             <button type="button" onClick={() => onCambiarSeccion('partidos')}><span>Consultar partidos</span> →</button></div>
           {cargando ? <p role="status">Consultando resultados…</p> : errorDeportivo ? <p role="alert">{errorDeportivo}</p> : <>
           <div className="inicio-resultado">
-            <img className="inicio-rival" src={ESCUDO_CLUB_URL} alt="Escudo de Comunicaciones" /><span>Comunicaciones</span>{ultimoPartidoPrincipal?.escudo_url && <img className="inicio-rival" src={ultimoPartidoPrincipal.escudo_url} alt={'Escudo de ' + ultimoPartidoPrincipal.rival} />}<strong style={{color: textoInicio(colorUltimo)}}>{resultadoUltimo?.texto || 'Sin resultado'}</strong>
+            <img className="inicio-rival" src={ESCUDO_URL} alt="Escudo de Comunicaciones" /><span>Comunicaciones</span>{ultimoPartidoPrincipal?.escudo_url && <img className="inicio-rival" src={ultimoPartidoPrincipal.escudo_url} alt={'Escudo de ' + ultimoPartidoPrincipal.rival} />}<strong style={{color: textoInicio(colorUltimo)}}>{resultadoUltimo?.texto || 'Sin resultado'}</strong>
             <span>{ultimoPartidoPrincipal ? (ultimoPartidoPrincipal.rival || 'Rival') + ' · ' + fechaLegible(ultimoPartidoPrincipal.fecha) : 'Todavía no hay resultados cargados'}</span>
             {resultadoUltimo && <EtiquetaEstado color={colorUltimo}>{resultadoUltimo.etiqueta}</EtiquetaEstado>}
             {ultimoPartidoPrincipal?.categorias?.nombre && <span>{ultimoPartidoPrincipal.categorias.nombre}</span>}

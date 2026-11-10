@@ -272,7 +272,7 @@ function CalendarioSection({ perfil, onVerPlanificacion, contextoInicial, onCons
                             title={(e.tipo === 'video' ? 'Video de entrenamiento: ' : e.tipo === 'planificacion' ? 'Planificación: ' : 'Partido: ') + e.titulo}
                           >
                             <span>{e.tipo === 'partido' ? 'Partido' : e.tipo === 'video' ? 'Video' : 'Planificación'}</span>
-                            {e.hora && `${e.hora} `}
+                            {e.hora && `${e.hora.slice(0, 5)} `}
                             {e.titulo}
                           </div>
                         )

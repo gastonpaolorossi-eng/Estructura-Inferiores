@@ -3,13 +3,14 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../supabaseClient'
 import { cargarSesionesAgenda, normalizarEventos } from '../../utils/calendario'
 import { fechaArgentina, sumarDias, puedePlanificar } from '../../utils/planificacion'
+import { fechaCorta } from '../../utils/formatoFecha'
 
 const TIPOS = { partido: 'Partido', video: 'Video de entrenamiento', planificacion: 'Planificación' }
 function Evento({ evento, abrirCalendario, onVerPlanificacion }) {
   const abrirPlan = evento.tipo === 'planificacion' && onVerPlanificacion
   return <button type="button" className="inicio-actividad" data-evento-id={evento.id} onClick={() => abrirPlan
     ? onVerPlanificacion(evento.fecha, evento.categoriaId, evento.originalId) : abrirCalendario(evento.fecha, evento.categoriaId)}>
-    <span className="inicio-dia">{evento.fecha}<strong>{evento.hora || 'Ver horario y detalle'}</strong></span>
+    <span className="inicio-dia">{fechaCorta(evento.fecha)}<strong>{evento.hora?.slice(0, 5) || 'Ver horario y detalle'}</strong></span>
     <span><small>{TIPOS[evento.tipo]}{evento.estado ? ` · ${evento.estado === 'publicado' ? 'Publicado' : 'Borrador'}` : ''}</small>
       <strong>{evento.titulo}</strong>{evento.tipo === 'partido' && <small>{calcularCuentaRegresiva(evento.fecha, evento.hora)}</small>}<small>{[evento.categoria, evento.detalle].filter(Boolean).join(' · ')}</small><small>{abrirPlan ? 'Abrir planificación' : 'Ver en Calendario'} →</small></span>
   </button>

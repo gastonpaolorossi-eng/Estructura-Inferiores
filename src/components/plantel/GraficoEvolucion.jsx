@@ -1,5 +1,6 @@
 import { useId, useState } from 'react'
 import { segmentosObservados } from '../../utils/rendimiento/evolucion.js'
+import { fechaCorta } from '../../utils/formatoFecha'
 
 export default function GraficoEvolucion({ partidos, series, unidad, destacada }) {
   const descripcion = useId()
@@ -7,7 +8,7 @@ export default function GraficoEvolucion({ partidos, series, unidad, destacada }
   const maximo = Math.max(1, ...series.flatMap(s => s.puntos.filter(p => p.valor !== null).map(p => p.valor)))
   const x = i => partidos.length <= 1 ? 450 : 65 + i * 770 / (partidos.length - 1)
   const y = valor => 350 - valor / maximo * 280
-  const info = (s, p, i) => `${s.nombre} · ${partidos[i].fecha} · ${partidos[i].rival || 'Rival no informado'} · ${p.valor.toLocaleString('es-AR', { maximumFractionDigits: 2 })}${unidad}`
+  const info = (s, p, i) => `${s.nombre} · ${fechaCorta(partidos[i].fecha)} · ${partidos[i].rival || 'Rival no informado'} · ${p.valor.toLocaleString('es-AR', { maximumFractionDigits: 2 })}${unidad}`
   const serieDetalle = series.find(s => s.jugadorId === detalle?.jugadorId)
   const indiceDetalle = partidos.findIndex(p => p.id === detalle?.partidoId)
   const puntoDetalle = serieDetalle?.puntos[indiceDetalle]
@@ -30,6 +31,6 @@ export default function GraficoEvolucion({ partidos, series, unidad, destacada }
     <p id={descripcion}>El eje horizontal enumera los partidos cronológicamente. Las líneas se interrumpen donde faltan datos. La tabla inferior conserva las fechas, rivales, valores y motivos.</p>
     <p role="status" className="evolucion-detalle">{puntoDetalle?.valor != null ? info(serieDetalle, puntoDetalle, indiceDetalle) : 'Seleccioná un punto con mouse, tacto o teclado para consultar su registro.'}</p>
     <details className="evolucion-puntos-accesibles"><summary>Consultar puntos con controles ampliados</summary>{series.map(s => <fieldset key={s.jugadorId}><legend>{s.nombre}</legend>{s.puntos.map((p, i) => p.valor === null ? null : <button type="button" key={p.partidoId} onClick={() => seleccionar(s, p)}>{info(s, p, i)}</button>)}</fieldset>)}</details>
-    <ol className="evolucion-partidos">{partidos.map(p => <li key={p.id}>{p.fecha} · {p.rival || 'Rival no informado'}</li>)}</ol>
+    <ol className="evolucion-partidos">{partidos.map(p => <li key={p.id}>{fechaCorta(p.fecha)} · {p.rival || 'Rival no informado'}</li>)}</ol>
   </div>
 }

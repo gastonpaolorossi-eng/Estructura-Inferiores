@@ -142,7 +142,7 @@ export default function TablaDataFem({ compacto = false }) {
             className="w-11 h-11 rounded-xl flex items-center justify-center text-xl"
             style={{
               background: C.amarilloSuave,
-              border: `1px solid ${C.amarillo}35`,
+              border: `1px solid color-mix(in srgb, ${C.amarillo} 21%, transparent)`,
             }}
           >
             🏆
@@ -177,7 +177,7 @@ export default function TablaDataFem({ compacto = false }) {
             Cargando tablas de posiciones…
           </p>
         ) : error ? (
-          <p className="py-6 text-center text-sm" style={{ color: textoInicio('#F07171') }}>
+          <p className="py-6 text-center text-sm" style={{ color: textoInicio(C.rojo) }}>
             {error}
           </p>
         ) : (

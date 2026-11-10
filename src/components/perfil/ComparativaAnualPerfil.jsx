@@ -22,7 +22,7 @@ export default function ComparativaAnualPerfil({ estadisticasPorAnio }) { return
 
                 <tbody>
                   {estadisticasPorAnio.map((a, i) => (
-                    <tr key={a.anio} style={{ backgroundColor: i % 2 === 0 ? 'transparent' : "var(--plantel-fila, #191919)" }}>
+                    <tr key={a.anio} style={{ backgroundColor: i % 2 === 0 ? 'transparent' : "var(--plantel-fila)" }}>
                       {[a.anio, a.partidos, a.minutos, a.goles, a.asistencias].map((valor, indice) => (
                         <td
                           key={indice}

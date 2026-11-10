@@ -1,16 +1,12 @@
 import { jsPDF } from 'jspdf'
 import { supabase } from '../supabaseClient'
+import { ESCUDO_URL } from '../config/club'
 
 const AZUL = [23, 23, 23]
 const AZUL_CLARO = [251, 191, 36]
 const NAVY = [26, 35, 50]
-const GRIS = [107, 114, 128]
-const GRIS_CLARO = [243, 244, 246]
-const GRIS_PLACEHOLDER = [156, 163, 175]
 const BLANCO = [255, 255, 255]
 const NEGRO = [23, 28, 38]
-
-const ESCUDO_CLUB_URL = 'https://qvjviyjkxyngiggoeqlj.supabase.co/storage/v1/object/public/Biblioteca/escudos/Escudo%20simplificado.png'
 
 const ORDEN_POSICIONES = [
   'Delantero centro',
@@ -117,7 +113,7 @@ export async function generarPlantelPDF() {
   const pageHeight = doc.internal.pageSize.getHeight()
   const margin = 40
 
-  const escudoClubDataUrl = await cargarImagenDataURL(ESCUDO_CLUB_URL)
+  const escudoClubDataUrl = await cargarImagenDataURL(ESCUDO_URL)
 
   function nuevaPagina() {
     doc.addPage()

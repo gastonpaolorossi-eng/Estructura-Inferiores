@@ -1,4 +1,3 @@
-import { COLORES } from '../theme'
 import { useEffect, useState } from 'react'
 import ListaJugadores from './ListaJugadores'
 import PerfilJugador from './PerfilJugador'

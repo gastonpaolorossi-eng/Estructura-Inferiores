@@ -124,7 +124,7 @@ function CargarEstadisticas({ partidoId, categoriaId, onVolver, onIrAFisico }) {
 
         <h1
           className="text-2xl md:text-3xl mb-1 flex items-center gap-2.5"
-          style={{ fontFamily: "'Archivo Black', sans-serif", color: '#F0F2F5' }}
+          style={{ fontFamily: 'var(--fuente-titulo)', fontStyle: 'italic', fontWeight: 900, textTransform: 'uppercase', color: '#F0F2F5' }}
         >
           {partido.escudo_url ? (
             <img

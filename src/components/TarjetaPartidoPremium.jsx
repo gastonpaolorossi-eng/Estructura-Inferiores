@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { COLORES } from '../theme'
 import { textoGestion } from '../appearance/gestion'
 import { tintePlantel } from '../appearance/plantel'
+import { ESCUDO_URL, NOMBRE_CLUB } from '../config/club'
+import { fechaHora } from '../utils/formatoFecha'
 
 function Escudo({ imagen, equipo }) {
   const [fallo, setFallo] = useState(false)
@@ -9,13 +11,13 @@ function Escudo({ imagen, equipo }) {
 }
 export default function TarjetaPartidoPremium({ partido: p, resultado, onAbrir, onPDF, onImagen, onEstadisticas, onEditar, onEliminar }) {
   const visitante = p.local_visitante === 'visitante'
-  const club = { nombre: 'Comunicaciones', imagen: '/Escudo%20simplificado.png' }
+  const club = { nombre: NOMBRE_CLUB, imagen: ESCUDO_URL }
   const rival = { nombre: p.rival || 'Rival por confirmar', imagen: p.escudo_url }
   const local = visitante ? rival : club, visita = visitante ? club : rival
   const color = resultado?.etiqueta === 'Victoria' ? COLORES.exito : resultado?.etiqueta === 'Derrota' ? COLORES.peligro : COLORES.acento
   const accion = (e, callback) => { e.stopPropagation(); callback(p.id) }
   return <article className="partido-premium" data-partido-id={p.id} onClick={() => onAbrir(p.id)}>
-    <div className="partido-contexto"><span>{p.numero_fecha ? `Fecha ${p.numero_fecha}` : 'Partido'} · {p.fecha || 'Fecha por confirmar'}{p.hora && ` · ${p.hora}`}</span>
+    <div className="partido-contexto"><span>{p.numero_fecha ? `Fecha ${p.numero_fecha}` : 'Partido'} · {p.fecha ? fechaHora(p.fecha, p.hora) : 'Fecha por confirmar'}</span>
       <span className="partido-resultado" style={{ color: textoGestion(color), borderColor: tintePlantel(color, '40') }}>{resultado?.texto || 'Resultado pendiente'}</span></div>
     <button type="button" className="partido-marcador" aria-label={`Abrir partido vs ${rival.nombre}`}>
       <span className="partido-equipo"><Escudo key={local.imagen || local.nombre} imagen={local.imagen} equipo={local.nombre} /><strong>{local.nombre}</strong><small>Local</small></span>

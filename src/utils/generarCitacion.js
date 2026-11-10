@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf'
 import { supabase } from '../supabaseClient'
+import { ESCUDO_URL } from '../config/club'
 
 const AZUL = [23, 23, 23]
 const AZUL_CLARO = [251, 191, 36]
@@ -12,8 +13,6 @@ const BLANCO = [255, 255, 255]
 const NEGRO = [23, 28, 38]
 
 const DIAS = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO']
-
-const ESCUDO_CLUB_URL = 'https://qvjviyjkxyngiggoeqlj.supabase.co/storage/v1/object/public/Biblioteca/escudos/Escudo%20simplificado.png'
 
 function formatearFecha(fechaStr) {
   if (!fechaStr) return { diaSemana: '', fechaCorta: '' }
@@ -138,7 +137,7 @@ export async function generarCitacionPDF(partidoId) {
   }
 
   const escudoRivalDataUrl = partido.escudo_url ? await cargarImagenDataURL(partido.escudo_url) : null
-  const escudoClubDataUrl = await cargarImagenDataURL(ESCUDO_CLUB_URL)
+  const escudoClubDataUrl = await cargarImagenDataURL(ESCUDO_URL)
 
   const fotosPorJugador = {}
   await Promise.all(

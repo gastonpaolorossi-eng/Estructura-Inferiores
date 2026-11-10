@@ -167,7 +167,7 @@ function ConvocatoriasSeleccionSection({ onVolver }) {
         <div className="flex items-start justify-between mb-8 gap-3 flex-wrap">
           <h1
             className="text-2xl md:text-3xl"
-            style={{ fontFamily: "'Archivo Black', sans-serif", color: COLORES.texto }}
+            style={{ fontFamily: 'var(--fuente-titulo)', fontStyle: 'italic', fontWeight: 900, textTransform: 'uppercase', color: COLORES.texto }}
           >
             Convocatorias a Selección
           </h1>

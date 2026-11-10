@@ -2,13 +2,14 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import ProveedorApariencia from './appearance/ProveedorApariencia'
+import PantallaCarga from './components/ui/PantallaCarga'
 const root = createRoot(document.getElementById('root'))
 
 function mostrarErrorInicio(sinConfiguracion) {
   root.render(
-    <main className="min-h-screen bg-slate-950 p-8 text-slate-100">
-      <div role="alert" className="mx-auto max-w-xl rounded-xl border border-amber-400 p-6">
-        <h1 className="text-xl font-bold">Club Comunicaciones</h1>
+    <main className="min-h-screen p-8" style={{ backgroundColor: 'var(--ui-fondo-pagina)', color: 'var(--ui-texto)' }}>
+      <div role="alert" className="mx-auto max-w-xl border p-6" style={{ borderColor: 'var(--ui-alerta)' }}>
+        <h1 className="club-display text-4xl">Club Comunicaciones</h1>
         <p className="mt-4">{sinConfiguracion
           ? 'Falta la configuración local de Supabase.'
           : 'No se pudo iniciar la aplicación. Revisá la consola del navegador.'}</p>
@@ -26,7 +27,7 @@ function mostrarErrorInicio(sinConfiguracion) {
 if (!import.meta.env.VITE_SUPABASE_URL?.trim() || !import.meta.env.VITE_SUPABASE_ANON_KEY?.trim()) {
   mostrarErrorInicio(true)
 } else {
-  root.render(<p role="status" className="p-8">Cargando Comunicaciones…</p>)
+  root.render(<PantallaCarga />)
   Promise.all([import('./App.jsx'), import('./supabaseClient')]).then(([{ default: App }, { supabase }]) => {
     root.render(<StrictMode><ProveedorApariencia auth={supabase.auth}><App /></ProveedorApariencia></StrictMode>)
   }).catch((error) => {

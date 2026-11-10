@@ -5,7 +5,6 @@ import { supabase } from '../supabaseClient'
 import { obtenerFechaHoy } from '../utils/fecha'
 import { obtenerJugadoresDeCategoria } from '../utils/jugadoresCategoria'
 import { obtenerCategoriaPrimeraDivision } from '../utils/categoriaPrimera'
-import { COLORES } from '../theme'
 
 const CAMPOS = [
   { clave: 'sueno', label: 'Sueño' },
@@ -584,7 +583,7 @@ function CargaWellness() {
             className="w-full p-3.5 rounded-xl font-bold transition-opacity hover:opacity-85 disabled:opacity-50"
             style={{
               background: UI.primarioWellness,
-              color: '#1A1914',
+              color: 'var(--ui-texto-sobre-acento)',
             }}
           >
             {guardando ? 'Guardando…' : 'Guardar wellness'}

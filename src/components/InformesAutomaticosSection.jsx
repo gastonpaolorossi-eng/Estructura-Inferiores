@@ -6,7 +6,7 @@ import { COLORES } from '../theme'
 
 const ESTILOS = {
   panel: {
-    backgroundColor: 'var(--informes-superficie, #0A0A0A)',
+    backgroundColor: 'var(--informes-superficie)',
     border: `1px solid ${COLORES.borde}`,
     borderRadius: '14px',
   },
@@ -14,7 +14,7 @@ const ESTILOS = {
   secundario: { color: COLORES.textoSecundario },
   muted: { color: COLORES.textoMuted },
   boton: {
-    backgroundColor: 'var(--informes-superficie, #0A0A0A)',
+    backgroundColor: 'var(--informes-superficie)',
     color: COLORES.texto,
     border: `1px solid ${COLORES.borde}`,
   },
@@ -29,12 +29,6 @@ const CONSULTAS = [
 
 function nombreCompleto(j) {
   return `${j.nombre || ''} ${j.apellido || ''}`.trim() || 'Sin nombre'
-}
-
-function fechaValida(fecha) {
-  if (!fecha) return null
-  const d = new Date(`${fecha}`.slice(0, 10) + 'T12:00:00')
-  return Number.isNaN(d.getTime()) ? null : d
 }
 
 function temporadaDe(fecha) {
@@ -279,14 +273,14 @@ function InformesAutomaticosSection({ perfil }) {
           onClick={cargarDatos}
           disabled={cargando}
           className="px-4 py-2 rounded-lg text-sm disabled:opacity-50"
-          style={{ backgroundColor: COLORES.acento, color: '#1A1A1A' }}
+          style={{ backgroundColor: COLORES.acento, color: 'var(--ui-texto-sobre-acento)' }}
         >
           {cargando ? 'Actualizando…' : 'Actualizar datos'}
         </button>
       </div>
 
       {error && (
-        <div className="rounded-xl p-4 text-sm" style={{ ...ESTILOS.panel, color: 'var(--plantel-error-texto, #FCA5A5)' }}>
+        <div className="rounded-xl p-4 text-sm" style={{ ...ESTILOS.panel, color: 'var(--plantel-error-texto)' }}>
           No se pudo generar el informe: {error}
         </div>
       )}
@@ -300,7 +294,7 @@ function InformesAutomaticosSection({ perfil }) {
               onClick={() => setConsulta(c.id)}
               className="text-left p-4 rounded-xl transition-opacity hover:opacity-90"
               style={{
-                backgroundColor: activa ? 'rgba(242,194,48,0.10)' : 'var(--informes-superficie, #0A0A0A)',
+                backgroundColor: activa ? 'rgba(242,194,48,0.10)' : 'var(--informes-superficie)',
                 border: `1px solid ${activa ? COLORES.acento : COLORES.borde}`,
               }}
             >

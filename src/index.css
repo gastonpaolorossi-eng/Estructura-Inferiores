@@ -1,7 +1,68 @@
-@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 @import './appearance/apariencia.css';
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--fuente-texto);
+  background-color: var(--ui-fondo-pagina);
+  color: var(--ui-texto);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Tipografía del club: títulos y números grandes en Barlow Condensed itálica;
+   etiquetas, chips y botones en mayúsculas espaciadas. */
+.club-display {
+  font-family: var(--fuente-titulo);
+  font-style: italic;
+  font-weight: 900;
+  text-transform: uppercase;
+  line-height: .9;
+  letter-spacing: -.01em;
+}
+.club-display em { color: var(--ui-texto-acento); font-style: italic; }
+.club-etiqueta {
+  font-family: var(--fuente-titulo);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .16em;
+}
+table, .club-numeros { font-variant-numeric: tabular-nums; }
+
+/* Ancho de contenido: todo el disponible, hasta ~1440 px. */
+.club-ancho { width: 100%; max-width: 1440px; margin-inline: auto; min-width: 0; }
+
+/* Entrada escalonada de bloques (la usa Layout en cada sección). */
+@keyframes club-subir {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Grillas de fotos o tarjetas: al pasar por una, las demás se apagan. */
+.club-grilla-foco > * {
+  position: relative;
+  transition: filter .35s var(--curva-salida), transform .35s var(--curva-salida);
+}
+.club-grilla-foco > *::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 3px;
+  background: var(--ui-acento);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .45s var(--curva-salida);
+  pointer-events: none;
+}
+@media (hover: hover) {
+  .club-grilla-foco:hover > :not(:hover) { filter: grayscale(1) brightness(.35); }
+  .club-grilla-foco > :hover { transform: translateY(-4px); z-index: 1; }
+  .club-grilla-foco > :hover::after { transform: scaleX(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+    transition-duration: 0s !important;
+    scroll-behavior: auto !important;
+  }
 }

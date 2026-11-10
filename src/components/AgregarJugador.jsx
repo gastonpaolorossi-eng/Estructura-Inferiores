@@ -255,33 +255,33 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
   }
 
   const inputStyle = {
-    backgroundColor: "var(--ui-compartido-superficie, #1A2332)",
-    border: "1px solid var(--ui-compartido-borde, #2A3548)",
-    color: "var(--ui-compartido-texto, #F0F2F5)",
+    backgroundColor: "var(--ui-compartido-superficie)",
+    border: "1px solid var(--ui-compartido-borde)",
+    color: "var(--ui-compartido-texto)",
   }
 
   if (cargando) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "var(--ui-compartido-fondo, #0F1419)" }}>
-        <p style={{ color: "var(--ui-compartido-tenue, #5B6B85)" }}>Cargando...</p>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "var(--ui-compartido-fondo)" }}>
+        <p style={{ color: "var(--ui-compartido-tenue)" }}>Cargando...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen p-6 md:p-10" style={{ backgroundColor: "var(--ui-compartido-fondo, #0F1419)" }}>
+    <div className="min-h-screen p-6 md:p-10" style={{ backgroundColor: "var(--ui-compartido-fondo)" }}>
       <div className="max-w-md mx-auto">
         <button
           onClick={onVolver}
           className="text-sm mb-6 flex items-center gap-1 hover:opacity-70 transition-opacity"
-          style={{ color: "var(--ui-compartido-secundario, #8A9BB8)" }}
+          style={{ color: "var(--ui-compartido-secundario)" }}
         >
           ← Volver
         </button>
 
         <h1
           className="text-2xl md:text-3xl mb-8"
-          style={{ fontFamily: "'Archivo Black', sans-serif", color: "var(--ui-compartido-texto, #F0F2F5)" }}
+          style={{ fontFamily: 'var(--fuente-titulo)', fontStyle: 'italic', fontWeight: 900, textTransform: 'uppercase', color: "var(--ui-compartido-texto)" }}
         >
           {esEdicion ? 'Editar jugador' : 'Nuevo jugador'}
         </h1>
@@ -293,12 +293,12 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
                 src={fotoUrl}
                 alt="Foto del jugador"
                 className="w-16 h-16 rounded-full object-cover shrink-0"
-                style={{ border: "2px solid var(--ui-compartido-borde, #2A3548)" }}
+                style={{ border: "2px solid var(--ui-compartido-borde)" }}
               />
             ) : (
               <div
                 className="w-16 h-16 rounded-full shrink-0 flex items-center justify-center text-xl"
-                style={{ backgroundColor: "var(--ui-compartido-superficie, #1A2332)", border: "1px solid var(--ui-compartido-borde, #2A3548)", color: "var(--ui-compartido-tenue, #5B6B85)" }}
+                style={{ backgroundColor: "var(--ui-compartido-superficie)", border: "1px solid var(--ui-compartido-borde)", color: "var(--ui-compartido-tenue)" }}
               >
                 📷
               </div>
@@ -306,7 +306,7 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
             <div>
               <label
                 className="text-xs font-medium px-3 py-2 rounded-lg cursor-pointer inline-block transition-opacity hover:opacity-80"
-                style={{ backgroundColor: "var(--ui-compartido-superficie, #1A2332)", color: "var(--ui-compartido-texto, #F0F2F5)", border: "1px solid var(--ui-compartido-borde, #2A3548)" }}
+                style={{ backgroundColor: "var(--ui-compartido-superficie)", color: "var(--ui-compartido-texto)", border: "1px solid var(--ui-compartido-borde)" }}
               >
                 {subiendoFoto ? 'Subiendo...' : fotoUrl ? 'Cambiar foto' : 'Subir foto'}
                 <input
@@ -322,7 +322,7 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
                   type="button"
                   onClick={() => setFotoUrl('')}
                   className="text-xs ml-2 hover:opacity-70 transition-opacity"
-                  style={{ color: "var(--plantel-peligro, #F87171)" }}
+                  style={{ color: "var(--plantel-peligro)" }}
                 >
                   Quitar
                 </button>
@@ -331,7 +331,7 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
           </div>
 
           <div>
-            <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue, #5B6B85)" }}>
+            <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue)" }}>
               Nombre
             </label>
             <input
@@ -345,7 +345,7 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
           </div>
 
           <div>
-            <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue, #5B6B85)" }}>
+            <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue)" }}>
               Apellido
             </label>
             <input
@@ -359,7 +359,7 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
           </div>
 
           <div>
-            <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue, #5B6B85)" }}>
+            <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue)" }}>
               Categoría
             </label>
             <select
@@ -378,7 +378,7 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
           </div>
 
           <div>
-            <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue, #5B6B85)" }}>
+            <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue)" }}>
               Fecha de nacimiento
             </label>
             <input
@@ -391,7 +391,7 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
           </div>
 
           <div>
-            <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue, #5B6B85)" }}>
+            <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue)" }}>
               Posición
             </label>
             <select
@@ -410,7 +410,7 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
           </div>
 
           <div>
-            <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue, #5B6B85)" }}>
+            <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue)" }}>
               Posición secundaria
             </label>
             <select
@@ -429,7 +429,7 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
           </div>
 
           <div>
-            <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue, #5B6B85)" }}>
+            <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue)" }}>
               Pie hábil
             </label>
             <select
@@ -445,12 +445,12 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
             </select>
           </div>
 
-          <p className="text-xs tracking-widest uppercase pt-2" style={{ color: "var(--ui-compartido-tenue, #5B6B85)" }}>
+          <p className="text-xs tracking-widest uppercase pt-2" style={{ color: "var(--ui-compartido-tenue)" }}>
             Datos personales
           </p>
 
           <div>
-            <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue, #5B6B85)" }}>
+            <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue)" }}>
               Nro. documento
             </label>
             <input
@@ -464,7 +464,7 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue, #5B6B85)" }}>
+              <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue)" }}>
                 Nacionalidad
               </label>
               <input
@@ -476,7 +476,7 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
               />
             </div>
             <div>
-              <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue, #5B6B85)" }}>
+              <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue)" }}>
                 Lugar de nacimiento
               </label>
               <input
@@ -489,7 +489,7 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
             </div>
           </div>
 
-          <label className="flex items-center gap-2 text-sm cursor-pointer" style={{ color: "var(--ui-compartido-texto, #F0F2F5)" }}>
+          <label className="flex items-center gap-2 text-sm cursor-pointer" style={{ color: "var(--ui-compartido-texto)" }}>
             <input
               type="checkbox"
               checked={pasaporteComunitario}
@@ -500,7 +500,7 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue, #5B6B85)" }}>
+              <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue)" }}>
                 Obra social
               </label>
               <input
@@ -512,7 +512,7 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
               />
             </div>
             <div>
-              <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue, #5B6B85)" }}>
+              <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue)" }}>
                 Nro. afiliado
               </label>
               <input
@@ -526,7 +526,7 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
           </div>
 
           <div>
-            <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue, #5B6B85)" }}>
+            <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue)" }}>
               Video promocional (link)
             </label>
             <input
@@ -539,13 +539,13 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
             />
           </div>
 
-          <p className="text-xs tracking-widest uppercase pt-2" style={{ color: "var(--ui-compartido-tenue, #5B6B85)" }}>
+          <p className="text-xs tracking-widest uppercase pt-2" style={{ color: "var(--ui-compartido-tenue)" }}>
             Contrato
           </p>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue, #5B6B85)" }}>
+              <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue)" }}>
                 Inicio de contrato
               </label>
               <input
@@ -557,7 +557,7 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
               />
             </div>
             <div>
-              <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue, #5B6B85)" }}>
+              <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue)" }}>
                 Fin de contrato
               </label>
               <input
@@ -570,12 +570,12 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
             </div>
           </div>
 
-          <p className="text-xs tracking-widest uppercase pt-2" style={{ color: "var(--ui-compartido-tenue, #5B6B85)" }}>
+          <p className="text-xs tracking-widest uppercase pt-2" style={{ color: "var(--ui-compartido-tenue)" }}>
             Representante
           </p>
 
           <div>
-            <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue, #5B6B85)" }}>
+            <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue)" }}>
               ¿Tiene representante?
             </label>
             <select
@@ -605,12 +605,12 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
             />
           )}
 
-          <p className="text-xs tracking-widest uppercase pt-2" style={{ color: "var(--ui-compartido-tenue, #5B6B85)" }}>
+          <p className="text-xs tracking-widest uppercase pt-2" style={{ color: "var(--ui-compartido-tenue)" }}>
             Pensión / alojamiento
           </p>
 
           <div>
-            <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue, #5B6B85)" }}>
+            <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue)" }}>
               Pensión
             </label>
             <select
@@ -630,7 +630,7 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
 
           {pensionId && (
             <div>
-              <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue, #5B6B85)" }}>
+              <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue)" }}>
                 ¿Quién paga?
               </label>
               <select
@@ -647,7 +647,7 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
           )}
 
           <div>
-            <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue, #5B6B85)" }}>
+            <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue)" }}>
               Contacto de emergencia
             </label>
             <input
@@ -669,7 +669,7 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
           </div>
 
           {categorias.find((c) => c.id === categoriaId)?.es_reserva !== true && (
-            <label className="flex items-center gap-2 text-sm cursor-pointer" style={{ color: "var(--ui-compartido-texto, #F0F2F5)" }}>
+            <label className="flex items-center gap-2 text-sm cursor-pointer" style={{ color: "var(--ui-compartido-texto)" }}>
               <input
                 type="checkbox"
                 checked={tambienReserva}
@@ -680,7 +680,7 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
           )}
 
           <div>
-            <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue, #5B6B85)" }}>
+            <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ui-compartido-tenue)" }}>
               Estado
             </label>
             <select
@@ -706,7 +706,7 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
             )}
           </div>
           {errorMsg && (
-            <p className="text-sm" style={{ color: "var(--plantel-peligro, #F87171)" }}>
+            <p className="text-sm" style={{ color: "var(--plantel-peligro)" }}>
               {errorMsg}
             </p>
           )}

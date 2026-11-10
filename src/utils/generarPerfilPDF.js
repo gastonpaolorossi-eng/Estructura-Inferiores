@@ -1,4 +1,5 @@
 import { jsPDF } from 'jspdf'
+import { ESCUDO_URL } from '../config/club'
 
 const NEGRO = [23, 23, 23]
 const AMARILLO = [251, 191, 36]
@@ -8,8 +9,6 @@ const AMARILLO_CLARO = [255, 251, 235]
 const TEXTO_OSCURO = [30, 30, 30]
 const ROJO = [226, 75, 74]
 const ROJO_CLARO = [252, 228, 227]
-
-const ESCUDO_CLUB_URL = 'https://qvjviyjkxyngiggoeqlj.supabase.co/storage/v1/object/public/Biblioteca/escudos/Escudo%20simplificado.png'
 
 async function cargarImagenDataURL(url) {
   if (!url) return null
@@ -129,7 +128,7 @@ export async function generarPerfilPDF(datos, secciones) {
   } = datos
 
   const fotoDataUrl = jugador.foto_url ? await cargarImagenDataURL(jugador.foto_url) : null
-  const escudoDataUrl = await cargarImagenDataURL(ESCUDO_CLUB_URL)
+  const escudoDataUrl = await cargarImagenDataURL(ESCUDO_URL)
 
   const doc = new jsPDF({ unit: 'pt', format: 'a4' })
   const pageWidth = doc.internal.pageSize.getWidth()

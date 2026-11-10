@@ -3,9 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { obtenerJugadoresDeCategoria } from '../utils/jugadoresCategoria'
 import { obtenerCategoriaPrimeraDivision } from '../utils/categoriaPrimera'
-
-const ESCUDO_CLUB_URL =
-  'https://qvjviyjkxyngiggoeqlj.supabase.co/storage/v1/object/public/Biblioteca/escudos/Escudo%20simplificado.png'
+import { ESCUDO_URL } from '../config/club'
 
 const AMARILLO = '#F2C230'
 
@@ -417,17 +415,17 @@ const card = {
 }
 
 const inputSt = {
-  background: 'var(--evaluaciones-control-fondo, #fff)',
-  color: 'var(--evaluaciones-control-texto, #111)',
-  border: '1px solid var(--evaluaciones-control-borde, #ccc)',
+  background: 'var(--evaluaciones-control-fondo)',
+  color: 'var(--evaluaciones-control-texto)',
+  border: '1px solid var(--evaluaciones-control-borde)',
   borderRadius: 8,
   padding: '8px 10px',
   width: '100%',
 }
 
 const btnPrim = {
-  background: AMARILLO,
-  color: '#111',
+  background: C.acento,
+  color: 'var(--ui-texto-sobre-acento)',
   fontWeight: 700,
   borderRadius: 8,
   padding: '8px 14px',
@@ -707,7 +705,7 @@ function PanelEvaluar({ tipo, perfil, user, jugadores, criterios, evals, onGuard
                             cursor: 'pointer',
                             border: '1px solid ' + (activo ? AMARILLO : C.borde),
                             background: activo ? AMARILLO : 'transparent',
-                            color: activo ? '#111' : C.texto,
+                            color: activo ? 'var(--ui-texto-sobre-acento)' : C.texto,
                           }}
                         >
                           {n}
@@ -739,7 +737,7 @@ function PanelEvaluar({ tipo, perfil, user, jugadores, criterios, evals, onGuard
                         background:
                           form.puntajes[c.id] === PUNTAJE_NO_EVALUADO ? AMARILLO : 'transparent',
                         color:
-                          form.puntajes[c.id] === PUNTAJE_NO_EVALUADO ? '#111' : C.texto,
+                          form.puntajes[c.id] === PUNTAJE_NO_EVALUADO ? 'var(--ui-texto-sobre-acento)' : C.texto,
                       }}
                     >
                       No evalúo
@@ -1020,7 +1018,7 @@ export default function EvaluacionesSection({ perfil }) {
   const [nombresEval, setNombresEval] = useState({})
   const [tab, setTab] = useState('')
 
-  const escudo = ESCUDO_CLUB_URL
+  const escudo = ESCUDO_URL
   const rol = (perfil && perfil.rol) || ''
 
   async function cargar() {
@@ -1068,7 +1066,7 @@ export default function EvaluacionesSection({ perfil }) {
 
         lista = (res && res.data) || []
       }
-    } catch (e) {
+    } catch {
       lista = []
     }
 
@@ -1088,7 +1086,6 @@ export default function EvaluacionesSection({ perfil }) {
 
   useEffect(() => {
     cargar()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   if (cargando) {
@@ -1125,7 +1122,7 @@ export default function EvaluacionesSection({ perfil }) {
   }
 
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="club-ancho">
       <h1 style={{
         color: C.texto,
         fontSize: 24,
@@ -1153,7 +1150,7 @@ export default function EvaluacionesSection({ perfil }) {
               fontWeight: 600,
               border: '1px solid ' + (activa === id ? AMARILLO : C.borde),
               background: activa === id ? AMARILLO : 'transparent',
-              color: activa === id ? '#111' : C.texto,
+              color: activa === id ? 'var(--ui-texto-sobre-acento)' : C.texto,
             }}
           >
             {lab}

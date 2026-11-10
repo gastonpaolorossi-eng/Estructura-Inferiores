@@ -435,7 +435,7 @@ function CargaCMJ() {
             className="w-full p-3.5 rounded-xl font-bold text-sm transition-opacity hover:opacity-90 disabled:opacity-50"
             style={{
               backgroundColor: UI.acento,
-              color: 'var(--riesgo-boton-texto, #191917)',
+              color: 'var(--riesgo-boton-texto)',
             }}
           >
             {guardando ? 'Guardando resultados...' : 'Guardar resultados CMJ'}

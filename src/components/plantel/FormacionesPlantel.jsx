@@ -47,7 +47,7 @@ export default function FormacionesPlantel({
       className="plantel-cancha rounded-2xl p-4 md:p-6"
       style={{
         backgroundColor: P.tarjetaLista,
-        border: "1px solid var(--plantel-borde-lista, #2D3038)",
+        border: "1px solid var(--plantel-borde-lista)",
       }}
     >
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">

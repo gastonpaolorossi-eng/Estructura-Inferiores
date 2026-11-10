@@ -60,7 +60,7 @@ function ComparativaJugadoras({ categoriaId, categoriaNombre, onVolver }) {
 
         <h1
           className="text-2xl md:text-3xl mb-1"
-          style={{ fontFamily: "'Archivo Black', sans-serif", color: P.texto }}
+          style={{ fontFamily: 'var(--fuente-titulo)', fontStyle: 'italic', fontWeight: 900, textTransform: 'uppercase', color: P.texto }}
         >
           Comparativa de jugadoras
         </h1>
@@ -77,7 +77,7 @@ function ComparativaJugadoras({ categoriaId, categoriaNombre, onVolver }) {
         )}
 
         {!cargando && filas.length > 0 && (
-          <div className="overflow-x-auto rounded-xl" style={{ border: "1px solid var(--ui-compartido-borde, #2A3548)" }}>
+          <div className="overflow-x-auto rounded-xl" style={{ border: "1px solid var(--ui-compartido-borde)" }}>
             <table className="min-w-full text-sm" style={{ borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ backgroundColor: P.superficie }}>

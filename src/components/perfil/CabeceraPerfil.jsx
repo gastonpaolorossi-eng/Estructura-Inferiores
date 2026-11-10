@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import IconoNavegacion from '../IconoNavegacion'
 import { COLORES, iniciales, calcularEdad, pieHabilLabel, estadoConfig } from './presentacionPerfil'
+import { ESCUDO_URL } from '../../config/club'
 
 export default function CabeceraPerfil({ jugador, onVolver, onEditar, onPDF, onEliminar, eliminando }) {
   const [fallo, setFallo] = useState(false)
@@ -12,9 +13,9 @@ export default function CabeceraPerfil({ jugador, onVolver, onEditar, onPDF, onE
     <div className="perfil-identidad">
       {jugador.foto_url && !fallo ? <img className="perfil-foto" src={jugador.foto_url} alt={`${jugador.apellido}, ${jugador.nombre}`} onError={() => setFallo(true)} />
         : <div className="perfil-foto perfil-iniciales" aria-label="Fotografía no disponible">{iniciales(jugador.nombre, jugador.apellido)}</div>}
-      <div className="perfil-nombre"><div className="perfil-marca"><img src="https://qvjviyjkxyngiggoeqlj.supabase.co/storage/v1/object/public/Biblioteca/escudos/Escudo%20simplificado.png" alt="Escudo de Comunicaciones" /><p>COMUNICACIONES<br />FÚTBOL FEMENINO</p></div><h1>{jugador.apellido}, {jugador.nombre}</h1>
+      <div className="perfil-nombre"><div className="perfil-marca"><img src={ESCUDO_URL} alt="Escudo de Comunicaciones" /><p>COMUNICACIONES<br />FÚTBOL FEMENINO</p></div><h1>{jugador.apellido}, {jugador.nombre}</h1>
         <div className="perfil-insignias"><span>{jugador.categorias?.nombre || 'Sin categoría'}</span>
-          <span style={{ color: jugador.estado === 'no_disponible' ? '#ddd' : estadoConfig[jugador.estado]?.color || '#ddd', background: '#171917', borderColor: '#707365' }}>{estado.label}</span></div>
+          <span style={{ color: jugador.estado === 'no_disponible' ? 'var(--foto-texto-secundario)' : estadoConfig[jugador.estado]?.color || 'var(--foto-texto-secundario)', background: 'var(--foto-superficie)', borderColor: 'var(--foto-borde)' }}>{estado.label}</span></div>
         <dl className="perfil-datos-deportivos">
           {[[ 'Posición', jugador.posicion ], ['Alternativa', jugador.posicion_secundaria], ['Edad', edad == null ? null : `${edad} años`], ['Pie hábil', pieHabilLabel[jugador.pie_habil]]]
             .filter(([, v]) => v != null && v !== '').map(([etiqueta, valor]) => <div key={etiqueta}><dt>{etiqueta}</dt><dd>{valor}</dd></div>)}

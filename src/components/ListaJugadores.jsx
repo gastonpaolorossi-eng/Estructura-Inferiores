@@ -5,26 +5,13 @@ import BarraFiltros from './ui/BarraFiltros'
 import EstadoContenido from './ui/EstadoContenido'
 import TarjetaJugadora from './plantel/TarjetaJugadora'
 import './plantel/plantel.css'
-import { PLANTEL as P, textoPlantel } from '../appearance/plantel'
+import { PLANTEL as P, textoPlantel, tintePlantel } from '../appearance/plantel'
 
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { generarPlantelPDF } from '../utils/generarPlantelPDF'
 import { obtenerCategoriaPrimeraDivision } from '../utils/categoriaPrimera'
 import { obtenerEstadisticasCategoria } from '../utils/exportarEstadisticas'
-import { COLORES } from '../theme'
-
-const posiciones = [
-  'Arquero',
-  'Defensor central',
-  'Lateral derecho',
-  'Lateral izquierdo',
-  'Mediocampista central',
-  'Volante ofensivo',
-  'Extremo derecho',
-  'Extremo izquierdo',
-  'Delantero centro',
-]
 
 const filtrosPuesto = [
   { id: 'todas', label: 'Todas' },
@@ -35,9 +22,9 @@ const filtrosPuesto = [
 ]
 
 const filtrosEstado = [
-  { id: 'disponible', label: 'Disponibles', color: '#4ADE80' },
-  { id: 'lesionado', label: 'Lesionadas', color: '#F87171' },
-  { id: 'no_disponible', label: 'No disponibles', color: '#A1A1AA' },
+  { id: 'disponible', label: 'Disponibles', color: 'var(--ui-exito)' },
+  { id: 'lesionado', label: 'Lesionadas', color: 'var(--ui-peligro)' },
+  { id: 'no_disponible', label: 'No disponibles', color: 'var(--ui-neutro)' },
 ]
 
 const normalizar = (valor) =>
@@ -113,7 +100,7 @@ function FotoJugadora({ jugadora, className = '' }) {
       style={{
         backgroundColor: P.controlLista,
         color: P.textoAmarilloLista,
-        border: "1px solid var(--plantel-borde-control, #41434B)",
+        border: "1px solid var(--plantel-borde-control)",
       }}
     >
       {iniciales(jugadora.nombre, jugadora.apellido)}
@@ -127,7 +114,7 @@ function TarjetaResumen({ titulo, valor, detalle, icono, color }) {
       className="rounded-2xl p-4 md:p-5 min-w-0"
       style={{
         backgroundColor: P.tarjetaLista,
-        border: "1px solid var(--plantel-borde-lista, #2D3038)",
+        border: "1px solid var(--plantel-borde-lista)",
       }}
     >
       <div className="flex items-center justify-between gap-2">
@@ -183,7 +170,7 @@ function GraficoRanking({
       className="rounded-2xl p-4 md:p-5"
       style={{
         backgroundColor: P.tarjetaLista,
-        border: "1px solid var(--plantel-borde-lista, #2D3038)",
+        border: "1px solid var(--plantel-borde-lista)",
       }}
     >
       <div className="mb-5">
@@ -437,7 +424,7 @@ function ListaJugadores({ onSelectJugador: onElegirJugador, onNuevoJugador, onCa
               style={{
                 backgroundColor: P.tarjetaLista,
                 color: P.textoDetalle,
-                border: "1px solid var(--plantel-separador, #34363F)",
+                border: "1px solid var(--plantel-separador)",
               }}
             >
               ↓ Descargar PDF
@@ -450,7 +437,7 @@ function ListaJugadores({ onSelectJugador: onElegirJugador, onNuevoJugador, onCa
               style={{
                 backgroundColor: P.tarjetaLista,
                 color: P.textoDetalle,
-                border: "1px solid var(--plantel-separador, #34363F)",
+                border: "1px solid var(--plantel-separador)",
               }}
             >
               Carga masiva
@@ -460,7 +447,7 @@ function ListaJugadores({ onSelectJugador: onElegirJugador, onNuevoJugador, onCa
               type="button"
               onClick={onNuevoJugador}
               className="text-sm font-bold px-4 py-2.5 rounded-xl"
-              style={{ backgroundColor: P.amarilloLista, color: '#171717' }}
+              style={{ backgroundColor: P.amarilloLista, color: 'var(--ui-texto-sobre-acento)' }}
             >
               + Nueva jugadora
             </button>
@@ -479,7 +466,7 @@ function ListaJugadores({ onSelectJugador: onElegirJugador, onNuevoJugador, onCa
                 style={{
                   backgroundColor: P.avisoFondo,
                   color: P.aviso,
-                  border: "1px solid var(--plantel-aviso-borde, #514323)",
+                  border: "1px solid var(--plantel-aviso-borde)",
                 }}
               >
                 {errorEstadisticas}
@@ -522,7 +509,7 @@ function ListaJugadores({ onSelectJugador: onElegirJugador, onNuevoJugador, onCa
                   className="w-full rounded-xl py-3 pl-10 pr-4 ui-control outline-none text-sm"
                   style={{
                     backgroundColor: P.fondoLista,
-                    border: "1px solid var(--plantel-separador, #34363F)",
+                    border: "1px solid var(--plantel-separador)",
                     color: P.textoLista,
                   }}
                 />
@@ -549,7 +536,7 @@ function ListaJugadores({ onSelectJugador: onElegirJugador, onNuevoJugador, onCa
                         className="px-3 py-2 rounded-lg text-xs md:text-sm font-semibold transition-colors"
                         style={{
                           backgroundColor: activo ? P.amarilloLista : P.controlLista,
-                          color: activo ? '#171717' : P.textoControl,
+                          color: activo ? 'var(--ui-texto-sobre-acento)' : P.textoControl,
                           border: `1px solid ${activo ? P.amarilloLista : P.bordeControl}`,
                         }}
                       >
@@ -594,7 +581,7 @@ function ListaJugadores({ onSelectJugador: onElegirJugador, onNuevoJugador, onCa
                         aria-pressed={activo}
                         className="px-3 py-2 rounded-lg text-xs md:text-sm font-semibold"
                         style={{
-                          backgroundColor: activo ? `${filtro.color}20` : P.controlInactivo,
+                          backgroundColor: activo ? tintePlantel(filtro.color, '20') : P.controlInactivo,
                           color: textoPlantel(filtro.color),
                           border: `1px solid ${activo ? filtro.color : P.separador}`,
                         }}
@@ -644,28 +631,28 @@ function ListaJugadores({ onSelectJugador: onElegirJugador, onNuevoJugador, onCa
                 valor={resumen.total}
                 detalle="Según los filtros activos"
                 icono="◉"
-                color="#F4D21F"
+                color="var(--ui-acento)"
               />
               <TarjetaResumen
                 titulo="Disponibles"
                 valor={resumen.disponibles}
                 detalle="En condiciones de jugar"
                 icono="✓"
-                color="#4ADE80"
+                color="var(--ui-exito)"
               />
               <TarjetaResumen
                 titulo="Lesionadas"
                 valor={resumen.lesionadas}
                 detalle="Estado registrado"
                 icono="＋"
-                color="#F87171"
+                color="var(--ui-peligro)"
               />
               <TarjetaResumen
                 titulo="No disponibles"
                 valor={resumen.noDisponibles}
                 detalle="Incluye suspendidas"
                 icono="—"
-                color="#A1A1AA"
+                color="var(--ui-neutro)"
               />
             </section>
 
@@ -674,7 +661,7 @@ function ListaJugadores({ onSelectJugador: onElegirJugador, onNuevoJugador, onCa
               className="rounded-2xl p-4 md:p-5"
               style={{
                 backgroundColor: P.tarjetaLista,
-                border: "1px solid var(--plantel-borde-lista, #2D3038)",
+                border: "1px solid var(--plantel-borde-lista)",
               }}
             >
               <div className="mb-4">
@@ -693,7 +680,7 @@ function ListaJugadores({ onSelectJugador: onElegirJugador, onNuevoJugador, onCa
                     className="rounded-xl p-4"
                     style={{
                       backgroundColor: P.fondoLista,
-                      border: "1px solid var(--plantel-borde-lista, #2D3038)",
+                      border: "1px solid var(--plantel-borde-lista)",
                     }}
                   >
                     <p className="text-xs" style={{ color: P.secundarioLista }}>
@@ -738,7 +725,7 @@ function ListaJugadores({ onSelectJugador: onElegirJugador, onNuevoJugador, onCa
                   estadisticas={estadisticas}
                   campo="minutos"
                   sufijo="min"
-                  color="#F4D21F"
+                  color="var(--ui-acento)"
                 />
                 <GraficoRanking
                   titulo="Goleadoras"
@@ -747,7 +734,7 @@ function ListaJugadores({ onSelectJugador: onElegirJugador, onNuevoJugador, onCa
                   estadisticas={estadisticas}
                   campo="goles"
                   sufijo="goles"
-                  color="#4ADE80"
+                  color="var(--ui-exito)"
                 />
               </div>
 
@@ -755,7 +742,7 @@ function ListaJugadores({ onSelectJugador: onElegirJugador, onNuevoJugador, onCa
                 className="rounded-xl p-4 flex flex-wrap items-center gap-x-6 gap-y-3"
                 style={{
                   backgroundColor: P.tarjetaLista,
-                  border: "1px solid var(--plantel-borde-lista, #2D3038)",
+                  border: "1px solid var(--plantel-borde-lista)",
                 }}
               >
                 <div>

@@ -114,7 +114,7 @@ function ListaPartidos({ categoriaId, categoriaNombre, onVolver, onElegirPartido
             <button
               onClick={onNuevoPartido}
               className="text-sm font-medium px-4 py-2.5 rounded-xl transition-opacity hover:opacity-80"
-              style={{ backgroundColor: COLORES.acento, color: '#1A1A1A' }}
+              style={{ backgroundColor: COLORES.acento, color: 'var(--ui-texto-sobre-acento)' }}
             >
               + Nuevo partido
             </button>

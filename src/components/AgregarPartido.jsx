@@ -32,7 +32,7 @@ function AgregarPartido({ categoriaId, onVolver, onGuardado, partidoIdEditar }) 
 
   const inputStyle = {
     backgroundColor: P.superficie,
-    border: "1px solid var(--ui-compartido-borde, #2A3548)",
+    border: "1px solid var(--ui-compartido-borde)",
     color: P.texto,
   }
 
@@ -170,7 +170,7 @@ function AgregarPartido({ categoriaId, onVolver, onGuardado, partidoIdEditar }) 
 
         <h1
           className="text-2xl md:text-3xl mb-6"
-          style={{ fontFamily: "'Archivo Black', sans-serif", color: P.texto }}
+          style={{ fontFamily: 'var(--fuente-titulo)', fontStyle: 'italic', fontWeight: 900, textTransform: 'uppercase', color: P.texto }}
         >
           {esEdicion ? 'Editar partido' : 'Nuevo partido'}
         </h1>
@@ -193,12 +193,12 @@ function AgregarPartido({ categoriaId, onVolver, onGuardado, partidoIdEditar }) 
                   src={escudoAMostrar}
                   alt="Escudo del rival"
                   className="w-10 h-10 rounded-lg object-contain shrink-0"
-                  style={{ backgroundColor: P.fondo, border: "1px solid var(--ui-compartido-borde, #2A3548)" }}
+                  style={{ backgroundColor: P.fondo, border: "1px solid var(--ui-compartido-borde)" }}
                 />
               ) : (
                 <span
                   className="w-10 h-10 rounded-lg flex items-center justify-center text-sm shrink-0"
-                  style={{ backgroundColor: P.fondo, color: P.tenue, border: "1px solid var(--ui-compartido-borde, #2A3548)" }}
+                  style={{ backgroundColor: P.fondo, color: P.tenue, border: "1px solid var(--ui-compartido-borde)" }}
                 >
                   🛡️
                 </span>
@@ -234,7 +234,7 @@ function AgregarPartido({ categoriaId, onVolver, onGuardado, partidoIdEditar }) 
           </div>
 
           {mostrarNuevoEquipo && (
-            <div className="p-3 rounded-xl space-y-2" style={{ backgroundColor: P.fondo, border: "1px solid var(--ui-compartido-borde, #2A3548)" }}>
+            <div className="p-3 rounded-xl space-y-2" style={{ backgroundColor: P.fondo, border: "1px solid var(--ui-compartido-borde)" }}>
               <input
                 type="text"
                 placeholder="Nombre del nuevo equipo"
@@ -249,12 +249,12 @@ function AgregarPartido({ categoriaId, onVolver, onGuardado, partidoIdEditar }) 
                     src={escudoNuevoEquipo}
                     alt="Escudo"
                     className="w-10 h-10 rounded-lg object-contain shrink-0"
-                    style={{ backgroundColor: P.superficie, border: "1px solid var(--ui-compartido-borde, #2A3548)" }}
+                    style={{ backgroundColor: P.superficie, border: "1px solid var(--ui-compartido-borde)" }}
                   />
                 )}
                 <label
                   className="text-sm font-medium px-4 py-2.5 rounded-xl transition-opacity hover:opacity-80 cursor-pointer"
-                  style={{ backgroundColor: P.superficie, color: P.secundario, border: "1px solid var(--ui-compartido-borde, #2A3548)" }}
+                  style={{ backgroundColor: P.superficie, color: P.secundario, border: "1px solid var(--ui-compartido-borde)" }}
                 >
                   {subiendoEscudoNuevo ? 'Subiendo...' : escudoNuevoEquipo ? 'Cambiar escudo' : '📤 Subir escudo'}
                   <input

@@ -2,8 +2,8 @@
 .pizarra-modal { position: fixed; inset: 0; z-index: 120; overflow: auto; background: var(--ui-fondo-pagina); padding: .8rem; }
 .pizarra button, .pizarra select, .pizarra input { background: var(--ui-superficie); color: var(--ui-texto); border: 1px solid var(--ui-borde); border-radius: .4rem; padding: .35rem .5rem; max-width: 100%; }
 .pizarra button:disabled { opacity: .45; cursor: default; }
-.pizarra button[aria-pressed=true], .pizarra .pizarra-guardar { background: #F2C230; color: #111111; }
-.pizarra button:focus-visible, .pizarra input:focus-visible, .pizarra select:focus-visible { outline: 2px solid #F2C230; outline-offset: 2px; }
+.pizarra button[aria-pressed=true], .pizarra .pizarra-guardar { background: var(--ui-acento); color: var(--ui-texto-sobre-acento); }
+.pizarra button:focus-visible, .pizarra input:focus-visible, .pizarra select:focus-visible { outline: 2px solid var(--ui-acento); outline-offset: 2px; }
 .pizarra-fila { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-bottom: .6rem; }
 .pizarra-layout { display: grid; grid-template-columns: 180px minmax(0, 1fr) 200px; gap: .75rem; align-items: start; }
 .pizarra-lienzo { min-width: 0; background: #24733F; border-radius: .5rem; overflow: hidden; position: relative; }
@@ -14,18 +14,18 @@
 .pizarra-pasos { display: flex; overflow-x: auto; gap: .5rem; padding: .5rem 0; }
 .pizarra-pasos button { min-width: 95px; white-space: nowrap; }
 .pizarra-ayuda { color: var(--ui-texto-secundario); font-size: .8rem; margin: .5rem 0; }
-.pizarra-error { color: var(--ui-peligro-texto, #b91c1c); }
+.pizarra-error { color: var(--ui-peligro-texto); }
 .pizarra-miniatura { width: 100%; max-height: 150px; object-fit: contain; background: #24733F; }
 .pizarra button, .pizarra select, .pizarra summary { min-height: 44px; }
 .pizarra button { cursor: pointer; transition: border-color .15s, background-color .15s; }
 .pizarra button:hover:not(:disabled) { border-color: var(--ui-texto-acento); }
-.pizarra summary:focus-visible { outline: 2px solid #F2C230; outline-offset: 2px; }
+.pizarra summary:focus-visible { outline: 2px solid var(--ui-acento); outline-offset: 2px; }
 .pizarra-cabecera { position: sticky; top: -.8rem; z-index: 4; background: var(--ui-fondo-pagina); border-bottom: 1px solid var(--ui-borde); margin-bottom: .8rem; padding: .5rem 0; }
 .pizarra-cabecera h2 { flex: 1; min-width: 160px; font-size: 1.05rem; }
 .pizarra-cabecera h2 small { display: block; font-size: .62rem; letter-spacing: .15em; color: var(--ui-texto-secundario); margin-top: .25rem; }
 .pizarra-rapidos { margin-bottom: .2rem; }
 .pizarra-archivo summary, .pizarra-configuracion summary { color: var(--ui-texto-secundario); font-size: .8rem; cursor: pointer; padding: .6rem 0; }
-.pizarra-soltar { outline: 3px solid #F2C230; outline-offset: -3px; }
+.pizarra-soltar { outline: 3px solid var(--ui-acento); outline-offset: -3px; }
 .pizarra-modos, .pizarra-contexto { display: flex; flex-wrap: wrap; gap: .4rem; padding: .45rem; background: var(--ui-superficie); color: var(--ui-texto); }
 .pizarra-modos button { font-size: .8rem; flex: 1; }
 .pizarra-contexto { align-items: center; border-top: 1px solid var(--ui-borde); }
@@ -66,7 +66,7 @@
   .pizarra-layout { display: flex; flex-direction: column; gap: .5rem; }
   .pizarra-lienzo { order: 1; width: 100%; }
   .pizarra-panel { order: 2; width: 100%; }
-  .pizarra-biblioteca { order: 3; width: 100%; border-bottom: 3px solid #F2C230; }
+  .pizarra-biblioteca { order: 3; width: 100%; border-bottom: 3px solid var(--ui-acento); }
   .pizarra-biblioteca > summary { min-height: 48px; }
   .pizarra-biblioteca > summary span { display: inline; margin-left: .5rem; }
   .pizarra-paleta { grid-template-columns: repeat(4,minmax(0,1fr)); max-height: 24vh; }

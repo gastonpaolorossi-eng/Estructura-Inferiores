@@ -26,10 +26,10 @@ export default function SeguimientoPerfil({ resumenBienestar, disciplinas, total
                     : m.tendencia === 'estable'
                       ? COLORES.secundario
                       : m.clave === 'rpe'
-                        ? '#FBBF24'
+                        ? 'var(--ui-alerta)'
                         : m.tendencia === 'sube'
-                          ? '#F87171'
-                          : '#4ADE80'
+                          ? 'var(--ui-peligro)'
+                          : 'var(--ui-exito)'
 
                 const flecha =
                   m.tendencia === 'sube'
@@ -109,11 +109,11 @@ export default function SeguimientoPerfil({ resumenBienestar, disciplinas, total
 
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
               {[
-                { label: 'Presentes', valor: resumenAsistencia.presente, color: '#4ADE80' },
-                { label: 'Tardes', valor: resumenAsistencia.tarde, color: '#FBBF24' },
-                { label: 'Ausentes', valor: resumenAsistencia.ausente, color: '#F87171' },
-                { label: 'Lesionadas', valor: resumenAsistencia.lesionado, color: '#FB923C' },
-                { label: 'Enfermas', valor: resumenAsistencia.enfermo, color: '#7DD3FC' },
+                { label: 'Presentes', valor: resumenAsistencia.presente, color: 'var(--ui-exito)' },
+                { label: 'Tardes', valor: resumenAsistencia.tarde, color: 'var(--ui-alerta)' },
+                { label: 'Ausentes', valor: resumenAsistencia.ausente, color: 'var(--ui-peligro)' },
+                { label: 'Lesionadas', valor: resumenAsistencia.lesionado, color: 'var(--ui-peligro)' },
+                { label: 'Enfermas', valor: resumenAsistencia.enfermo, color: 'var(--ui-neutro)' },
               ].map((item) => (
                 <div key={item.label} className="p-3 rounded-xl" style={{ backgroundColor: COLORES.tarjeta, border: `1px solid ${COLORES.borde}` }}>
                   <p className="text-xl font-bold" style={{ color: textoPlantel(item.color) }}>{item.valor}</p>

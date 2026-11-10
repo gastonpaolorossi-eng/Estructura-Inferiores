@@ -1,6 +1,4 @@
-.fisico-premium .fisico-contenido { max-width: 1600px; }
-.fisico-premium .dp-encabezado { padding: clamp(1rem, 2vw, 1.5rem); background: var(--ui-superficie); border: 1px solid var(--ui-borde); border-bottom: 3px solid var(--ui-acento); border-radius: 1rem; }
-.fisico-premium .dp-titulo { font-family: 'Archivo Black', sans-serif; font-size: clamp(1.5rem, 3vw, 2rem); }
+.fisico-premium .fisico-contenido { max-width: 1440px; }
 .fisico-premium .fisico-herramientas button { min-height: 60px; flex-direction: row; align-items: center; justify-content: flex-start; padding: .75rem; gap: .6rem; transform: none; }
 .fisico-etiqueta { display: flex; flex-direction: column; gap: .2rem; min-width: 0; }
 .fisico-grupo { font-size: .65rem; font-weight: 500; line-height: 1.3; }

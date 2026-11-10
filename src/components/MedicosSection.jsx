@@ -7,6 +7,7 @@ import SelectorMedicos from './SelectorMedicos'
 import MapaCorporal from './MapaCorporal'
 import CamposIncidenciaCorporal from './CamposIncidenciaCorporal'
 import { ESTADOS_CORPORALES, LADOS_CORPORALES, colorZona, fichasZona, nombreZona, puedeVerMedicos, ubicacionFicha, validarIncidencia } from '../utils/mapaCorporal'
+import { fechaCorta, fechaLarga } from '../utils/formatoFecha'
 
 const incidenciaVacia = { zona_corporal: '', lateralidad: 'derecha', tipo_incidencia: 'molestia', estado_seguimiento: 'seguimiento', fecha_resolucion: '' }
 
@@ -320,7 +321,7 @@ function MedicosContenido({ perfil, jugadorInicialId, onConsumirJugadorInicial }
 
     return (
       <div className="p-6 md:p-10">
-        <div className="max-w-3xl mx-auto">
+        <div className="club-ancho">
           {error && <p role="alert" className="p-3 mb-4 rounded-xl" style={{ color: COLORES.peligro, background: COLORES.fondoTarjeta }}>{error}</p>}
           <button
             disabled={guardando}
@@ -336,7 +337,7 @@ function MedicosContenido({ perfil, jugadorInicialId, onConsumirJugadorInicial }
             <div>
               <h1
                 className="text-2xl"
-                style={{ fontFamily: "'Archivo Black', sans-serif", color: COLORES.texto }}
+                style={{ fontFamily: 'var(--fuente-titulo)', fontStyle: 'italic', fontWeight: 900, textTransform: 'uppercase', color: COLORES.texto }}
               >
                 {jugadorSeleccionado.apellido}, {jugadorSeleccionado.nombre}
               </h1>
@@ -406,7 +407,7 @@ function MedicosContenido({ perfil, jugadorInicialId, onConsumirJugadorInicial }
               {mapaDisponible && <CamposIncidenciaCorporal valor={incidencia} onChange={setIncidencia} disabled={guardando} />}
               {fichaEditando && (
                 <p className="text-xs" style={{ color: COLORES.textoSecundario }}>
-                  Editando registro del {fichaEditando.fecha}
+                  Editando registro del {fechaLarga(fichaEditando.fecha)}
                 </p>
               )}
               <label className="block text-sm" style={{ color: COLORES.texto }}>Fecha de inicio<input
@@ -478,7 +479,7 @@ function MedicosContenido({ perfil, jugadorInicialId, onConsumirJugadorInicial }
             {(seleccionZona ? fichasZona(fichas, seleccionZona.zona, seleccionZona.lado) : fichas).map((f) => (
               <div key={f.id} className="p-3.5 rounded-xl" style={{ backgroundColor: COLORES.fondoTarjeta, borderTop: `3px solid ${COLORES.acento}`, borderLeft: `1px solid ${COLORES.borde}`, borderRight: `1px solid ${COLORES.borde}`, borderBottom: `1px solid ${COLORES.borde}` }}>
                 <div className="flex items-center justify-between mb-1">
-                  <p className="text-xs font-mono" style={{ color: COLORES.textoSecundario }}>{f.fecha}</p>
+                  <p className="text-xs font-mono" style={{ color: COLORES.textoSecundario }}>{fechaLarga(f.fecha)}</p>
                   <div className="flex items-center gap-2">
                     {f.tiempo_recuperacion && (
                       <span
@@ -498,7 +499,7 @@ function MedicosContenido({ perfil, jugadorInicialId, onConsumirJugadorInicial }
                       {f.recuperado ? (f.zona_corporal ? 'Resuelta' : 'Recuperado') : 'Activo'}
                     </span>
                     <button
-                      aria-label={`Editar registro del ${f.fecha}`}
+                      aria-label={`Editar registro del ${fechaLarga(f.fecha)}`}
                       disabled={guardando || cargandoFicha || (esPreparador && !mapaDisponible)}
                       onClick={() => abrirEditarRegistro(f)}
                       className="text-xs px-2 py-0.5 rounded-full hover:opacity-80"
@@ -523,8 +524,8 @@ function MedicosContenido({ perfil, jugadorInicialId, onConsumirJugadorInicial }
                   {f.fecha_resolucion && ` · Resuelta el ${f.fecha_resolucion}`}
                 </p>
                 {f.fecha_estimada_alta && !f.recuperado && (
-                  <p className="text-xs mt-1" style={{ color: textoGestion('#7DD3FC') }}>
-                    📅 Alta estimada: {f.fecha_estimada_alta}
+                  <p className="text-xs mt-1" style={{ color: 'var(--ui-alerta)' }}>
+                    📅 Alta estimada: {fechaCorta(f.fecha_estimada_alta)}
                   </p>
                 )}
                 {f.link_informe && (
@@ -551,12 +552,12 @@ function MedicosContenido({ perfil, jugadorInicialId, onConsumirJugadorInicial }
 
   return (
     <div className="p-6 md:p-10">
-      <div className="max-w-2xl mx-auto">
+      <div className="club-ancho">
         {error && <p role="alert" className="mb-4" style={{ color: COLORES.peligro }}>{error}</p>}
         <div className="flex items-center justify-between gap-3 mb-6 flex-wrap">
           <h1
             className="text-3xl md:text-4xl flex items-center gap-3"
-            style={{ fontFamily: "'Archivo Black', sans-serif", color: COLORES.texto }}
+            style={{ fontFamily: 'var(--fuente-titulo)', fontStyle: 'italic', fontWeight: 900, textTransform: 'uppercase', color: COLORES.texto }}
           >
             <span>🩺</span> Médicos
           </h1>
@@ -656,7 +657,7 @@ function MedicosContenido({ perfil, jugadorInicialId, onConsumirJugadorInicial }
                       {jugador.apellido}, {jugador.nombre}
                     </p>
                   </div>
-                  <span className="text-xs font-mono" style={{ color: COLORES.textoSecundario }}>{ficha.fecha}</span>
+                  <span className="text-xs font-mono" style={{ color: COLORES.textoSecundario }}>{fechaLarga(ficha.fecha)}</span>
                 </div>
                 <p className="text-sm" style={{ color: COLORES.textoSecundario }}>{ficha.descripcion}</p>
               </div>
@@ -697,7 +698,7 @@ function MedicosContenido({ perfil, jugadorInicialId, onConsumirJugadorInicial }
                       ) : (
                         <div
                           className="flex items-center justify-center w-9 h-9 rounded-full shrink-0 text-xs font-bold"
-                          style={{ backgroundColor: COLORES.fondoPagina, border: `2px solid ${grupo.color}`, color: textoGestion(grupo.color), fontFamily: "'Archivo Black', sans-serif" }}
+                          style={{ backgroundColor: COLORES.fondoPagina, border: `2px solid ${grupo.color}`, color: textoGestion(grupo.color), fontFamily: 'var(--fuente-titulo)', fontStyle: 'italic', fontWeight: 900, textTransform: 'uppercase' }}
                         >
                           {iniciales(j.nombre, j.apellido)}
                         </div>
