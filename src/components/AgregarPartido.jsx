@@ -4,6 +4,8 @@ import { supabase } from '../supabaseClient'
 import { obtenerFechaHoy } from '../utils/fecha'
 import { sanitizarNombreArchivo } from '../utils/archivos'
 import { comprimirImagen } from '../utils/comprimirImagen'
+import EncabezadoSeccion from './ui/EncabezadoSeccion'
+import EstadoVacio from './ui/EstadoVacio'
 
 function AgregarPartido({ categoriaId, onVolver, onGuardado, partidoIdEditar }) {
   const [equipos, setEquipos] = useState([])
@@ -150,7 +152,7 @@ function AgregarPartido({ categoriaId, onVolver, onGuardado, partidoIdEditar }) 
   if (cargando) {
     return (
       <div className="p-6 md:p-10">
-        <p style={{ color: P.tenue }}>Cargando...</p>
+        <EstadoVacio cargando mensaje="Cargando el partido…" />
       </div>
     )
   }
@@ -168,19 +170,10 @@ function AgregarPartido({ categoriaId, onVolver, onGuardado, partidoIdEditar }) 
           ← Volver
         </button>
 
-        <h1
-          className="text-2xl md:text-3xl mb-6"
-          style={{ fontFamily: 'var(--fuente-titulo)', fontStyle: 'italic', fontWeight: 900, textTransform: 'uppercase', color: P.texto }}
-        >
-          {esEdicion ? 'Editar partido' : 'Nuevo partido'}
-        </h1>
-
-        {esEdicion && (
-          <p className="text-xs mb-6" style={{ color: P.tenue }}>
-            Los goles, videos, informes y observaciones del partido ahora se cargan desde la pestaña
-            "Post-Partido" dentro de la convocatoria del partido.
-          </p>
-        )}
+        <div className="mb-6">
+          <EncabezadoSeccion eyebrow="Partidos" eyebrowResaltado={esEdicion ? 'Edición' : 'Alta'} titulo={esEdicion ? 'Editar ' : 'Nuevo '} resaltado="partido"
+            descripcion={esEdicion ? 'Goles, videos e informes se cargan en "Post-Partido" de la convocatoria.' : undefined} />
+        </div>
 
         <div className="space-y-3 mb-6">
           <div>

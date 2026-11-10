@@ -5,6 +5,8 @@ import { obtenerJugadoresDeCategoria } from '../utils/jugadoresCategoria'
 import { FORMACIONES } from '../data/formaciones'
 import { CAMPOS_FISICOS } from '../utils/camposFisicos'
 import { fechaHora } from '../utils/formatoFecha'
+import EncabezadoSeccion from './ui/EncabezadoSeccion'
+import EstadoVacio from './ui/EstadoVacio'
 
 function fechaISO(date) {
   const anio = date.getFullYear()
@@ -418,7 +420,7 @@ function ConvocarPartido({ partidoId, categoriaId, onVolver, onIrAFisico }) {
   if (!partido) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p style={{ color: P.tenue }}>Cargando...</p>
+        <EstadoVacio cargando mensaje="Cargando el partido…" />
       </div>
     )
   }
@@ -446,31 +448,21 @@ function ConvocarPartido({ partidoId, categoriaId, onVolver, onIrAFisico }) {
           ← Volver
         </button>
 
-        <h1
-          className="text-2xl md:text-3xl mb-1 flex items-center gap-2.5"
-          style={{ fontFamily: 'var(--fuente-titulo)', fontStyle: 'italic', fontWeight: 900, textTransform: 'uppercase', color: P.texto }}
-        >
-          {partido.escudo_url ? (
+        <div className="mb-6 flex items-end gap-4">
+          {partido.escudo_url && (
             <img
               src={partido.escudo_url}
               alt={partido.rival}
-              className="w-8 h-8 rounded object-contain shrink-0"
-              style={{ backgroundColor: P.fondo }}
+              className="w-14 h-14 md:w-20 md:h-20 object-contain shrink-0"
             />
-          ) : (
-            <span
-              className="w-8 h-8 rounded flex items-center justify-center text-sm shrink-0"
-              style={{ backgroundColor: P.fondo, color: P.tenue }}
-            >
-              🛡️
-            </span>
           )}
-          vs {partido.rival}
-        </h1>
-        <p className="text-sm mb-6" style={{ color: P.secundario }}>
-          {fechaHora(partido.fecha, partido.hora)} {partido.lugar && `· ${partido.lugar}`}
-          {partido.local_visitante && ` · ${partido.local_visitante}`}
-        </p>
+          <div className="min-w-0 flex-1">
+            <EncabezadoSeccion
+              eyebrow={fechaHora(partido.fecha, partido.hora)}
+              eyebrowResaltado={[partido.lugar, partido.local_visitante].filter(Boolean).join(' · ') || undefined}
+              titulo="vs " resaltado={partido.rival} />
+          </div>
+        </div>
 
         <div className="flex gap-2 mb-6 flex-wrap">
           {[

@@ -1,6 +1,8 @@
 import { PARTIDOS as P } from '../appearance/partidos'
 import { useEffect, useState } from 'react'
 import { obtenerEstadisticasCategoria } from '../utils/exportarEstadisticas'
+import EncabezadoSeccion from './ui/EncabezadoSeccion'
+import EstadoVacio from './ui/EstadoVacio'
 
 const COLUMNAS = [
   { clave: 'apellido', label: 'Jugadora', numerica: false },
@@ -58,23 +60,13 @@ function ComparativaJugadoras({ categoriaId, categoriaNombre, onVolver }) {
           ← Volver
         </button>
 
-        <h1
-          className="text-2xl md:text-3xl mb-1"
-          style={{ fontFamily: 'var(--fuente-titulo)', fontStyle: 'italic', fontWeight: 900, textTransform: 'uppercase', color: P.texto }}
-        >
-          Comparativa de jugadoras
-        </h1>
-        <p className="text-sm mb-6" style={{ color: P.secundario }}>
-          {categoriaNombre} — hacé click en una columna para ordenar
-        </p>
+        <div className="mb-6">
+          <EncabezadoSeccion eyebrow={categoriaNombre} eyebrowResaltado="Tocá una columna para ordenar" titulo="Compara" resaltado="tiva" />
+        </div>
 
-        {cargando && <p style={{ color: P.tenue }}>Cargando...</p>}
+        {cargando && <EstadoVacio cargando mensaje="Cargando estadísticas…" />}
 
-        {!cargando && filas.length === 0 && (
-          <p className="text-sm" style={{ color: P.tenue }}>
-            No hay estadísticas cargadas todavía para esta categoría.
-          </p>
-        )}
+        {!cargando && filas.length === 0 && <EstadoVacio mensaje="Sin estadísticas en esta categoría." />}
 
         {!cargando && filas.length > 0 && (
           <div className="overflow-x-auto rounded-xl" style={{ border: "1px solid var(--ui-compartido-borde)" }}>

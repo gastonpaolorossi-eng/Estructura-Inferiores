@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { COLORES } from '../theme'
+import FranjaNumeros from './ui/FranjaNumeros'
+import EstadoVacio from './ui/EstadoVacio'
 
 function calcularResultado(p) {
   if (p.goles_local == null || p.goles_visitante == null) return null
@@ -102,7 +104,7 @@ function BarrasHorizontal({ datos, color }) {
         </div>
       ))}
       {datos.length === 0 && (
-        <p className="text-sm" style={{ color: COLORES.textoMuted }}>Sin datos cargados.</p>
+        <EstadoVacio mensaje="Sin registros." />
       )}
     </div>
   )
@@ -201,14 +203,14 @@ function EstadisticasEquipo({ categoriaId, categoriaNombre }) {
   }, [categoriaId])
 
   if (cargando) {
-    return <p style={{ color: COLORES.textoMuted }}>Cargando estadísticas...</p>
+    return <EstadoVacio cargando mensaje="Cargando estadísticas…" />
   }
 
   const totalPartidos = resultados.victorias + resultados.empates + resultados.derrotas
 
   const segmentosResultados = [
     { label: 'Victorias', valor: resultados.victorias, color: COLORES.exito },
-    { label: 'Empates', valor: resultados.empates, color: COLORES.acento },
+    { label: 'Empates', valor: resultados.empates, color: COLORES.alerta },
     { label: 'Derrotas', valor: resultados.derrotas, color: COLORES.peligro },
   ]
 
@@ -226,10 +228,15 @@ function EstadisticasEquipo({ categoriaId, categoriaNombre }) {
 
   return (
     <div>
-      <p className="text-sm mb-6" style={{ color: COLORES.textoMuted }}>
-        {categoriaNombre ? `${categoriaNombre} · ` : 'Todas las categorías · '}
-        {totalPartidos} partido{totalPartidos !== 1 ? 's' : ''} con resultado cargado.
-      </p>
+      <p className="dp-eyebrow mb-3">{categoriaNombre || 'Todas las categorías'} · <b>Con resultado cargado</b></p>
+      <div className="mb-6">
+        <FranjaNumeros etiqueta="Resumen de resultados" items={[
+          { etiqueta: 'Partidos', valor: totalPartidos },
+          { etiqueta: 'G-E-P', valor: `${resultados.victorias}-${resultados.empates}-${resultados.derrotas}` },
+          { etiqueta: 'Goles a favor', valor: goles.favor },
+          { etiqueta: 'Goles en contra', valor: goles.contra },
+        ]} />
+      </div>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
         <TarjetaEstadistica titulo="Partidos - Resultados">
