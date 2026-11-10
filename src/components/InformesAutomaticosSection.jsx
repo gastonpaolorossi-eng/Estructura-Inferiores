@@ -3,6 +3,9 @@ import { textoGestion } from '../appearance/gestion'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { COLORES } from '../theme'
+import EncabezadoSeccion from './ui/EncabezadoSeccion'
+import Boton from './ui/Boton'
+import EstadoVacio from './ui/EstadoVacio'
 
 const ESTILOS = {
   panel: {
@@ -51,8 +54,8 @@ function InformeTabla({ columnas, filas, vacio }) {
         <tbody>
           {filas.length === 0 ? (
             <tr>
-              <td colSpan={columnas.length} className="px-4 py-8 text-center" style={ESTILOS.muted}>
-                {vacio}
+              <td colSpan={columnas.length} className="px-4 py-4">
+                <EstadoVacio mensaje={vacio} />
               </td>
             </tr>
           ) : filas.map((fila, i) => (
@@ -259,25 +262,8 @@ function InformesAutomaticosSection({ perfil }) {
 
   return (
     <div className="p-4 md:p-8 space-y-6">
-      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-        <div>
-          <p className="text-xs uppercase tracking-widest mb-2" style={{ color: textoGestion(COLORES.acento) }}>
-            Club Comunicaciones
-          </p>
-          <h1 className="text-2xl font-semibold" style={ESTILOS.texto}>Informes automáticos</h1>
-          <p className="text-sm mt-2 max-w-2xl" style={ESTILOS.secundario}>
-            Consultas sobre los datos cargados en la plataforma, sin inteligencia artificial ni servicios externos.
-          </p>
-        </div>
-        <button
-          onClick={cargarDatos}
-          disabled={cargando}
-          className="px-4 py-2 rounded-lg text-sm disabled:opacity-50"
-          style={{ backgroundColor: COLORES.acento, color: 'var(--ui-texto-sobre-acento)' }}
-        >
-          {cargando ? 'Actualizando…' : 'Actualizar datos'}
-        </button>
-      </div>
+      <EncabezadoSeccion eyebrow="Gestión" eyebrowResaltado="Consultas sobre los datos cargados" titulo="Infor" resaltado="mes"
+        acciones={<Boton onClick={cargarDatos} disabled={cargando} aria-busy={cargando}>{cargando ? 'Actualizando…' : 'Actualizar datos'}</Boton>} />
 
       {error && (
         <div className="rounded-xl p-4 text-sm" style={{ ...ESTILOS.panel, color: 'var(--plantel-error-texto)' }}>
@@ -294,7 +280,7 @@ function InformesAutomaticosSection({ perfil }) {
               onClick={() => setConsulta(c.id)}
               className="text-left p-4 rounded-xl transition-opacity hover:opacity-90"
               style={{
-                backgroundColor: activa ? 'rgba(242,194,48,0.10)' : 'var(--informes-superficie)',
+                backgroundColor: activa ? 'var(--ui-acento-suave)' : 'var(--informes-superficie)',
                 border: `1px solid ${activa ? COLORES.acento : COLORES.borde}`,
               }}
             >
@@ -352,7 +338,7 @@ function InformesAutomaticosSection({ perfil }) {
         </div>
 
         {cargando ? (
-          <p className="p-8 text-center text-sm" style={ESTILOS.muted}>Cargando datos…</p>
+          <div className="p-4"><EstadoVacio cargando mensaje="Cargando datos…" /></div>
         ) : (
           <InformeTabla
             columnas={columnas}

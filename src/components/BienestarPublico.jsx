@@ -3,7 +3,9 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { obtenerFechaHoy } from '../utils/fecha'
 import { COLORES } from '../theme'
-import { fechaCorta } from '../utils/formatoFecha'
+import { fechaCorta, fechaLarga } from '../utils/formatoFecha'
+import EncabezadoSeccion from './ui/EncabezadoSeccion'
+import EstadoVacio from './ui/EstadoVacio'
 
  const CAMPOS = [
   { clave: 'sueno', label: '¿Cómo dormiste?' },
@@ -224,18 +226,11 @@ function BienestarPublico({ categoriaId }) {
   return (
     <div className="min-h-screen p-6" style={{ backgroundColor: COLORES.fondoPagina }}>
       <div className="max-w-md mx-auto pt-6">
-        <h1
-          className="text-2xl mb-1 flex items-center gap-2"
-          style={{ fontFamily: 'var(--fuente-titulo)', fontStyle: 'italic', fontWeight: 900, textTransform: 'uppercase', color: COLORES.texto }}
-        >
-          <span>🧠</span> Bienestar
-        </h1>
-        <p className="text-sm mb-6" style={{ color: COLORES.textoMuted }}>
-          {categoria?.nombre ? `${categoria.nombre} · ` : ''}
-          {fecha}
-        </p>
+        <div className="mb-6">
+          <EncabezadoSeccion eyebrow={categoria?.nombre || 'Comunicaciones'} eyebrowResaltado={fechaLarga(fecha)} titulo="Well" resaltado="ness" />
+        </div>
 
-        {cargando && <p style={{ color: COLORES.textoMuted }}>Cargando...</p>}
+        {cargando && <EstadoVacio cargando mensaje="Cargando…" />}
 
         {!cargando && !jugadorSeleccionado && (
           <>

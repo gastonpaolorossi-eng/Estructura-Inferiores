@@ -2,6 +2,7 @@ import { COLORES } from '../theme'
 import { useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { ESCUDO_URL } from '../config/club'
+import './ui/panelDeportivo.css'
 
 function Login() {
   const [email, setEmail] = useState('')
@@ -34,18 +35,10 @@ function Login() {
           alt="Escudo Club Comunicaciones"
           className="w-24 h-24 object-contain mb-4"
         />
-        <h1
-          className="text-xl mb-1 text-center"
-          style={{ fontFamily: 'var(--fuente-titulo)', fontStyle: 'italic', fontWeight: 900, textTransform: 'uppercase', color: COLORES.texto }}
-        >
-          Club Comunicaciones
+        <p className="dp-eyebrow text-center">Fútbol femenino · <b>Primera División</b></p>
+        <h1 className="dp-titulo text-center mb-8" style={{ fontSize: 'clamp(2.4rem, 11vw, 3.4rem)' }}>
+          Club<br /><em>Comunicaciones</em>
         </h1>
-        <p
-          className="text-xs tracking-widest uppercase mb-8 text-center"
-          style={{ color: 'var(--ui-texto-acento)' }}
-        >
-          Primera División
-        </p>
 
         <div
           className="w-full p-6 rounded-2xl"

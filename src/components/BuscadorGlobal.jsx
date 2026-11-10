@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { fechaCorta } from '../utils/formatoFecha'
+import EncabezadoSeccion from './ui/EncabezadoSeccion'
+import EstadoVacio from './ui/EstadoVacio'
 
 function BuscadorGlobal({ onIrAJugador, onIrAMedicos, onIrAVideoJugador, onIrAVideoGeneral, onIrABiblioteca }) {
   const [termino, setTermino] = useState('')
@@ -68,12 +70,9 @@ function BuscadorGlobal({ onIrAJugador, onIrAMedicos, onIrAVideoJugador, onIrAVi
   return (
     <div className="p-6 md:p-10">
       <div className="club-ancho">
-        <h1
-          className="text-3xl md:text-4xl mb-6"
-          style={{ fontFamily: 'var(--fuente-titulo)', fontStyle: 'italic', fontWeight: 900, textTransform: 'uppercase', color: 'var(--ui-compartido-texto)' }}
-        >
-          Buscar
-        </h1>
+        <div className="mb-6">
+          <EncabezadoSeccion eyebrow="Comunicaciones" eyebrowResaltado="Jugadoras, lesiones, videos y ejercicios" titulo="Bus" resaltado="car" />
+        </div>
 
         <input
           type="text"
@@ -91,13 +90,9 @@ function BuscadorGlobal({ onIrAJugador, onIrAMedicos, onIrAVideoJugador, onIrAVi
           </p>
         )}
 
-        {buscando && <p style={{ color: 'var(--ui-compartido-tenue)' }}>Buscando...</p>}
+        {buscando && <EstadoVacio cargando mensaje="Buscando…" />}
 
-        {sinResultados && !buscando && (
-          <p className="text-sm" style={{ color: 'var(--ui-compartido-tenue)' }}>
-            No encontré nada con "{termino}".
-          </p>
-        )}
+        {sinResultados && !buscando && <EstadoVacio mensaje={`Nada con "${termino}".`} detalle="Probá con el apellido o parte del nombre." />}
 
         {mostrarResultados && !buscando && (
           <div className="space-y-6">
