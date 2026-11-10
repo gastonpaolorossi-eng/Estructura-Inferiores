@@ -4,6 +4,9 @@ import { supabase } from '../supabaseClient'
 import { obtenerJugadoresDeCategoria } from '../utils/jugadoresCategoria'
 import { obtenerCategoriaPrimeraDivision } from '../utils/categoriaPrimera'
 import { ESCUDO_URL } from '../config/club'
+import EncabezadoSeccion from './ui/EncabezadoSeccion'
+import Chips from './ui/Chips'
+import EstadoVacio from './ui/EstadoVacio'
 
 const AMARILLO = '#F2C230'
 
@@ -1089,7 +1092,7 @@ export default function EvaluacionesSection({ perfil }) {
   }, [])
 
   if (cargando) {
-    return <p style={{ color: C.textoSecundario }}>Cargando…</p>
+    return <EstadoVacio cargando mensaje="Cargando evaluaciones…" />
   }
 
   if (error) {
@@ -1112,7 +1115,7 @@ export default function EvaluacionesSection({ perfil }) {
   const activa = tab || (tabs[0] && tabs[0][0])
 
   if (!tabs.length) {
-    return <p style={{ color: C.textoSecundario }}>Tu rol no tiene acceso a las evaluaciones.</p>
+    return <EstadoVacio mensaje="Tu rol no tiene acceso a las evaluaciones." />
   }
 
   const recargarEvals = async () => {
@@ -1123,39 +1126,12 @@ export default function EvaluacionesSection({ perfil }) {
 
   return (
     <div className="club-ancho">
-      <h1 style={{
-        color: C.texto,
-        fontSize: 24,
-        fontWeight: 700,
-        marginBottom: 12,
-      }}>
-        Evaluaciones
-      </h1>
+      <div style={{ marginBottom: 16 }}>
+        <EncabezadoSeccion eyebrow="Equipo" eyebrowResaltado="Mensual y fin de temporada" titulo="Evalua" resaltado="ciones" />
+      </div>
 
-      <div style={{
-        display: 'flex',
-        gap: 8,
-        marginBottom: 16,
-        flexWrap: 'wrap',
-      }}>
-        {tabs.map(([id, lab]) => (
-          <button
-            type="button"
-            key={id}
-            onClick={() => setTab(id)}
-            style={{
-              padding: '8px 14px',
-              borderRadius: 8,
-              cursor: 'pointer',
-              fontWeight: 600,
-              border: '1px solid ' + (activa === id ? AMARILLO : C.borde),
-              background: activa === id ? AMARILLO : 'transparent',
-              color: activa === id ? 'var(--ui-texto-sobre-acento)' : C.texto,
-            }}
-          >
-            {lab}
-          </button>
-        ))}
+      <div style={{ marginBottom: 16 }}>
+        <Chips etiqueta="Vista" opciones={tabs.map(([id, lab]) => ({ valor: id, etiqueta: lab }))} valor={activa} onCambiar={setTab} />
       </div>
 
       {activa === 'mensual' && (

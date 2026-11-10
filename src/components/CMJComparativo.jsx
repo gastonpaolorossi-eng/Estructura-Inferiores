@@ -6,6 +6,7 @@ import { calcularCMJDrop } from '../utils/semaforoRiesgo'
 import { generarCMJIndividualPDF, generarCMJCategoriaPDF } from '../utils/generarCMJPDF'
 import { COLORES } from '../theme'
 import { fechaLarga } from '../utils/formatoFecha'
+import EstadoVacio from './ui/EstadoVacio'
 
 function promedio(valores) {
   const limpios = valores.filter((v) => v !== null && v !== undefined && !Number.isNaN(v))
@@ -176,7 +177,7 @@ function CMJComparativo() {
     }
   }
 
-  if (cargando) return <p style={{ color: COLORES.textoMuted }}>Cargando...</p>
+  if (cargando) return <EstadoVacio cargando mensaje="Cargando CMJ…" />
 
   return (
     <div>

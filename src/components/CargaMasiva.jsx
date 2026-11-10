@@ -1,6 +1,7 @@
 import { PLANTEL as P } from '../appearance/plantel'
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
+import EncabezadoSeccion from './ui/EncabezadoSeccion'
 
 function CargaMasiva({ onVolver, onGuardado }) {
   const [categorias, setCategorias] = useState([])
@@ -128,15 +129,10 @@ function CargaMasiva({ onVolver, onGuardado }) {
           ← Volver al plantel
         </button>
 
-        <h1
-          className="text-2xl md:text-3xl mb-2"
-          style={{ fontFamily: 'var(--fuente-titulo)', fontStyle: 'italic', fontWeight: 900, textTransform: 'uppercase', color: "var(--ui-compartido-texto)" }}
-        >
-          Carga masiva de jugadores
-        </h1>
-        <p className="text-sm mb-6" style={{ color: "var(--ui-compartido-tenue)" }}>
-          Pegá los datos copiados desde Excel/Sheets, una fila por jugador. Columnas en este orden: Apellido, Nombre, Categoría, Fecha de nacimiento (DD/MM/AAAA), Posición, Pie hábil.
-        </p>
+        <div className="mb-6">
+          <EncabezadoSeccion eyebrow="Plantel" eyebrowResaltado="Desde Excel o Sheets" titulo="Carga " resaltado="masiva"
+            descripcion="Una fila por jugadora: Apellido, Nombre, Categoría, Nacimiento (DD/MM/AAAA), Posición, Pie hábil." />
+        </div>
 
         <textarea
           value={texto}

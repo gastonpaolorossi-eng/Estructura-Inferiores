@@ -5,6 +5,7 @@ import { obtenerFechaHoy } from '../utils/fecha'
 import { obtenerJugadoresDeCategoria } from '../utils/jugadoresCategoria'
 import { obtenerCategoriaPrimeraDivision } from '../utils/categoriaPrimera'
 import { COLORES } from '../theme'
+import EstadoVacio from './ui/EstadoVacio'
 
 const FASE_LABEL = {
   menstrual: 'Menstrual',
@@ -95,13 +96,9 @@ function CicloComparativo() {
         </p>
       )}
 
-      {cargando && <p style={{ color: COLORES.textoMuted }}>Cargando...</p>}
+      {cargando && <EstadoVacio cargando mensaje="Cargando ciclos…" />}
 
-      {!cargando && categoria && jugadoras.length === 0 && (
-        <p className="text-sm" style={{ color: COLORES.textoMuted }}>
-          No hay jugadoras cargadas en Primera División.
-        </p>
-      )}
+      {!cargando && categoria && jugadoras.length === 0 && <EstadoVacio mensaje="Sin jugadoras en Primera División." />}
 
       {!cargando && jugadoras.length > 0 && (
         <div className="space-y-2">

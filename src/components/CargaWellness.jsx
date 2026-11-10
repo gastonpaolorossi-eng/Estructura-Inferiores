@@ -5,6 +5,7 @@ import { supabase } from '../supabaseClient'
 import { obtenerFechaHoy } from '../utils/fecha'
 import { obtenerJugadoresDeCategoria } from '../utils/jugadoresCategoria'
 import { obtenerCategoriaPrimeraDivision } from '../utils/categoriaPrimera'
+import EstadoVacio from './ui/EstadoVacio'
 
 const CAMPOS = [
   { clave: 'sueno', label: 'Sueño' },
@@ -346,31 +347,9 @@ function CargaWellness() {
         </div>
       )}
 
-      {cargando && (
-        <div
-          className="rounded-xl p-5 text-sm"
-          style={{
-            backgroundColor: UI.tarjeta,
-            border: `1px solid ${UI.borde}`,
-            color: UI.secundario,
-          }}
-        >
-          Cargando datos del plantel…
-        </div>
-      )}
+      {cargando && <EstadoVacio cargando mensaje="Cargando plantel…" />}
 
-      {!cargando && categoria && jugadores.length === 0 && (
-        <div
-          className="rounded-xl p-5 text-sm"
-          style={{
-            backgroundColor: UI.tarjeta,
-            border: `1px solid ${UI.borde}`,
-            color: UI.secundario,
-          }}
-        >
-          No hay jugadoras cargadas en Primera División.
-        </div>
-      )}
+      {!cargando && categoria && jugadores.length === 0 && <EstadoVacio mensaje="Sin jugadoras en Primera División." />}
 
       {/* Tabla de carga */}
       {jugadores.length > 0 && (

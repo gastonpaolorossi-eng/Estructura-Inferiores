@@ -18,6 +18,7 @@ import CargaWellness from './CargaWellness'
 import AlertasDatosFisicos from './AlertasDatosFisicos'
 import CicloComparativo from './CicloComparativo'
 import { fechaCorta } from '../utils/formatoFecha'
+import EstadoVacio from './ui/EstadoVacio'
 
 function normalizarNombre(s) {
   return (s || '')
@@ -590,18 +591,9 @@ function FisicoSection({
                     )}
                   </div>
 
-                  {cargando && (
-                    <div className="mb-4 flex items-center gap-3 rounded-xl p-4 text-sm" style={{ backgroundColor: W.tarjeta, color: COLORES.textoMuted, border: "1px solid var(--wellness-borde-detalle)" }}>
-                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                      Cargando plantel...
-                    </div>
-                  )}
+                  {cargando && <div className="mb-4"><EstadoVacio cargando mensaje="Cargando plantel…" /></div>}
 
-                  {!cargando && categoriaId && jugadores.length === 0 && (
-                    <p className="rounded-xl p-4 text-sm" style={{ backgroundColor: W.tarjeta, color: COLORES.textoMuted, border: "1px solid var(--wellness-borde-detalle)" }}>
-                      No hay jugadores cargados en esta categoría.
-                    </p>
-                  )}
+                  {!cargando && categoriaId && jugadores.length === 0 && <div className="mb-4"><EstadoVacio mensaje="Sin jugadoras en esta categoría." /></div>}
 
                   {!categoriaId && !categoriaBloqueada && (
                     <p className="rounded-xl p-4 text-sm" style={{ backgroundColor: W.tarjeta, color: COLORES.textoMuted, border: "1px solid var(--wellness-borde-detalle)" }}>

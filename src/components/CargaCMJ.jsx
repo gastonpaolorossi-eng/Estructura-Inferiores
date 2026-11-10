@@ -6,6 +6,7 @@ import { supabase } from '../supabaseClient'
 import { obtenerFechaHoy } from '../utils/fecha'
 import { obtenerJugadoresDeCategoria } from '../utils/jugadoresCategoria'
 import { obtenerCategoriaPrimeraDivision } from '../utils/categoriaPrimera'
+import EstadoVacio from './ui/EstadoVacio'
 
 // Alias visual: conserva la superficie alternativa original de estos formularios.
 const UI = { ...WELLNESS, tarjetaAlternativa: WELLNESS.filaAlternativa }
@@ -272,39 +273,9 @@ function CargaCMJ() {
         </div>
       )}
 
-      {cargando && (
-        <div
-          className="rounded-xl p-5 text-sm flex items-center gap-3"
-          style={{
-            backgroundColor: UI.tarjeta,
-            border: `1px solid ${UI.borde}`,
-            color: UI.secundario,
-          }}
-        >
-          <span
-            className="w-4 h-4 rounded-full border-2 animate-spin shrink-0"
-            style={{ borderColor: UI.borde, borderTopColor: UI.acento }}
-          />
-          Cargando jugadoras y registros...
-        </div>
-      )}
+      {cargando && <EstadoVacio cargando mensaje="Cargando jugadoras y registros…" />}
 
-      {!cargando && categoria && jugadores.length === 0 && (
-        <div
-          className="rounded-2xl p-6 text-center"
-          style={{ backgroundColor: UI.tarjeta, border: `1px solid ${UI.borde}` }}
-        >
-          <div className="text-3xl mb-3" style={{ color: UI.muted }}>
-            —
-          </div>
-          <p className="font-semibold" style={{ color: UI.texto }}>
-            No hay jugadoras cargadas
-          </p>
-          <p className="text-sm mt-1" style={{ color: UI.secundario }}>
-            No se encontraron jugadoras de Primera División.
-          </p>
-        </div>
-      )}
+      {!cargando && categoria && jugadores.length === 0 && <EstadoVacio mensaje="Sin jugadoras en Primera División." />}
 
       {!cargando && jugadores.length > 0 && (
         <>

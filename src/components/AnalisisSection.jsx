@@ -12,6 +12,7 @@ import ControlesVideoAnalisis from './ControlesVideoAnalisis'
 import { crearBloqueoEtiquetado, leerTiempoActivo, registroInciertoTrasError } from '../utils/ventanaAnalisis'
 import { cargarYouTubeEnVentana, mensajeErrorYouTube } from '../utils/youtubeVentana'
 import './ventanasAnalisis.css'
+import EncabezadoSeccion from './ui/EncabezadoSeccion'
 import DetalleDestinatariaPase from './DetalleDestinatariaPase'
 import DetalleDestinoPase from './DetalleDestinoPase'
 import FlechasPases from './FlechasPases'
@@ -1859,25 +1860,10 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
       {bloqueoEscritura && <p role="status">{(estadoAutorizacion || estadoPermiso) === 'pendiente_migracion'
         ? 'Análisis en modo consulta: falta activar la función de autorización de la migración pendiente. Crear, guardar, editar y eliminar están bloqueados hasta que el servidor confirme los permisos.'
         : 'Escrituras pausadas: no se pudo confirmar la autorización del servidor o se está revalidando. Se conserva el trabajo abierto y podés consultar el video.'}</p>}
-      <header className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <p
-            className="mb-2 text-xs font-bold uppercase tracking-[0.2em]"
-            style={{ color: textoAnalisis(AMARILLO) }}
-          >
-            COMUNICACIONES · PERFORMANCE
-          </p>
-          <h1 className="text-3xl font-black tracking-tight md:text-4xl">
-            Videoanálisis
-          </h1>
-          <p className="mt-2 text-sm" style={{ color: A.secundario }}>
-            Etiquetado de acciones, formación y análisis del rendimiento.
-          </p>
-          <p className="mt-2 text-xs" style={{ color: A.secundario }}>
-            {!bloqueoEscritura
-              ? 'Modo administrador · Gestión habilitada'
-              : 'Modo consulta · Solo lectura'}
-          </p>
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div className="min-w-0">
+          <EncabezadoSeccion eyebrow="Performance" eyebrowResaltado={!bloqueoEscritura ? 'Gestión habilitada' : 'Solo lectura'}
+            titulo="Análi" resaltado="sis" />
         </div>
 
         <div className="flex flex-wrap gap-2">

@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { sanitizarNombreArchivo } from '../utils/archivos'
 import { comprimirImagen } from '../utils/comprimirImagen'
+import EncabezadoSeccion from './ui/EncabezadoSeccion'
+import EstadoVacio from './ui/EstadoVacio'
 
 const OPCIONES_POSICION = [
   'Arquero',
@@ -263,7 +265,7 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
   if (cargando) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p style={{ color: "var(--ui-compartido-tenue)" }}>Cargando...</p>
+        <EstadoVacio cargando mensaje="Cargando ficha…" />
       </div>
     )
   }
@@ -279,12 +281,9 @@ function AgregarJugador({ onVolver, onGuardado, jugadorIdEditar }) {
           ← Volver
         </button>
 
-        <h1
-          className="text-2xl md:text-3xl mb-8"
-          style={{ fontFamily: 'var(--fuente-titulo)', fontStyle: 'italic', fontWeight: 900, textTransform: 'uppercase', color: "var(--ui-compartido-texto)" }}
-        >
-          {esEdicion ? 'Editar jugador' : 'Nuevo jugador'}
-        </h1>
+        <div className="mb-8">
+          <EncabezadoSeccion eyebrow="Plantel" eyebrowResaltado={esEdicion ? 'Edición' : 'Alta'} titulo={esEdicion ? 'Editar ' : 'Nueva '} resaltado="jugadora" />
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex items-center gap-4">

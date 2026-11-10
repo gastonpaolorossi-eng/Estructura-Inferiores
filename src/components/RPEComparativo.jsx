@@ -5,6 +5,7 @@ import { obtenerJugadoresDeCategoria } from '../utils/jugadoresCategoria'
 import { obtenerCategoriaPrimeraDivision } from '../utils/categoriaPrimera'
 import { calcularCargaJugador } from '../utils/semaforoRiesgo'
 import { generarRPEIndividualPDF, generarRPECategoriaPDF } from '../utils/generarRPEPDF'
+import EstadoVacio from './ui/EstadoVacio'
 
 const ESTADO_COLORS = {
   normal: 'var(--ui-exito)',
@@ -141,7 +142,7 @@ function RPEComparativo() {
     }
   }
 
-  if (cargando) return <p style={{ color: P.tenue }}>Cargando...</p>
+  if (cargando) return <EstadoVacio cargando mensaje="Cargando RPE…" />
 
   return (
     <div>
