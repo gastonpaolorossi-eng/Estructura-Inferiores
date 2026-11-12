@@ -15,15 +15,18 @@ import { leerPaginas } from '../utils/rendimiento/lecturas'
 import { cargarYouTubeEnVentana, mensajeErrorYouTube } from '../utils/youtubeVentana'
 import './ventanasAnalisis.css'
 import EncabezadoSeccion from './ui/EncabezadoSeccion'
-import DetalleDestinatariaPase from './DetalleDestinatariaPase'
 import DetalleDestinoPase from './DetalleDestinoPase'
 import FlechasPases from './FlechasPases'
+import ExploradorAnalisis from './analisis/ExploradorAnalisis'
+import EstadisticasAnalisis from './analisis/EstadisticasAnalisis'
+import { Boton, Campo, Panel } from './analisis/PiezasAnalisis'
+import { AMARILLO, CLASE_CAMPO, ESTILO_CAMPO } from '../utils/analisis/estilos'
+import { datosEncuentro, fechaLegible, formatearTiempo, nombreJugadora, videoCalendario, youtubeEmbed } from '../utils/analisis/formato'
 import {
-  cargarResumenDestinatarias, esPase, ESTADOS_DESTINATARIA,
+  cargarResumenDestinatarias, esPase,
   nombreDestinataria,
 } from '../utils/destinatariasPases'
 
-const AMARILLO = '#F2C230'
 const CATEGORIA_ID = '438874e7-e59f-460b-bec4-3c0ef5b44016'
 
 const TIPOS = [
@@ -92,137 +95,16 @@ function validarResultadoAccion(tipo, resultado) {
   }
 }
 
-const inputClass =
-  'w-full rounded-lg border p-3 text-sm ui-control outline-none focus:ring-1 focus:ring-yellow-400'
+const inputClass = CLASE_CAMPO
 
-const inputStyle = {
-  backgroundColor: A.fondo,
-  borderColor: A.borde,
-  color: A.texto,
-}
+const inputStyle = ESTILO_CAMPO
 
-function Boton({
-  children,
-  onClick,
-  disabled = false,
-  secundario = false,
-  submit = false,
-}) {
-  return (
-    <button
-      type={submit ? 'submit' : 'button'}
-      onClick={onClick}
-      disabled={disabled}
-      className="rounded-lg px-4 py-2.5 text-sm font-bold transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
-      style={secundario
-        ? { backgroundColor: A.control, color: A.texto, border: `1px solid ${A.borde}` }
-        : { backgroundColor: 'var(--ui-acento)', color: 'var(--ui-texto-sobre-acento)' }}
-    >
-      {children}
-    </button>
-  )
-}
-
-function Campo({ label, children }) {
-  return (
-    <label className="block space-y-2 text-sm">
-      <span className="font-medium" style={{ color: A.texto }}>{label}</span>
-      {children}
-    </label>
-  )
-}
-
-function Panel({ children, className = '', style = {}, id }) {
-  return (
-    <section
-      id={id}
-      className={`rounded-xl border p-4 md:p-5 ${className}`}
-      style={{ backgroundColor: A.panel, borderColor: A.borde, ...style }}
-    >
-      {children}
-    </section>
-  )
-}
-
-function youtubeEmbed(url) {
-  if (!url) return ''
-
-  try {
-    const parsed = new URL(url)
-    let id = ''
-
-    if (parsed.hostname.includes('youtu.be')) {
-      id = parsed.pathname.split('/').filter(Boolean)[0] || ''
-    } else if (
-      parsed.hostname.includes('youtube.com') ||
-      parsed.hostname.includes('youtube-nocookie.com')
-    ) {
-      if (parsed.pathname === '/watch') {
-        id = parsed.searchParams.get('v') || ''
-      } else {
-        const parts = parsed.pathname.split('/').filter(Boolean)
-        if (['embed', 'shorts', 'live'].includes(parts[0])) {
-          id = parts[1] || ''
-        }
-      }
-    }
-
-    if (!/^[a-zA-Z0-9_-]{11}$/.test(id)) return ''
-
-    const origen = typeof window !== 'undefined'
-      ? `&origin=${encodeURIComponent(window.location.origin)}`
-      : ''
-
-    return `https://www.youtube.com/embed/${id}?enablejsapi=1${origen}`
-  } catch {
-    return ''
-  }
-}
-
-function formatearTiempo(segundos) {
-  const total = Math.max(0, Math.floor(Number(segundos) || 0))
-  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`
-}
+const catalogoExplorador = { tipos: TIPOS, tiposRapidos: TIPOS_RAPIDOS, resultados: RESULTADOS, zonas: ZONAS }
 
 function TiempoVideo({ reloj }) {
   return formatearTiempo(useTiempoVideo(reloj))
 }
 
-function fechaLegible(fecha) {
-  if (!fecha) return 'Fecha sin definir'
-  const [anio, mes, dia] = fecha.slice(0, 10).split('-')
-  return `${dia}/${mes}/${anio}`
-}
-
-function datosEncuentro(partido) {
-  if (!partido) return ''
-  const calendario = partido.partido_calendario || null
-
-  return [
-    fechaLegible(calendario?.fecha || partido.fecha),
-    calendario?.local_visitante
-      ? calendario.local_visitante.charAt(0).toUpperCase() +
-        calendario.local_visitante.slice(1)
-      : '',
-    calendario?.numero_fecha || '',
-  ].filter(Boolean).join(' · ')
-}
-
-function videoCalendario(partido) {
-  if (!partido) return ''
-
-  return partido.video_partido_completo ||
-    partido.video_analisis_propio ||
-    partido.video_resumen ||
-    partido.video_analisis_rival ||
-    partido.link ||
-    ''
-}
-
-function nombreJugadora(jugadora) {
-  if (!jugadora) return 'Sin jugadora asignada'
-  return `${jugadora.nombre || ''} ${jugadora.apellido || ''}`.trim() || 'Sin nombre'
-}
 
 function obtenerCoordenadas(posicion) {
   if (!posicion || typeof posicion !== 'string') return null
@@ -1112,39 +994,15 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
     [eventosPartido, filtroJugador, filtroTipo, filtroResultado],
   )
 
-  const eventosExplorador = useMemo(() => {
-    const desde = filtroExploradorMinutoDesde === ''
-      ? null
-      : Number(filtroExploradorMinutoDesde) * 60
-    const hasta = filtroExploradorMinutoHasta === ''
-      ? null
-      : (Number(filtroExploradorMinutoHasta) + 1) * 60 - 1
-
-    return eventos
-      .filter((evento) => {
-        const partido = partidos.find((p) => p.id === evento.partido_id)
-        return (
-          (filtroExploradorPartido === 'todos' || evento.partido_id === filtroExploradorPartido) &&
-          (filtroExploradorJugadora === 'todos' || evento.jugador_id === filtroExploradorJugadora) &&
-          (filtroExploradorTipo === 'todos' || evento.tipo === filtroExploradorTipo) &&
-          (filtroExploradorResultado === 'todos' ||
-            (filtroExploradorResultado === 'Pendiente' ? !evento.resultado : evento.resultado === filtroExploradorResultado)) &&
-          (filtroExploradorZona === 'todos' || zonaEfectivaEvento(evento) === filtroExploradorZona) &&
-          (desde === null || Number(evento.segundo) >= desde) &&
-          (hasta === null || Number(evento.segundo) <= hasta) &&
-          Boolean(partido)
-        )
-      })
-      .sort((a, b) => {
-        const partidoA = partidos.find((p) => p.id === a.partido_id)
-        const partidoB = partidos.find((p) => p.id === b.partido_id)
-        const fechaA = partidoA?.fecha || ''
-        const fechaB = partidoB?.fecha || ''
-        return fechaB.localeCompare(fechaA) || Number(a.segundo) - Number(b.segundo)
-      })
-  }, [
-    eventos,
-    partidos,
+  const filtrosExplorador = useMemo(() => ({
+    partido: filtroExploradorPartido,
+    jugadora: filtroExploradorJugadora,
+    tipo: filtroExploradorTipo,
+    resultado: filtroExploradorResultado,
+    zona: filtroExploradorZona,
+    minutoDesde: filtroExploradorMinutoDesde,
+    minutoHasta: filtroExploradorMinutoHasta,
+  }), [
     filtroExploradorPartido,
     filtroExploradorJugadora,
     filtroExploradorTipo,
@@ -1153,6 +1011,15 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
     filtroExploradorMinutoDesde,
     filtroExploradorMinutoHasta,
   ])
+  const cambiarFiltroExplorador = {
+    partido: setFiltroExploradorPartido,
+    jugadora: setFiltroExploradorJugadora,
+    tipo: setFiltroExploradorTipo,
+    resultado: setFiltroExploradorResultado,
+    zona: setFiltroExploradorZona,
+    minutoDesde: setFiltroExploradorMinutoDesde,
+    minutoHasta: setFiltroExploradorMinutoHasta,
+  }
 
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((evento, sesion) => {
@@ -1182,74 +1049,6 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
     cargar()
     return () => { cancelado = true }
   }, [seccion, eventos, recargaDestinatarias])
-
-  const eventosEstadisticos = useMemo(
-    () => alcanceEstadisticas === 'acumulado' ? eventos : eventosPartido,
-    [alcanceEstadisticas, eventos, eventosPartido],
-  )
-
-  const estadisticas = useMemo(() => {
-    const acumulado = {}
-
-    for (const evento of eventosEstadisticos) {
-      if (!acumulado[evento.tipo]) {
-        acumulado[evento.tipo] = {
-          total: 0,
-          exitosos: 0,
-          fallidos: 0,
-          pendientes: 0,
-          neutros: 0,
-        }
-      }
-
-      acumulado[evento.tipo].total += 1
-
-      if (['Exitoso', 'Gol', 'Atajada'].includes(evento.resultado)) {
-        acumulado[evento.tipo].exitosos += 1
-      }
-
-      if (['Fallido', 'Fuera', 'Bloqueado'].includes(evento.resultado)) {
-        acumulado[evento.tipo].fallidos += 1
-      }
-
-      if (!evento.resultado) {
-        acumulado[evento.tipo].pendientes += 1
-      }
-      if (evento.resultado === 'Neutro') acumulado[evento.tipo].neutros += 1
-    }
-
-    return Object.entries(acumulado).sort(
-      (a, b) => b[1].total - a[1].total,
-    )
-  }, [eventosEstadisticos])
-
-  const estadisticasJugadoras = useMemo(() => {
-    const acumulado = {}
-
-    for (const evento of eventosEstadisticos) {
-      if (!evento.jugador_id) continue
-
-      if (!acumulado[evento.jugador_id]) {
-        acumulado[evento.jugador_id] = { total: 0, tipos: {} }
-      }
-
-      acumulado[evento.jugador_id].total += 1
-      acumulado[evento.jugador_id].tipos[evento.tipo] =
-        (acumulado[evento.jugador_id].tipos[evento.tipo] || 0) + 1
-    }
-
-    return Object.entries(acumulado)
-      .map(([id, datos]) => {
-        const jugadora = jugadoras.find((j) => j.id === id)
-
-        return {
-          id,
-          ...datos,
-          nombre: nombreJugadora(jugadora),
-        }
-      })
-      .sort((a, b) => b.total - a.total)
-  }, [eventosEstadisticos, jugadoras])
 
   const estadisticasInforme = useMemo(() => {
     const resumen = {}
@@ -1307,24 +1106,6 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
     () => estadisticasInforme.slice(0, 7),
     [estadisticasInforme],
   )
-
-  const resumenEfectividad = useMemo(() => {
-    const exitosas = eventosEstadisticos.filter((e) => ['Exitoso', 'Gol', 'Atajada'].includes(e.resultado)).length
-    const fallidas = eventosEstadisticos.filter((e) => ['Fallido', 'Fuera', 'Bloqueado'].includes(e.resultado)).length
-    const evaluadas = exitosas + fallidas
-    const pendientes = eventosEstadisticos.filter((e) => !e.resultado).length
-    const neutros = eventosEstadisticos.filter((e) => e.resultado === 'Neutro').length
-    const conUbicacionExacta = eventosEstadisticos.filter((e) => Number.isFinite(Number(e.coordenada_x)) && Number.isFinite(Number(e.coordenada_y)) && e.coordenada_x !== null && e.coordenada_y !== null).length
-    return {
-      exitosas,
-      fallidas,
-      evaluadas,
-      pendientes,
-      neutros,
-      porcentaje: evaluadas ? Math.round((exitosas / evaluadas) * 100) : 0,
-      conUbicacionExacta,
-    }
-  }, [eventosEstadisticos])
 
   const partidosDisponibles = useMemo(
     () => [...partidosCalendario].sort((a, b) =>
@@ -3079,331 +2860,27 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
           )}
 
           {seccion === 'explorador' && (
-            <Panel>
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-widest" style={{ color: textoAnalisis(AMARILLO) }}>
-                    BIBLIOTECA DE JUGADAS
-                  </p>
-                  <h2 className="mt-1 text-xl font-black">Explorador de acciones</h2>
-                  <p className="mt-1 text-sm" style={{ color: A.secundario }}>
-                    Buscá acciones de todos los partidos analizados y abrí el video directamente en el momento registrado.
-                  </p>
-                </div>
-                <span className="rounded-lg px-3 py-2 text-sm font-black" style={{ backgroundColor: A.fondo, color: textoAnalisis(AMARILLO) }}>
-                  {eventosExplorador.length} resultados
-                </span>
-              </div>
-
-              <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                <Campo label="Partido / rival">
-                  <select className={inputClass} style={inputStyle} value={filtroExploradorPartido} onChange={(e) => setFiltroExploradorPartido(e.target.value)}>
-                    <option value="todos">Todos los partidos</option>
-                    {partidos.map((p) => (
-                      <option key={p.id} value={p.id}>{p.rival} · {fechaLegible(p.fecha)}</option>
-                    ))}
-                  </select>
-                </Campo>
-                <Campo label="Jugadora">
-                  <select className={inputClass} style={inputStyle} value={filtroExploradorJugadora} onChange={(e) => setFiltroExploradorJugadora(e.target.value)}>
-                    <option value="todos">Todas las jugadoras</option>
-                    {jugadoras.map((j) => <option key={j.id} value={j.id}>{nombreJugadora(j)}</option>)}
-                  </select>
-                </Campo>
-                <Campo label="Tipo de acción">
-                  <select className={inputClass} style={inputStyle} value={filtroExploradorTipo} onChange={(e) => setFiltroExploradorTipo(e.target.value)}>
-                    <option value="todos">Todos los tipos</option>
-                    {TIPOS.map((t) => <option key={t} value={t}>{t}</option>)}
-                  </select>
-                </Campo>
-                <Campo label="Resultado">
-                  <select className={inputClass} style={inputStyle} value={filtroExploradorResultado} onChange={(e) => setFiltroExploradorResultado(e.target.value)}>
-                    <option value="todos">Todos los resultados</option>
-                    <option value="Pendiente">Pendientes</option>
-                    {RESULTADOS.map((r) => <option key={r} value={r}>{r}</option>)}
-                  </select>
-                </Campo>
-                <Campo label="Zona de cancha">
-                  <select className={inputClass} style={inputStyle} value={filtroExploradorZona} onChange={(e) => setFiltroExploradorZona(e.target.value)}>
-                    <option value="todos">Todas las zonas</option>
-                    {ZONAS.map((z) => <option key={z} value={z}>{z}</option>)}
-                  </select>
-                </Campo>
-                <div className="grid grid-cols-2 gap-2">
-                  <Campo label="Minuto desde">
-                    <input type="number" min="0" className={inputClass} style={inputStyle} value={filtroExploradorMinutoDesde} onChange={(e) => setFiltroExploradorMinutoDesde(e.target.value)} placeholder="Ej. 0" />
-                  </Campo>
-                  <Campo label="Minuto hasta">
-                    <input type="number" min="0" className={inputClass} style={inputStyle} value={filtroExploradorMinutoHasta} onChange={(e) => setFiltroExploradorMinutoHasta(e.target.value)} placeholder="Ej. 90" />
-                  </Campo>
-                </div>
-              </div>
-
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Boton secundario onClick={() => {
-                  setFiltroExploradorPartido('todos')
-                  setFiltroExploradorJugadora('todos')
-                  setFiltroExploradorTipo('todos')
-                  setFiltroExploradorResultado('todos')
-                  setFiltroExploradorZona('todos')
-                  setFiltroExploradorMinutoDesde('')
-                  setFiltroExploradorMinutoHasta('')
-                }}>Limpiar filtros</Boton>
-              </div>
-
-              {resumenDestinatarias.error && <p role="alert" className="mt-3 text-sm text-red-300">
-                {resumenDestinatarias.error}{' '}
-                <button type="button" className="font-bold underline" onClick={() => setRecargaDestinatarias((n) => n + 1)}>Reintentar</button>
-              </p>}
-              <div className="mt-5 overflow-x-auto rounded-lg border" style={{ borderColor: A.borde }}>
-                <table className="w-full min-w-[760px] text-left text-sm">
-                  <thead style={{ backgroundColor: A.fondo, color: A.secundario }}>
-                    <tr>
-                      <th className="p-3">Video</th>
-                      <th className="p-3">Partido</th>
-                      <th className="p-3">Jugadora</th>
-                      <th className="p-3">Acción</th>
-                      <th className="p-3">Zona</th>
-                      <th className="p-3">Resultado</th>
-                      <th className="p-3">Destinataria</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {eventosExplorador.map((ev) => {
-                      const partido = partidos.find((p) => p.id === ev.partido_id)
-                      const jugadora = jugadoras.find((j) => j.id === ev.jugador_id)
-                      const accion = TIPOS_RAPIDOS.find((a) => a.nombre === ev.tipo)
-                      return (
-                        <tr key={ev.id} className="border-t" style={{ borderColor: A.borde }}>
-                          <td className="p-3">
-                            <button type="button" disabled={!youtubeEmbed(partido?.video_url || videoCalendario(partido?.partido_calendario))} className="rounded-md px-3 py-2 font-mono font-black disabled:cursor-not-allowed disabled:opacity-40" style={{ backgroundColor: A.activo, color: textoAnalisis(AMARILLO) }}
-                              title={youtubeEmbed(partido?.video_url || videoCalendario(partido?.partido_calendario)) ? 'Abrir el video en este momento' : 'Este partido no tiene un video válido'}
-                              onClick={() => abrirEventoEnVideo(ev)}>
-                              {formatearTiempo(ev.segundo)}
-                            </button>
-                          </td>
-                          <td className="p-3">
-                            <span className="block font-bold">{partido?.rival || 'Partido sin nombre'}</span>
-                            <span className="text-xs" style={{ color: A.secundario }}>{fechaLegible(partido?.fecha)}</span>
-                          </td>
-                          <td className="p-3">{jugadora ? nombreJugadora(jugadora) : 'Sin jugadora'}</td>
-                          <td className="p-3 font-bold" style={{ color: textoAnalisis(accion?.color || A.texto) }}>{ev.tipo}</td>
-                          <td className="p-3">{ev.zona || '—'}</td>
-                          <td className="p-3">
-                            <span className="rounded-md px-2 py-1 text-xs font-bold" style={{ backgroundColor: ev.resultado ? A.control : A.seleccion, color: textoAnalisis(ev.resultado ? A.texto : AMARILLO) }}>
-                              {ev.resultado || 'Pendiente'}
-                            </span>
-                          </td>
-                          <td className="p-3">
-                            {esPase(ev) ? <>
-                              <span className="block text-sm">
-                                {resumenDestinatarias.cargando ? 'Cargando…' : resumenDestinatarias.error ? 'No disponible' :
-                                  resumenDestinatarias.detalles[ev.id]?.destinataria_estado === 'identificada'
-                                    ? resumenDestinatarias.nombres[resumenDestinatarias.detalles[ev.id].destinataria_id] || 'Jugadora no disponible'
-                                    : ESTADOS_DESTINATARIA[resumenDestinatarias.detalles[ev.id]?.destinataria_estado || 'pendiente']}
-                              </span>
-                              {puedeEditarDestinatarias && <button type="button"
-                                disabled={resumenDestinatarias.cargando}
-                                onClick={() => setPaseDestinataria(ev)}
-                                className="mt-2 text-xs font-bold text-yellow-300 disabled:opacity-40">Editar destinataria</button>}
-                            </> : <span style={{ color: A.secundario }}>—</span>}
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-                {eventosExplorador.length === 0 && (
-                  <p className="p-6 text-center text-sm" style={{ color: A.secundario }}>
-                    No hay acciones que coincidan con los filtros seleccionados.
-                  </p>
-                )}
-              </div>
-              <p className="mt-3 text-xs" style={{ color: A.secundario }}>
-                Los minutos se calculan a partir del segundo guardado en cada acción. Las acciones sin zona o resultado también aparecen y se pueden revisar.
-              </p>
-              {paseDestinataria && puedeEditarDestinatarias && <DetalleDestinatariaPase puedeEditar={escrituraAutorizada}
-                key={paseDestinataria.id}
-                evento={paseDestinataria}
-                partido={partidos.find((p) => p.id === paseDestinataria.partido_id)}
-                autora={nombreJugadora(jugadoras.find((j) => j.id === paseDestinataria.jugador_id))}
-                onClose={() => setPaseDestinataria(null)}
-                onVideo={abrirEventoEnVideo}
-                onSaved={(detalle, jugadora) => {
-                  setResumenDestinatarias((actual) => ({ ...actual,
-                    detalles: { ...actual.detalles, [detalle.evento_id]: detalle },
-                    nombres: jugadora ? { ...actual.nombres, [jugadora.id]: nombreDestinataria(jugadora) } : actual.nombres,
-                  }))
-                  // Un guardado puede funcionar aunque la lectura del resumen haya fallado.
-                  // Reconsultar evita dejar la fila como "No disponible" tras guardar.
-                  if (resumenDestinatarias.error) setRecargaDestinatarias((n) => n + 1)
-                }}
-              />}
-            </Panel>
+            <ExploradorAnalisis eventos={eventos} partidos={partidos} jugadoras={jugadoras}
+              catalogo={catalogoExplorador} filtros={filtrosExplorador} cambiarFiltro={cambiarFiltroExplorador}
+              resumenDestinatarias={resumenDestinatarias} onReintentarDestinatarias={() => setRecargaDestinatarias((n) => n + 1)}
+              puedeEditarDestinatarias={puedeEditarDestinatarias} escrituraAutorizada={escrituraAutorizada}
+              paseDestinataria={paseDestinataria} onEditarDestinataria={setPaseDestinataria} onCerrarDestinataria={() => setPaseDestinataria(null)}
+              onVideo={abrirEventoEnVideo}
+              onDestinatariaGuardada={(detalle, jugadora) => {
+                setResumenDestinatarias((actual) => ({ ...actual,
+                  detalles: { ...actual.detalles, [detalle.evento_id]: detalle },
+                  nombres: jugadora ? { ...actual.nombres, [jugadora.id]: nombreDestinataria(jugadora) } : actual.nombres,
+                }))
+                // Un guardado puede funcionar aunque la lectura del resumen haya fallado.
+                // Reconsultar evita dejar la fila como "No disponible" tras guardar.
+                if (resumenDestinatarias.error) setRecargaDestinatarias((n) => n + 1)
+              }}
+            />
           )}
 
           {seccion === 'estadisticas' && (
-            <Panel>
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div>
-                  <h2 className="text-xl font-black">Estadísticas</h2>
-                  <p className="mt-1 text-sm" style={{ color: A.secundario }}>
-                    {alcanceEstadisticas === 'partido'
-                      ? `Partido seleccionado · ${partidoActual?.rival || 'Sin rival'}`
-                      : `Acumulado de ${partidos.length} partidos registrados`}
-                  </p>
-                  {alcanceEstadisticas === 'partido' && partidoActual && (
-                    <p className="mt-1 text-xs" style={{ color: A.secundario }}>
-                      {datosEncuentro(partidoActual)}
-                    </p>
-                  )}
-                </div>
-                <div className="flex flex-wrap gap-2" role="group" aria-label="Alcance de estadísticas">
-                  <button
-                    type="button"
-                    onClick={() => setAlcanceEstadisticas('partido')}
-                    className="rounded-lg border px-4 py-2 text-sm font-bold"
-                    style={alcanceEstadisticas === 'partido'
-                      ? { backgroundColor: 'var(--ui-acento)', color: 'var(--ui-texto-sobre-acento)', borderColor: 'var(--ui-acento)' }
-                      : { backgroundColor: A.fondo, color: A.texto, borderColor: A.borde }}
-                  >Partido seleccionado</button>
-                  <button
-                    type="button"
-                    onClick={() => setAlcanceEstadisticas('acumulado')}
-                    className="rounded-lg border px-4 py-2 text-sm font-bold"
-                    style={alcanceEstadisticas === 'acumulado'
-                      ? { backgroundColor: 'var(--ui-acento)', color: 'var(--ui-texto-sobre-acento)', borderColor: 'var(--ui-acento)' }
-                      : { backgroundColor: A.fondo, color: A.texto, borderColor: A.borde }}
-                  >Todos los partidos</button>
-                </div>
-              </div>
-
-              <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
-                {[
-                  ['Acciones totales', eventosEstadisticos.length],
-                  ['Efectivas', resumenEfectividad.exitosas],
-                  ['No efectivas', resumenEfectividad.fallidas],
-                  ['Efectividad', resumenEfectividad.evaluadas ? `${resumenEfectividad.porcentaje}%` : '—'],
-                  ['Neutras', resumenEfectividad.neutros],
-                  ['Pendientes', resumenEfectividad.pendientes],
-                ].map(([label, valor]) => (
-                  <div
-                    key={label}
-                    className="rounded-lg border p-4"
-                    style={{ backgroundColor: A.fondo, borderColor: A.borde }}
-                  >
-                    <p className="min-h-10 text-sm" style={{ color: A.secundario }}>{label}</p>
-                    <p className="mt-2 text-3xl font-black" style={{ color: textoAnalisis(AMARILLO) }}>
-                      {valor}
-                    </p>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 rounded-lg border p-3 text-sm" style={{ backgroundColor: A.fondo, borderColor: A.borde }}>
-                <span style={{ color: A.secundario }}>Partidos incluidos: <strong style={{ color: A.texto }}>{alcanceEstadisticas === 'partido' ? (partidoActual ? 1 : 0) : partidos.length}</strong></span>
-                <span style={{ color: A.secundario }}>Acciones sin jugadora asignada: <strong style={{ color: A.texto }}>{eventosEstadisticos.filter((e) => !e.jugador_id).length}</strong></span>
-              </div>
-
-              <div className="mt-6">
-                <h3 className="mb-3 font-bold">Rendimiento colectivo · acciones por tipo</h3>
-                {estadisticas.length === 0 ? (
-                  <p className="text-sm" style={{ color: A.secundario }}>
-                    Todavía no hay acciones etiquetadas.
-                  </p>
-                ) : (
-                  <div className="space-y-4">
-                    {estadisticas.map(([nombre, datos]) => {
-                      const maximo = Math.max(
-                        1,
-                        ...estadisticas.map(([, d]) => d.total),
-                      )
-
-                      return (
-                        <div key={nombre}>
-                          <div className="mb-1 flex justify-between gap-3 text-sm">
-                            <span>{nombre}</span>
-                            <span className="font-bold">{datos.total}</span>
-                          </div>
-                          <div
-                            className="h-2 overflow-hidden rounded-full"
-                            style={{ backgroundColor: A.activo }}
-                          >
-                            <div
-                              className="h-full rounded-full"
-                              style={{
-                                backgroundColor: AMARILLO,
-                                width: `${(datos.total / maximo) * 100}%`,
-                              }}
-                            />
-                          </div>
-                          <p className="mt-1 text-xs" style={{ color: A.secundario }}>
-                            Exitosos: {datos.exitosos} · Fallidos: {datos.fallidos}
-                            {' · '}Neutros: {datos.neutros}
-                            {' · '}Pendientes: {datos.pendientes}
-                            {' · '}Efectividad: {datos.exitosos + datos.fallidos > 0
-                              ? `${Math.round((datos.exitosos / (datos.exitosos + datos.fallidos)) * 100)}%`
-                              : 'Sin evaluar'}
-                          </p>
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-7">
-                <h3 className="mb-3 font-bold">Rendimiento individual · acciones por jugadora</h3>
-                {estadisticasJugadoras.length === 0 ? (
-                  <p className="text-sm" style={{ color: A.secundario }}>
-                    No hay acciones asignadas a jugadoras.
-                  </p>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full min-w-[500px] text-left text-sm">
-                      <thead>
-                        <tr style={{ color: A.secundario }}>
-                          <th className="p-2">Jugadora</th>
-                          <th className="p-2">Acciones</th>
-                          <th className="p-2">Efectivas</th>
-                          <th className="p-2">No efectivas</th>
-                          <th className="p-2">Neutras</th>
-                          <th className="p-2">Pendientes</th>
-                          <th className="p-2">Efectividad</th>
-                          <th className="p-2">Detalle</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {estadisticasJugadoras.map((j) => (
-                          <tr
-                            key={j.id}
-                            className="border-t"
-                            style={{ borderColor: A.borde }}
-                          >
-                            <td className="p-2 font-bold">{j.nombre}</td>
-                            <td className="p-2">{j.total}</td>
-                            <td className="p-2 text-emerald-300">{eventosEstadisticos.filter((e) => e.jugador_id === j.id && ['Exitoso', 'Gol', 'Atajada'].includes(e.resultado)).length}</td>
-                            <td className="p-2 text-red-300">{eventosEstadisticos.filter((e) => e.jugador_id === j.id && ['Fallido', 'Fuera', 'Bloqueado'].includes(e.resultado)).length}</td>
-                            <td className="p-2">{eventosEstadisticos.filter((e) => e.jugador_id === j.id && e.resultado === 'Neutro').length}</td>
-                            <td className="p-2">{eventosEstadisticos.filter((e) => e.jugador_id === j.id && !e.resultado).length}</td>
-                            <td className="p-2">{(() => {
-                              const positivas = eventosEstadisticos.filter((e) => e.jugador_id === j.id && ['Exitoso', 'Gol', 'Atajada'].includes(e.resultado)).length
-                              const negativas = eventosEstadisticos.filter((e) => e.jugador_id === j.id && ['Fallido', 'Fuera', 'Bloqueado'].includes(e.resultado)).length
-                              return positivas + negativas ? `${Math.round((positivas / (positivas + negativas)) * 100)}%` : '—'
-                            })()}</td>
-                            <td className="p-2">
-                              {Object.entries(j.tipos)
-                                .map(([t, n]) => `${t}: ${n}`)
-                                .join(' · ')}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            </Panel>
+            <EstadisticasAnalisis alcance={alcanceEstadisticas} cambiarAlcance={setAlcanceEstadisticas}
+              partidoActual={partidoActual} partidos={partidos} eventos={eventos} eventosPartido={eventosPartido} jugadoras={jugadoras} />
           )}
 
           {seccion === 'mapa' && (
