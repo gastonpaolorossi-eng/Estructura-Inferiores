@@ -22,6 +22,7 @@ import EstadisticasAnalisis from './analisis/EstadisticasAnalisis'
 import { Boton, Campo, Panel } from './analisis/PiezasAnalisis'
 import { AMARILLO, CLASE_CAMPO, ESTILO_CAMPO } from '../utils/analisis/estilos'
 import { datosEncuentro, fechaLegible, formatearTiempo, nombreJugadora, videoCalendario, youtubeEmbed } from '../utils/analisis/formato'
+import { resultadoImplicito, resultadoParaGuardar } from '../utils/analisis/completitud'
 import {
   cargarResumenDestinatarias, esPase,
   nombreDestinataria,
@@ -100,6 +101,23 @@ const inputClass = CLASE_CAMPO
 const inputStyle = ESTILO_CAMPO
 
 const catalogoExplorador = { tipos: TIPOS, tiposRapidos: TIPOS_RAPIDOS, resultados: RESULTADOS, zonas: ZONAS }
+
+// En los pases el resultado lo fija el tipo: se ofrece solo ese.
+function opcionesResultado(tipo) {
+  const implicito = resultadoImplicito(tipo)
+  return implicito ? [implicito] : resultadosParaTipo(tipo)
+}
+
+// Preferencia de cada dispositivo. Sin almacenamiento disponible, arranca apagado.
+const CLAVE_UN_TOQUE = 'analisis:marcar-sin-jugadora'
+
+function leerUnToque() {
+  try { return window.localStorage.getItem(CLAVE_UN_TOQUE) === '1' } catch { return false }
+}
+
+function guardarUnToque(activo) {
+  try { window.localStorage.setItem(CLAVE_UN_TOQUE, activo ? '1' : '0') } catch { /* sin almacenamiento */ }
+}
 
 function TiempoVideo({ reloj }) {
   return formatearTiempo(useTiempoVideo(reloj))
@@ -443,6 +461,8 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
   const [filtroMapaZona, setFiltroMapaZona] = useState('todos')
 
   const [tipoRapido, setTipoRapido] = useState('')
+  const [unToque, setUnToque] = useState(leerUnToque)
+  const [ultimaAccion, setUltimaAccion] = useState(null)
   const [busquedaJugadora, setBusquedaJugadora] = useState('')
   const [mostrarEdicionEvento, setMostrarEdicionEvento] = useState(false)
   const [editandoEventoId, setEditandoEventoId] = useState(null)
@@ -982,6 +1002,13 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
 
   const paseDestinoActual = eventosMapa.find((evento) => evento.id === paseDestinoId && esPase(evento))
 
+  const capturaBloqueada = bloqueoEscritura || guardando || !videoListo || comandoPendiente || !ventanas.conectado || registroIncierto
+
+  // Se oculta si la acción ya no está (borrada o recargada) o si cambió el partido.
+  const accionDeshacible = ultimaAccion?.partidoId === partidoId
+    ? eventos.find((evento) => evento.id === ultimaAccion.id) || null
+    : null
+
   const eventosFiltrados = useMemo(
     () => eventosPartido.filter((e) =>
       (filtroJugador === 'todos' || e.jugador_id === filtroJugador) &&
@@ -1234,7 +1261,7 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
           ...referenciaCaptura,
           tipo: tipoSeleccionado,
           zona: null,
-          resultado: null,
+          resultado: resultadoImplicito(tipoSeleccionado),
           observaciones: null,
         })
         .select()
@@ -1248,12 +1275,14 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
           (a, b) => Number(a.segundo) - Number(b.segundo),
         ),
       )
+      setUltimaAccion({ id: data.id, partidoId })
 
       // Conservamos la acción elegida para etiquetar varias jugadoras seguidas.
-      setMensaje(
-        `${tipoSeleccionado} registrada para ${nombreJugadora(
+      setMensaje(idJugadora
+        ? `${tipoSeleccionado} registrada para ${nombreJugadora(
           jugadoras.find((j) => j.id === idJugadora),
-        )}. Resultado pendiente.`,
+        )}.${resultadoImplicito(tipoSeleccionado) ? '' : ' Resultado pendiente.'}`
+        : `${tipoSeleccionado} registrada sin jugadora (${formatearTiempo(tiempo)}). Completala en la revisión.`,
       )
     } catch (e) {
       if (enviado && registroInciertoTrasError(e)) setRegistroIncierto(true)
@@ -1317,7 +1346,7 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
           segundo: tiempo,
           periodo: Number(edicionEvento.periodo) === 2 ? 2 : 1,
           zona: zonaEfectivaEvento(edicionEvento),
-          resultado: edicionEvento.resultado || null,
+          resultado: resultadoParaGuardar(edicionEvento.tipo, edicionEvento.resultado),
           observaciones: edicionEvento.observaciones.trim() || null,
           coordenada_x: edicionEvento.coordenada_x,
           coordenada_y: edicionEvento.coordenada_y,
@@ -1362,6 +1391,41 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
 
     setEventos((actuales) => actuales.filter((e) => e.id !== evento.id))
     setMensaje('Acción eliminada.')
+  }
+
+  // Sin confirmación: solo la última acción marcada en este dispositivo y sesión.
+  async function deshacerUltimaAccion() {
+    if (!esAdmin || !escrituraAutorizada || !accionDeshacible || guardando) return
+    const evento = accionDeshacible
+
+    setGuardando(true)
+    setError('')
+    setMensaje('')
+    try {
+      const { error: deleteError } = await supabase
+        .from('analisis_eventos')
+        .delete()
+        .eq('id', evento.id)
+
+      if (deleteError) throw deleteError
+
+      setEventos((actuales) => actuales.filter((e) => e.id !== evento.id))
+      setUltimaAccion(null)
+      setMensaje(`Se deshizo ${evento.tipo} · ${formatearTiempo(evento.segundo)}.`)
+    } catch (e) {
+      console.error('Error al deshacer acción:', e)
+      setError(e.message || 'No se pudo deshacer la acción.')
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  function cambiarUnToque() {
+    setUnToque(!unToque)
+    guardarUnToque(!unToque)
+    setTipoRapido('')
+    setError('')
+    setMensaje('')
   }
 
   function limpiarFormulario() {
@@ -1569,7 +1633,7 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
           ...referenciaCaptura,
           tipo,
           zona: coordenadasAccion ? zonaTactica(coordenadasAccion.x, coordenadasAccion.y, direccionAtaqueActual) : zona || null,
-          resultado: resultado || null,
+          resultado: resultadoParaGuardar(tipo, resultado),
           observaciones: observaciones.trim() || null,
           coordenada_x: coordenadasAccion?.x ?? null,
           coordenada_y: coordenadasAccion?.y ?? null,
@@ -1586,6 +1650,7 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
         ),
       )
 
+      setUltimaAccion({ id: data.id, partidoId })
       setSegundo(String(tiempo))
       setMensaje('Acción registrada correctamente.')
       setObservaciones('')
@@ -2216,8 +2281,9 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
                     </p>
                     <h2 className="mt-1 text-xl font-black">Etiquetado rápido</h2>
                     <p className="mt-2 text-sm" style={{ color: A.secundario }}>
-                      1. Elegí una acción. 2. Elegí la jugadora. 3. Completá el
-                      resultado cuando revises el evento.
+                      {unToque
+                        ? 'Tocá una acción y se guarda al instante, sin jugadora. La completás después, en la revisión.'
+                        : '1. Elegí una acción. 2. Elegí la jugadora. 3. Completá el resultado cuando revises el evento.'}
                     </p>
                   </div>
 
@@ -2227,6 +2293,29 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
                     </p>
                   ) : (
                     <>
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={unToque}
+                        onClick={cambiarUnToque}
+                        className="mb-3 flex min-h-11 w-full items-center justify-between gap-3 rounded-lg border px-3 py-2 text-left text-sm font-bold"
+                        style={{
+                          backgroundColor: unToque ? A.seleccion : A.fondo,
+                          borderColor: unToque ? AMARILLO : A.borde,
+                          color: A.texto,
+                        }}
+                      >
+                        <span>Marcar sin jugadora (un toque)</span>
+                        <span
+                          className="rounded-md px-2 py-1 text-xs font-black"
+                          style={unToque
+                            ? { backgroundColor: 'var(--ui-acento)', color: 'var(--ui-texto-sobre-acento)' }
+                            : { backgroundColor: A.control, color: A.secundario }}
+                        >
+                          {unToque ? 'Activado' : 'Apagado'}
+                        </span>
+                      </button>
+
                       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-2">
                         {TIPOS_RAPIDOS.map((accion) => {
                           const activa = tipoRapido === accion.nombre
@@ -2235,8 +2324,13 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
                             <button
                               key={accion.nombre}
                               type="button"
-                              disabled={guardando}
+                              data-tipo-rapido={accion.nombre}
+                              disabled={unToque ? capturaBloqueada : guardando}
                               onClick={() => {
+                                if (unToque) {
+                                  registrarAccionRapida(accion.nombre, null)
+                                  return
+                                }
                                 setTipoRapido(activa ? '' : accion.nombre)
                                 setTipo(accion.nombre)
                                 setResultado((actual) => resultadoAlCambiarTipo(accion.nombre, actual))
@@ -2267,7 +2361,19 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
                         })}
                       </div>
 
-                      {tipoRapido && (
+                      {accionDeshacible && (
+                        <button
+                          type="button"
+                          disabled={bloqueoEscritura || guardando}
+                          onClick={deshacerUltimaAccion}
+                          className="mt-3 min-h-11 w-full rounded-lg border px-3 py-2 text-sm font-bold disabled:opacity-40"
+                          style={{ backgroundColor: A.fondo, borderColor: A.borde, color: A.texto }}
+                        >
+                          ↶ Deshacer {accionDeshacible.tipo} · {formatearTiempo(accionDeshacible.segundo)}
+                        </button>
+                      )}
+
+                      {tipoRapido && !unToque && (
                         <div
                           className="mt-4 rounded-lg border p-3"
                           style={{
@@ -2294,11 +2400,21 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
                           </Campo>
 
                           <div className="mt-3 max-h-64 space-y-1 overflow-y-auto">
+                            <button
+                              type="button"
+                              disabled={capturaBloqueada}
+                              onClick={() => registrarAccionRapida(tipoRapido, null)}
+                              className="flex min-h-11 w-full items-center justify-between gap-3 rounded-lg border border-dashed p-2 text-left text-sm font-bold disabled:opacity-40"
+                              style={{ backgroundColor: A.fondo, borderColor: A.borde }}
+                            >
+                              Guardar sin jugadora
+                              <span className="text-xs font-normal" style={{ color: A.secundario }}>se completa después</span>
+                            </button>
                             {jugadorasVisibles.map((c) => (
                               <button
                                 key={c.id}
                                 type="button"
-                                disabled={bloqueoEscritura || guardando || !videoListo || comandoPendiente || !ventanas.conectado || registroIncierto}
+                                disabled={capturaBloqueada}
                                 onClick={() =>
                                   registrarAccionRapida(tipoRapido, c.jugador_id)
                                 }
@@ -2405,11 +2521,11 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
                               <select
                                 className={inputClass}
                                 style={inputStyle}
-                                value={resultado}
+                                value={resultadoImplicito(tipo) ?? resultado}
                                 required={tipo === 'Despeje'}
                                 onChange={(e) => setResultado(e.target.value)}
                               >
-                                {resultadosParaTipo(tipo).map((r) => (
+                                {opcionesResultado(tipo).map((r) => (
                                   <option key={r} value={r}>{r}</option>
                                 ))}
                               </select>
@@ -2684,15 +2800,15 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
                         <select
                           className={inputClass}
                           style={inputStyle}
-                          value={edicionEvento.resultado}
+                          value={resultadoImplicito(edicionEvento.tipo) ?? edicionEvento.resultado}
                           required={edicionEvento.tipo === 'Despeje'}
                           onChange={(e) => setEdicionEvento((a) => ({
                             ...a,
                             resultado: e.target.value,
                           }))}
                         >
-                          <option value="" disabled={edicionEvento.tipo === 'Despeje'}>Pendiente de completar</option>
-                          {resultadosParaTipo(edicionEvento.tipo).map((r) => (
+                          {!resultadoImplicito(edicionEvento.tipo) && <option value="" disabled={edicionEvento.tipo === 'Despeje'}>Pendiente de completar</option>}
+                          {opcionesResultado(edicionEvento.tipo).map((r) => (
                             <option key={r} value={r}>{r}</option>
                           ))}
                         </select>

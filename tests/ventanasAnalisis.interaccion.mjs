@@ -125,8 +125,15 @@ test('Análisis: dos ventanas, un reproductor, comandos confirmados y un guardad
     assert.equal(writes.length,3);assert.equal(writes[2].tipo,'Despeje');assert.equal(writes[2].resultado,'Fallido')
     assert.equal(writes[2].coordenada_x,72);assert.equal(writes[2].coordenada_y,35);assert.equal(writes[2].partido_id,'p2')
     await act(async()=>resolverInsert())
+    // Un toque sin jugadora desde la botonera separada.
+    await click(remoto(),'Marcar sin jugadora')
+    activo().time=40.6
+    await act(()=>remoto().querySelector('[data-tipo-rapido="Pérdida"]').click())
+    assert.equal(writes.length,4);assert.deepEqual([writes[3].tipo,writes[3].jugador_id,writes[3].segundo,writes[3].partido_id],['Pérdida',null,40,'p2'])
+    await act(async()=>resolverInsert())
+    await click(remoto(),'Marcar sin jugadora')
     await act(()=>window.dispatchEvent(new window.Event('pagehide')))
-    assert.equal(popup.closed,true);assert.equal(writes.length,3)
+    assert.equal(popup.closed,true);assert.equal(writes.length,4)
     // Marco real de la ruta auxiliar: conexión sin iniciar otra aplicación ni cliente.
     const mensajes=[];const principal={closed:false,postMessage:(d,o)=>mensajes.push({d,o})}
     Object.defineProperty(window,'opener',{value:principal,configurable:true})
@@ -141,7 +148,7 @@ test('Análisis: dos ventanas, un reproductor, comandos confirmados y un guardad
     await confirmar('https://ajeno.test');assert.match(document.body.textContent,/Conectando/)
     await confirmar('https://comunicaciones.test');assert.doesNotMatch(document.body.textContent,/Conectando/)
     assert.equal(document.getElementById('analisis-auxiliar-contenido'),destino)
-    assert.equal(writes.length,3)
+    assert.equal(writes.length,4)
   } finally {
     await act(()=>root.unmount());await server.close();for(const hija of hijas)hija.window.close();dom.window.close()
     for(const[n,p]of previos){if(p)Object.defineProperty(globalThis,n,p);else delete globalThis[n]}
