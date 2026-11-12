@@ -21,7 +21,7 @@ test('Análisis: dos ventanas, un reproductor, comandos confirmados y un guardad
   const datos={perfiles:{email:authUser.email,nombre:'Kevin Garay',rol:'coordinacion'},partidos:[],analisis_partidos:partidos,analisis_eventos:[],jugadores:[j],citaciones:[{id:'c',jugador_id:'j',dorsal:10,titular:true}]}
   global('__analisisSupabase', { rpc:async nombre=>{assert.equal(nombre,'puede_administrar_analisis');return {data:true}}, auth:{getUser:async()=>({data:{user:authUser}}),onAuthStateChange:fn=>{emitirAuth=fn;return {data:{subscription:{unsubscribe(){}}}}}},from(tabla){
     let registro
-    const q={select(){return q},eq(){return q},in(){return q},order(){return q},maybeSingle(){return Promise.resolve({data:datos[tabla]})},insert(d){assert.equal(tabla,'analisis_eventos');registro=d;return q},single(){writes.push(registro);return new Promise(resolve=>{resolverInsert=()=>{datos.analisis_eventos.push(registro);resolve({data:registro})}})},then(resolve,reject){return Promise.resolve({data:structuredClone(datos[tabla] || [])}).then(resolve,reject)}}
+    const q={select(){return q},eq(){return q},in(){return q},order(){return q},range(){return q},maybeSingle(){return Promise.resolve({data:datos[tabla]})},insert(d){assert.equal(tabla,'analisis_eventos');registro=d;return q},single(){writes.push(registro);return new Promise(resolve=>{resolverInsert=()=>{datos.analisis_eventos.push(registro);resolve({data:registro})}})},then(resolve,reject){return Promise.resolve({data:structuredClone(datos[tabla] || [])}).then(resolve,reject)}}
     return q
   } })
   class Player {

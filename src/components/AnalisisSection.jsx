@@ -10,6 +10,8 @@ import useVentanaAnalisis from '../hooks/useVentanaAnalisis'
 import ZonaVentanaAnalisis from './ZonaVentanaAnalisis'
 import ControlesVideoAnalisis from './ControlesVideoAnalisis'
 import { crearBloqueoEtiquetado, leerTiempoActivo, registroInciertoTrasError } from '../utils/ventanaAnalisis'
+import { crearRelojVideo, useTiempoVideo } from '../utils/relojVideo'
+import { leerPaginas } from '../utils/rendimiento/lecturas'
 import { cargarYouTubeEnVentana, mensajeErrorYouTube } from '../utils/youtubeVentana'
 import './ventanasAnalisis.css'
 import EncabezadoSeccion from './ui/EncabezadoSeccion'
@@ -180,6 +182,10 @@ function youtubeEmbed(url) {
 function formatearTiempo(segundos) {
   const total = Math.max(0, Math.floor(Number(segundos) || 0))
   return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`
+}
+
+function TiempoVideo({ reloj }) {
+  return formatearTiempo(useTiempoVideo(reloj))
 }
 
 function fechaLegible(fecha) {
@@ -576,7 +582,7 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
   const [videoListo, setVideoListo] = useState(false)
   const [videoListoPartidoId, setVideoListoPartidoId] = useState(null)
   const [videoReproduciendo, setVideoReproduciendo] = useState(false)
-  const [tiempoVideo, setTiempoVideo] = useState(0)
+  const [relojVideo] = useState(crearRelojVideo)
   const [segundoIr, setSegundoIr] = useState('0')
   const [velocidadVideo, setVelocidadVideo] = useState(1)
   const [velocidadesVideo, setVelocidadesVideo] = useState([])
@@ -656,13 +662,13 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
       else if (tipoComando === 'pausa') player.pauseVideo()
       else player.playVideo()
       // Confirmación por eventos o lectura posterior de la API, no por un reloj inventado.
-      setTiempoVideo(tiempo)
+      relojVideo.fijar(tiempo)
       return true
     } catch (e) {
       if (emitido && comandoRef.current === emitido) { comandoRef.current = null; setComandoPendiente(false) }
       setError(e.message || 'No se pudo controlar el video.'); return false
     }
-  }, [partidoId, tiempoActivo])
+  }, [partidoId, tiempoActivo, relojVideo])
 
   useEffect(() => {
     if ((seccion !== 'video' || !usuario) && ventanas.gestor.getSnapshot().modo) ventanas.gestor.acoplar()
@@ -780,14 +786,14 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
       if (!ids.length) {
         setEventos([])
       } else {
-        const { data: listaEventos, error: eventosError } = await supabase
+        // Paginado: Supabase corta cada consulta en 1000 filas y una temporada las supera.
+        const listaEventos = await leerPaginas(() => supabase
           .from('analisis_eventos')
           .select('*')
           .in('partido_id', ids)
-          .order('segundo', { ascending: true })
+          .order('segundo', { ascending: true }))
 
-        if (eventosError) throw eventosError
-        setEventos(listaEventos || [])
+        setEventos(listaEventos)
       }
 
       const categoriaIds = [
@@ -914,7 +920,7 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
     setVideoListo(false)
     setVideoListoPartidoId(null)
     setVideoReproduciendo(false)
-    setTiempoVideo(0)
+    relojVideo.fijar(0)
     comandoRef.current = null
     setComandoPendiente(false)
 
@@ -930,7 +936,7 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
               if (cancelado) return
               setVideoListo(true)
               setVideoListoPartidoId(partidoId)
-              setTiempoVideo(
+              relojVideo.fijar(
                 Math.floor(evento.target.getCurrentTime() || 0),
               )
               setVelocidadVideo(evento.target.getPlaybackRate?.() || 1)
@@ -997,7 +1003,7 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
       setVideoListoPartidoId(null)
       setVideoReproduciendo(false)
     }
-  }, [videoActual, partidoId, seccion, cargando, destinoReproductor, revisionReproductor, confirmarComando])
+  }, [videoActual, partidoId, seccion, cargando, destinoReproductor, revisionReproductor, confirmarComando, relojVideo])
 
   useEffect(() => {
     if (!videoListo || !playerRef.current) return undefined
@@ -1007,7 +1013,7 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
         const tiempoActual = playerRef.current?.getCurrentTime?.()
 
         if (Number.isFinite(tiempoActual)) {
-          setTiempoVideo(Math.floor(tiempoActual))
+          relojVideo.fijar(tiempoActual)
           const confirmacion = confirmarComando(playerRef.current)
           if (!comandoRef.current && confirmacion !== false) restaurarVideoRef.current = { partidoId, videoActual, tiempo: tiempoActual,
             reproduciendo: playerRef.current.getPlayerState?.() === 1, velocidad: playerRef.current.getPlaybackRate?.() || 1 }
@@ -1018,7 +1024,7 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
     }, 500)
 
     return () => window.clearInterval(intervalo)
-  }, [videoListo, partidoId, videoActual, confirmarComando])
+  }, [videoListo, partidoId, videoActual, confirmarComando, relojVideo])
 
   useEffect(() => {
     if (
@@ -1818,7 +1824,7 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
   }
 
   const controlesVideo = <ControlesVideoAnalisis listo={videoListo && ventanas.conectado} reproduciendo={videoReproduciendo}
-    tiempo={tiempoVideo} segundo={segundoIr} cambiarSegundo={setSegundoIr} reproducir={alternarReproduccion}
+    reloj={relojVideo} segundo={segundoIr} cambiarSegundo={setSegundoIr} reproducir={alternarReproduccion}
     tomarTiempo={tomarTiempoActual} saltar={irAlSegundo} desplazar={desplazarVideo}
     velocidad={velocidadVideo} velocidades={velocidadesVideo} cambiarVelocidad={v => solicitarVideo('velocidad', v)} pendiente={comandoPendiente} />
   const encabezadoVentana = <>
@@ -2492,7 +2498,7 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
                             Acción seleccionada: {tipoRapido}
                           </p>
                           <p className="mt-1 text-xs" style={{ color: A.secundario }}>
-                            Tiempo: {formatearTiempo(tiempoVideo)} · Elegí una
+                            Tiempo: <TiempoVideo reloj={relojVideo} /> · Elegí una
                             convocada para guardar el evento.
                           </p>
 
@@ -2637,7 +2643,7 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
                           )}
                           {tiempoAutomatico && (
                             <p className="text-xs" style={{ color: A.secundario }}>
-                              Tiempo actual del video: {formatearTiempo(tiempoVideo)}. Se capturará al guardar.
+                              Tiempo actual del video: <TiempoVideo reloj={relojVideo} />. Se capturará al guardar.
                               Si necesitás corregirlo, desactivá la captura automática.
                             </p>
                           )}

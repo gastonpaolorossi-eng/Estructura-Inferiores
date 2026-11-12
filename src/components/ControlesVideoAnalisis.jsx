@@ -1,8 +1,9 @@
 import { ANALISIS as A, textoAnalisis } from '../appearance/analisis'
+import { useTiempoVideo } from '../utils/relojVideo'
 
-export default function ControlesVideoAnalisis({ listo, reproduciendo, tiempo, segundo, cambiarSegundo, reproducir, tomarTiempo, saltar, desplazar, velocidad, velocidades, cambiarVelocidad, pendiente }) {
+export default function ControlesVideoAnalisis({ listo, reproduciendo, reloj, segundo, cambiarSegundo, reproducir, tomarTiempo, saltar, desplazar, velocidad, velocidades, cambiarVelocidad, pendiente }) {
   const boton = { backgroundColor: A.control, color: A.texto, border: `1px solid ${A.borde}` }
-  const t = Math.max(0, Math.floor(tiempo || 0))
+  const t = useTiempoVideo(reloj)
   return <section className="analisis-controles-video" aria-label="Controles del reproductor activo">
     <div className="flex flex-wrap items-center gap-2">
       <strong className="mr-auto font-mono text-2xl" style={{ color: textoAnalisis('#F2C230') }}>{String(Math.floor(t / 60)).padStart(2, '0')}:{String(t % 60).padStart(2, '0')}</strong>
