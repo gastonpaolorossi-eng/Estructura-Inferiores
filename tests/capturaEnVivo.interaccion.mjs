@@ -4,11 +4,12 @@ import assert from 'node:assert/strict'
 import { pathToFileURL } from 'node:url'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
+import { CATALOGO_BASE } from '../src/utils/analisis/catalogoAcciones.js'
 const { JSDOM } = await import(pathToFileURL(process.env.PIZARRA_DOM_PATH || join(tmpdir(), 'comunicaciones-pizarra-dom/node_modules/jsdom/lib/api.js')).href)
 
-async function montar() {
+async function montar({ tipos, eventos = [] } = {}) {
   const dom = new JSDOM('<!doctype html><html><head><style>body{color:black}</style></head><body><div id="root"></div></body></html>', { url: 'https://comunicaciones.test' })
-  const previos = new Map(), players = [], timers = new Map(), writes = [], borrados = [], lecturas = {}
+  const previos = new Map(), players = [], timers = new Map(), writes = [], borrados = [], actualizaciones = [], lecturas = {}
   function global(nombre, valor) { previos.set(nombre, Object.getOwnPropertyDescriptor(globalThis,nombre)); Object.defineProperty(globalThis,nombre,{value:valor,configurable:true,writable:true}) }
   for (const n of ['window','document','HTMLElement','Event','MouseEvent','KeyboardEvent']) global(n,dom.window[n])
   global('IS_REACT_ACT_ENVIRONMENT',true)
@@ -17,15 +18,18 @@ async function montar() {
   const ana={id:'j',nombre:'Ana',apellido:'Prueba',categoria_id:'cat'}, bea={id:'j2',nombre:'Bea',apellido:'Ensayo',categoria_id:'cat'}
   const partidos=[{id:'p1',rival:'Rival A',fecha:'2026-10-29',categoria_id:'cat',direccion_primer_tiempo:'derecha',partido_calendario_id:'c1',video_url:'https://www.youtube.com/watch?v=abc123def45'}]
   const estado={resolverInsert:null}
-  const datos={perfiles:{email:authUser.email,nombre:'Kevin Garay',rol:'coordinacion'},partidos:[],analisis_partidos:partidos,analisis_eventos:[],analisis_pases_detalle:[],jugadores:[ana,bea],
+  const datos={perfiles:{email:authUser.email,nombre:'Kevin Garay',rol:'coordinacion'},partidos:[],analisis_partidos:partidos,analisis_eventos:structuredClone(eventos),analisis_pases_detalle:[],analisis_tipos_accion:tipos,jugadores:[ana,bea],
     citaciones:[{id:'c',jugador_id:'j',dorsal:10,titular:true},{id:'c2',jugador_id:'j2',dorsal:7,titular:false}]}
   global('__analisisSupabase', { rpc:async nombre=>{assert.equal(nombre,'puede_administrar_analisis');return {data:true}}, auth:{getUser:async()=>({data:{user:authUser}}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})},from(tabla){
-    let registro, borrar=false
+    let registro, borrar=false, cambios=null
     const filtro={}
     const q={select(){return q},eq(c,v){filtro[c]=v;return q},in(){return q},order(){return q},range(){return q},limit(){return q},maybeSingle(){return Promise.resolve({data:datos[tabla]})},
       insert(d){assert.equal(tabla,'analisis_eventos');registro=d;return q},
       delete(){assert.equal(tabla,'analisis_eventos');borrar=true;return q},
-      single(){writes.push(registro);return new Promise(resolve=>{estado.resolverInsert=()=>{datos.analisis_eventos.push(registro);resolve({data:registro})}})},
+      update(d){assert.equal(tabla,'analisis_eventos');cambios=d;return q},
+      single(){
+        if(cambios){actualizaciones.push({id:filtro.id,...cambios});const fila={...datos.analisis_eventos.find(e=>e.id===filtro.id),...cambios};datos.analisis_eventos=datos.analisis_eventos.map(e=>e.id===fila.id?fila:e);return Promise.resolve({data:fila,error:null})}
+        writes.push(registro);return new Promise(resolve=>{estado.resolverInsert=()=>{datos.analisis_eventos.push(registro);resolve({data:registro})}})},
       then(resolve,reject){
         if(borrar){borrados.push(filtro.id);datos.analisis_eventos=datos.analisis_eventos.filter(e=>e.id!==filtro.id);return Promise.resolve({error:null}).then(resolve,reject)}
         lecturas[tabla]=(lecturas[tabla]||0)+1;return Promise.resolve({data:structuredClone(datos[tabla] || [])}).then(resolve,reject)}}
@@ -47,7 +51,7 @@ async function montar() {
   const boton=t=>[...document.querySelectorAll('button')].find(b=>b.textContent.includes(t))
   const presionar=async(b,t)=>{assert.ok(b,t);assert.equal(b.disabled,false,t);await act(()=>b.click())}
   const h={
-    act, dom, datos, writes, borrados, lecturas, boton,
+    act, dom, datos, writes, borrados, actualizaciones, lecturas, boton,
     resolver:async()=>act(async()=>estado.resolverInsert()),
     click:async t=>presionar(boton(t),t),
     // Botón de una acción de la botonera rápida.
@@ -179,6 +183,62 @@ test('Análisis: un toque sin jugadora, botón "Sin jugadora" y deshacer la últ
     assert.deepEqual([writes[4].tipo,writes[4].jugador_id,writes[4].resultado],['Pase correcto','j2','Exitoso'])
     await h.resolver();h.registradas(4)
     assert.equal(borrados.length,1)
+  } finally {
+    await h.cerrar()
+  }
+})
+
+// Edición: el selector de resultado sigue las reglas de cada tipo.
+const accionesPrevias = [
+  { id: 'v1', partido_id: 'p1', jugador_id: 'j', tipo: 'Pérdida', resultado: 'Fallido', segundo: 100, periodo: 1, zona: null, coordenada_x: null, coordenada_y: null, observaciones: null },
+  { id: 'v2', partido_id: 'p1', jugador_id: 'j2', tipo: 'Remate', resultado: 'Exitoso', segundo: 200, periodo: 1, zona: null, coordenada_x: null, coordenada_y: null, observaciones: null },
+]
+const formularioEdicion = () => [...document.querySelectorAll('form')].find(f => f.textContent.includes('Editar acción'))
+const selectorResultado = form => [...form.querySelectorAll('select')].find(s => s.parentElement.textContent.startsWith('Resultado'))
+async function editar(h, indice) {
+  const botones = [...document.querySelectorAll('button')].filter(b => b.textContent.trim() === 'Editar')
+  await h.act(() => botones[indice].click())
+  const form = formularioEdicion(); assert.ok(form, 'formulario de edición')
+  return form
+}
+const guardar = async (h, form) => h.act(async () => { form.dispatchEvent(new h.dom.window.Event('submit', { bubbles: true, cancelable: true })); await Promise.resolve() })
+
+test('Análisis sin tabla de tipos: catálogo por defecto, aviso y resultados según el tipo', async () => {
+  const h = await montar({ eventos: accionesPrevias })
+  try {
+    await h.iniciar()
+    assert.match(document.body.textContent, /valores por defecto/)
+
+    // Pérdida no lleva resultado: no hay selector y al guardar queda vacío.
+    let form = await editar(h, 0)
+    assert.equal(selectorResultado(form), undefined)
+    await guardar(h, form)
+    assert.deepEqual([h.actualizaciones[0].id, h.actualizaciones[0].resultado], ['v1', null])
+
+    // Remate: sus cuatro opciones y el valor viejo marcado, sin cambiarlo.
+    form = await editar(h, 1)
+    const sel = selectorResultado(form)
+    assert.deepEqual([...sel.options].map(o => o.textContent), ['Pendiente de completar', 'Exitoso (valor anterior)', 'Gol', 'Atajada', 'Fuera', 'Bloqueado'])
+    assert.equal(sel.value, 'Exitoso')
+    await guardar(h, form)
+    assert.deepEqual([h.actualizaciones[1].id, h.actualizaciones[1].resultado], ['v2', 'Exitoso'])
+  } finally {
+    await h.cerrar()
+  }
+})
+
+test('Análisis con tabla de tipos: las reglas salen de la base', async () => {
+  const tipos = CATALOGO_BASE.map(t => t.codigo === 'Pérdida' ? { ...t, resultados: ['Exitoso', 'Fallido'] } : t)
+  const h = await montar({ tipos, eventos: accionesPrevias })
+  try {
+    await h.iniciar()
+    assert.doesNotMatch(document.body.textContent, /valores por defecto|falta aplicar/)
+    const form = await editar(h, 0)
+    const sel = selectorResultado(form)
+    assert.deepEqual([...sel.options].map(o => o.value), ['', 'Exitoso', 'Fallido'])
+    assert.equal(sel.value, 'Fallido')
+    await guardar(h, form)
+    assert.deepEqual([h.actualizaciones[0].id, h.actualizaciones[0].resultado], ['v1', 'Fallido'])
   } finally {
     await h.cerrar()
   }

@@ -23,6 +23,7 @@ import { Boton, Campo, Panel } from './analisis/PiezasAnalisis'
 import { AMARILLO, CLASE_CAMPO, ESTILO_CAMPO } from '../utils/analisis/estilos'
 import { datosEncuentro, fechaLegible, formatearTiempo, nombreJugadora, videoCalendario, youtubeEmbed } from '../utils/analisis/formato'
 import { resultadoImplicito, resultadoParaGuardar } from '../utils/analisis/completitud'
+import { CATALOGO_POR_DEFECTO, cargarCatalogo, opcionesResultado as opcionesResultadoCatalogo } from '../utils/analisis/catalogoAcciones'
 import {
   cargarResumenDestinatarias, esPase,
   nombreDestinataria,
@@ -102,10 +103,12 @@ const inputStyle = ESTILO_CAMPO
 
 const catalogoExplorador = { tipos: TIPOS, tiposRapidos: TIPOS_RAPIDOS, resultados: RESULTADOS, zonas: ZONAS }
 
-// En los pases el resultado lo fija el tipo: se ofrece solo ese.
-function opcionesResultado(tipo) {
-  const implicito = resultadoImplicito(tipo)
-  return implicito ? [implicito] : resultadosParaTipo(tipo)
+// Al cambiar de tipo se conserva el resultado si sigue siendo válido para el
+// tipo nuevo según el catálogo; si no, se preselecciona su primera opción.
+function resultadoAlCambiarSegunCatalogo(catalogo, tipo, actual) {
+  const opciones = opcionesResultadoCatalogo(catalogo, tipo)
+  const preferido = resultadoAlCambiarTipo(tipo, actual)
+  return opciones.includes(preferido) ? preferido : (opciones[0] ?? '')
 }
 
 // Preferencia de cada dispositivo. Sin almacenamiento disponible, arranca apagado.
@@ -462,6 +465,8 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
 
   const [tipoRapido, setTipoRapido] = useState('')
   const [unToque, setUnToque] = useState(leerUnToque)
+  const [catalogoAcciones, setCatalogoAcciones] = useState({ catalogo: CATALOGO_POR_DEFECTO, origen: 'base', aviso: '' })
+  const catalogo = catalogoAcciones.catalogo
   const [ultimaAccion, setUltimaAccion] = useState(null)
   const [busquedaJugadora, setBusquedaJugadora] = useState('')
   const [mostrarEdicionEvento, setMostrarEdicionEvento] = useState(false)
@@ -1004,6 +1009,10 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
 
   const capturaBloqueada = bloqueoEscritura || guardando || !videoListo || comandoPendiente || !ventanas.conectado || registroIncierto
 
+  const opcionesEdicion = opcionesResultadoCatalogo(catalogo, edicionEvento.tipo)
+  const resultadoAnteriorEdicion = !resultadoImplicito(edicionEvento.tipo, catalogo) && edicionEvento.resultado &&
+    !opcionesEdicion.includes(edicionEvento.resultado) ? edicionEvento.resultado : ''
+
   // Se oculta si la acción ya no está (borrada o recargada) o si cambió el partido.
   const accionDeshacible = ultimaAccion?.partidoId === partidoId
     ? eventos.find((evento) => evento.id === ultimaAccion.id) || null
@@ -1047,6 +1056,13 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
     minutoDesde: setFiltroExploradorMinutoDesde,
     minutoHasta: setFiltroExploradorMinutoHasta,
   }
+
+  // Una lectura al entrar. Si falla, cargarCatalogo devuelve el catálogo base con un aviso.
+  useEffect(() => {
+    let cancelado = false
+    cargarCatalogo(supabase).then((resultado) => { if (!cancelado) setCatalogoAcciones(resultado) })
+    return () => { cancelado = true }
+  }, [])
 
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((evento, sesion) => {
@@ -1261,7 +1277,7 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
           ...referenciaCaptura,
           tipo: tipoSeleccionado,
           zona: null,
-          resultado: resultadoImplicito(tipoSeleccionado),
+          resultado: resultadoImplicito(tipoSeleccionado, catalogo),
           observaciones: null,
         })
         .select()
@@ -1281,7 +1297,7 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
       setMensaje(idJugadora
         ? `${tipoSeleccionado} registrada para ${nombreJugadora(
           jugadoras.find((j) => j.id === idJugadora),
-        )}.${resultadoImplicito(tipoSeleccionado) ? '' : ' Resultado pendiente.'}`
+        )}.${resultadoImplicito(tipoSeleccionado, catalogo) ? '' : ' Resultado pendiente.'}`
         : `${tipoSeleccionado} registrada sin jugadora (${formatearTiempo(tiempo)}). Completala en la revisión.`,
       )
     } catch (e) {
@@ -1346,7 +1362,7 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
           segundo: tiempo,
           periodo: Number(edicionEvento.periodo) === 2 ? 2 : 1,
           zona: zonaEfectivaEvento(edicionEvento),
-          resultado: resultadoParaGuardar(edicionEvento.tipo, edicionEvento.resultado),
+          resultado: resultadoParaGuardar(edicionEvento.tipo, edicionEvento.resultado, catalogo),
           observaciones: edicionEvento.observaciones.trim() || null,
           coordenada_x: edicionEvento.coordenada_x,
           coordenada_y: edicionEvento.coordenada_y,
@@ -1633,7 +1649,7 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
           ...referenciaCaptura,
           tipo,
           zona: coordenadasAccion ? zonaTactica(coordenadasAccion.x, coordenadasAccion.y, direccionAtaqueActual) : zona || null,
-          resultado: resultadoParaGuardar(tipo, resultado),
+          resultado: resultadoParaGuardar(tipo, resultado, catalogo),
           observaciones: observaciones.trim() || null,
           coordenada_x: coordenadasAccion?.x ?? null,
           coordenada_y: coordenadasAccion?.y ?? null,
@@ -1739,6 +1755,12 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
           )}
         </div>
       </header>
+
+      {catalogoAcciones.aviso && (
+        <p role="status" className="rounded-lg border px-3 py-2 text-xs" style={{ borderColor: A.borde, color: A.secundario }}>
+          {catalogoAcciones.aviso}
+        </p>
+      )}
 
       {error && (
         <div
@@ -2333,7 +2355,7 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
                                 }
                                 setTipoRapido(activa ? '' : accion.nombre)
                                 setTipo(accion.nombre)
-                                setResultado((actual) => resultadoAlCambiarTipo(accion.nombre, actual))
+                                setResultado((actual) => resultadoAlCambiarSegunCatalogo(catalogo, accion.nombre, actual))
                                 setError('')
                                 setMensaje('')
                               }}
@@ -2469,7 +2491,7 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
                               value={tipo}
                               onChange={(e) => {
                                 setTipo(e.target.value)
-                                setResultado((actual) => resultadoAlCambiarTipo(e.target.value, actual))
+                                setResultado((actual) => resultadoAlCambiarSegunCatalogo(catalogo, e.target.value, actual))
                               }}
                             >
                               {TIPOS.map((t) => (
@@ -2517,20 +2539,22 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
                               </p>
                             </Campo>
 
-                            <Campo label="Resultado">
-                              <select
-                                className={inputClass}
-                                style={inputStyle}
-                                value={resultadoImplicito(tipo) ?? resultado}
-                                required={tipo === 'Despeje'}
-                                onChange={(e) => setResultado(e.target.value)}
-                              >
-                                {opcionesResultado(tipo).map((r) => (
-                                  <option key={r} value={r}>{r}</option>
-                                ))}
-                              </select>
-                              {tipo === 'Despeje' && <p className="mt-2 text-xs" style={{ color: A.secundario }}>{CRITERIO_DESPEJE}</p>}
-                            </Campo>
+                            {opcionesResultadoCatalogo(catalogo, tipo).length > 0 && (
+                              <Campo label="Resultado">
+                                <select
+                                  className={inputClass}
+                                  style={inputStyle}
+                                  value={resultadoImplicito(tipo, catalogo) ?? resultado}
+                                  required={tipo === 'Despeje'}
+                                  onChange={(e) => setResultado(e.target.value)}
+                                >
+                                  {opcionesResultadoCatalogo(catalogo, tipo).map((r) => (
+                                    <option key={r} value={r}>{r}</option>
+                                  ))}
+                                </select>
+                                {tipo === 'Despeje' && <p className="mt-2 text-xs" style={{ color: A.secundario }}>{CRITERIO_DESPEJE}</p>}
+                              </Campo>
+                            )}
                           </div>
 
                           {!tiempoAutomatico && (
@@ -2727,7 +2751,7 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
                           onChange={(e) => setEdicionEvento((a) => ({
                             ...a,
                             tipo: e.target.value,
-                            resultado: resultadoAlCambiarTipo(e.target.value, a.resultado),
+                            resultado: resultadoAlCambiarSegunCatalogo(catalogo, e.target.value, a.resultado),
                           }))}
                         >
                           {TIPOS.map((t) => (
@@ -2796,24 +2820,28 @@ export default function AnalisisSection({ escrituraAutorizada = true, estadoAuto
                         </select>
                       </Campo>
 
-                      <Campo label="Resultado">
-                        <select
-                          className={inputClass}
-                          style={inputStyle}
-                          value={resultadoImplicito(edicionEvento.tipo) ?? edicionEvento.resultado}
-                          required={edicionEvento.tipo === 'Despeje'}
-                          onChange={(e) => setEdicionEvento((a) => ({
-                            ...a,
-                            resultado: e.target.value,
-                          }))}
-                        >
-                          {!resultadoImplicito(edicionEvento.tipo) && <option value="" disabled={edicionEvento.tipo === 'Despeje'}>Pendiente de completar</option>}
-                          {opcionesResultado(edicionEvento.tipo).map((r) => (
-                            <option key={r} value={r}>{r}</option>
-                          ))}
-                        </select>
-                        {edicionEvento.tipo === 'Despeje' && <p className="mt-2 text-xs" style={{ color: A.secundario }}>{CRITERIO_DESPEJE}</p>}
-                      </Campo>
+                      {opcionesEdicion.length > 0 && (
+                        <Campo label="Resultado">
+                          <select
+                            className={inputClass}
+                            style={inputStyle}
+                            value={resultadoImplicito(edicionEvento.tipo, catalogo) ?? edicionEvento.resultado}
+                            required={edicionEvento.tipo === 'Despeje'}
+                            onChange={(e) => setEdicionEvento((a) => ({
+                              ...a,
+                              resultado: e.target.value,
+                            }))}
+                          >
+                            {!resultadoImplicito(edicionEvento.tipo, catalogo) && <option value="" disabled={edicionEvento.tipo === 'Despeje'}>Pendiente de completar</option>}
+                            {/* Un valor cargado antes que ya no está entre las opciones se muestra, para no cambiarlo sin aviso. */}
+                            {resultadoAnteriorEdicion && <option value={resultadoAnteriorEdicion}>{resultadoAnteriorEdicion} (valor anterior)</option>}
+                            {opcionesEdicion.map((r) => (
+                              <option key={r} value={r}>{r}</option>
+                            ))}
+                          </select>
+                          {edicionEvento.tipo === 'Despeje' && <p className="mt-2 text-xs" style={{ color: A.secundario }}>{CRITERIO_DESPEJE}</p>}
+                        </Campo>
+                      )}
 
                       <Campo label="Observaciones">
                         <input

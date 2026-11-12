@@ -19,6 +19,7 @@
   --ui-alerta: #e8b84a;
   --ui-peligro: #ef4a4a;
   --ui-neutro: #9a978a;
+  --ui-info: #60a5fa;
   --ui-texto-sobre-estado: #0b0b0a;
   --marca-amarillo: #f4c400;
   --marca-negro: #0b0b0a;
@@ -241,6 +242,7 @@
     --ui-alerta: #8a5f00;
     --ui-peligro: #b42323;
     --ui-neutro: #5c594e;
+    --ui-info: #1d4ed8;
     --ui-texto-sobre-estado: #ffffff;
     --analisis-azul: #1D4ED8;
     --escudo-fondo-opacidad: 0.06;
